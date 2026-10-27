@@ -8,7 +8,7 @@ import { BookingForm } from "@/components/booking-form";
 import { PageShell } from "@/components/page-shell";
 import { startInquiry } from "@/app/actions/messages";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { getTrip, getTripProof } from "@/lib/data";
+import { getCreditBalance, getTrip, getTripProof } from "@/lib/data";
 import { isSupabaseConfigured } from "@/lib/env";
 import { TripProofForm } from "@/components/verification-forms";
 import { isUpcoming, kg, longDate, memberSince, timeLabel } from "@/lib/format";
@@ -36,7 +36,10 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
   const left = Math.max(0, trip.capacity_kg - trip.reserved_kg);
   const traveler = trip.traveler;
   const isOwner = userId === trip.traveler_id;
-  const proof = isOwner && isSupabaseConfigured ? await getTripProof(trip.id) : null;
+  const [proof, credit] = await Promise.all([
+    isOwner && isSupabaseConfigured ? getTripProof(trip.id) : null,
+    userId && !isOwner && isSupabaseConfigured ? getCreditBalance(userId) : 0,
+  ]);
   const bookable = trip.status === "published" && left >= 0.5 && isUpcoming(trip.departure_at);
 
   return (
@@ -217,8 +220,11 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
                 <div className="flex gap-3">
                   <House className="mt-0.5 h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
                   <div>
-                    <dt className="font-semibold">Livraison à domicile possible · +{euros(trip.home_delivery_cents)}</dt>
-                    <dd className="text-muted">{trip.home_delivery_area}</dd>
+                    <dt className="font-semibold">Livraison à domicile en option · +{euros(trip.home_delivery_cents)}</dt>
+                    <dd className="text-muted">
+                      Si le destinataire ne peut pas venir au point de rendez-vous, le voyageur lui apporte le colis
+                      {trip.home_delivery_area ? ` (${trip.home_delivery_area})` : ""}.
+                    </dd>
                   </div>
                 </div>
               ) : null}
@@ -292,10 +298,11 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
               <BookingForm
                 tripId={trip.id}
                 pricePerKgCents={trip.price_per_kg_cents}
-                maxKg={Math.min(50, left)}
+                maxKg={left}
                 acceptedCategories={trip.accepted_categories}
                 homeDeliveryCents={trip.home_delivery_cents}
                 homeDeliveryArea={trip.home_delivery_area}
+                creditCents={credit}
               />
             )}
           </div>

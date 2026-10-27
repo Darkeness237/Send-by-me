@@ -6,7 +6,8 @@ import { PageShell } from "@/components/page-shell";
 import { SearchForm } from "@/components/search-form";
 import { TripTag } from "@/components/trip-tag";
 import { ButtonLink, buttonClass } from "@/components/ui/button";
-import { searchTrips } from "@/lib/data";
+import { getMarketPrices, searchTrips } from "@/lib/data";
+import { priceGuide, priceLevel } from "@/lib/price-guide";
 import { isSupabaseConfigured } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -32,7 +33,7 @@ function clean(sp: SP) {
 async function Results({ searchParams }: { searchParams: Promise<SP> }) {
   const raw = await searchParams;
   const q = clean(raw);
-  const trips = await searchTrips(q);
+  const [trips, market] = await Promise.all([searchTrips(q), getMarketPrices()]);
 
   const title =
     q.from && q.to ? `${q.from} → ${q.to}` : q.from ? `Départs de ${q.from}` : q.to ? `Arrivées à ${q.to}` : "Prochains trajets";
@@ -56,7 +57,7 @@ async function Results({ searchParams }: { searchParams: Promise<SP> }) {
         <ul className="mt-5 space-y-4">
           {trips.map((t) => (
             <li key={t.id}>
-              <TripTag trip={t} />
+              <TripTag trip={t} goodPrice={priceLevel(t.price_per_kg_cents, priceGuide(t.from_city, t.to_city, t.mode, market)) === "attractive"} />
             </li>
           ))}
         </ul>

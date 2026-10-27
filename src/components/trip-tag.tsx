@@ -7,7 +7,7 @@ import { dayLabel, kg, timeLabel } from "@/lib/format";
 import type { Trip } from "@/lib/types";
 
 /** Carte trajet en forme d'étiquette bagage. */
-export function TripTag({ trip }: { trip: Trip }) {
+export function TripTag({ trip, goodPrice }: { trip: Trip; goodPrice?: boolean }) {
   const left = Math.max(0, trip.capacity_kg - trip.reserved_kg);
   const pct = Math.min(100, (trip.reserved_kg / trip.capacity_kg) * 100);
   const traveler = trip.traveler;
@@ -43,6 +43,7 @@ export function TripTag({ trip }: { trip: Trip }) {
             <span className="wide tabular text-2xl font-extrabold text-ink">{euros(trip.price_per_kg_cents)}</span>
             <span className="text-sm text-muted"> /kg</span>
           </p>
+          {goodPrice && <span className="mt-1 rounded-full bg-ok-pale px-2 py-0.5 text-xs font-semibold text-ok">Bon prix</span>}
         </div>
       </div>
 

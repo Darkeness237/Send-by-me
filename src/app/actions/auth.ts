@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isSupabaseConfigured, SITE_URL } from "@/lib/env";
+import { cleanReferralCode } from "@/lib/referral";
 import { createClient } from "@/lib/supabase/server";
 
 export type FormState = { error?: string; ok?: string } | null;
@@ -72,6 +73,8 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
         phone: parsed.data.phone || null,
         country: parsed.data.country || null,
         intent: parsed.data.intent,
+        // Rattachement au parrain par un déclencheur en base (code vérifié côté serveur).
+        referral_code: cleanReferralCode(formData.get("parrain")),
       },
       emailRedirectTo: `${SITE_URL}/auth/confirm`,
     },
@@ -98,11 +101,12 @@ export async function signOut() {
 async function signInWithProvider(provider: "google" | "facebook", formData: FormData) {
   if (!isSupabaseConfigured) redirect("/connexion?erreur=demo");
   const next = safeNext(formData.get("suite"));
+  const code = cleanReferralCode(formData.get("parrain"));
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${SITE_URL}/auth/confirm?suite=${encodeURIComponent(next)}`,
+      redirectTo: `${SITE_URL}/auth/confirm?suite=${encodeURIComponent(next)}${code ? `&parrain=${code}` : ""}`,
       ...(provider === "google" ? { queryParams: { prompt: "select_account" } } : { scopes: "email public_profile" }),
     },
   });

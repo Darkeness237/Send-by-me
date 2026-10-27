@@ -42,7 +42,7 @@ function refresh(bookingId: string) {
 // ── Demande de réservation (expéditeur) ─────────────────────────
 const requestSchema = z.object({
   trip_id: uuid,
-  weight_kg: z.coerce.number().min(0.5, "0,5 kg minimum").max(50, "50 kg maximum"),
+  weight_kg: z.coerce.number().min(0.5, "0,5 kg minimum").max(300, "300 kg maximum"),
   category: z.enum(categoryIds, { error: "Choisissez un type de colis" }),
   description: z.string().trim().min(3, "Décrivez le contenu du colis").max(500),
   recipient_name: z.string().trim().min(2, "Nom du destinataire manquant").max(80),
@@ -80,7 +80,6 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
     return { error: "Ce voyageur n'accepte pas ce type de colis." };
 
   const wantsDelivery = d.home_delivery === "on";
-  if (wantsDelivery && !trip.home_delivery_cents) return { error: "Ce voyageur ne propose pas la livraison à domicile." };
   if (wantsDelivery && (d.delivery_address ?? "").length < 5) return { error: "Indiquez l'adresse de livraison du destinataire." };
 
   const { count } = await admin
@@ -116,6 +115,8 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
     .single();
 
   if (error || !booking) return { error: "La demande n'a pas pu être envoyée. Réessayez." };
+  // Crédit de parrainage : déduit des frais, au plus la commission Send By Me (la part du voyageur est intacte).
+  await admin.rpc("apply_booking_credit", { p_booking_id: booking.id, p_max_cents: q.commissionCents });
   redirect(`/reservations/${booking.id}`);
 }
 

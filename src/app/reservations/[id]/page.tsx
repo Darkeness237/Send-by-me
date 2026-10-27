@@ -123,6 +123,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
                 <dd className="tabular text-sm text-muted">
                   Transport {euros(booking.base_cents)}
                   {booking.delivery_cents ? ` · livraison ${euros(booking.delivery_cents)}` : ""} · frais de service {euros(booking.fee_cents)}
+                  {booking.discount_cents ? ` · crédit parrainage −${euros(booking.discount_cents)}` : ""}
                 </dd>
               )}
             </div>

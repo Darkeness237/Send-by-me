@@ -33,7 +33,6 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   // Vol : compagnie, numéro, aéroports, franchise bagage (contrôles automatiques)
   await ta.selectOption('#carrier', 'AF');
   await ta.fill('#transport_ref', 'AF 999');
-  await ta.fill('#baggage_allowance_kg', '46');
   await ta.check('input[name=ticket_name_matches]');
   // Erreur volontaire : un vol Air France ne commence pas par SN
   await ta.fill('#transport_ref', 'SN205');
@@ -41,8 +40,7 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   await ta.waitForSelector('text=ne correspond pas à la compagnie');
   log('numéro de vol incohérent avec la compagnie → refusé');
   await ta.fill('#transport_ref', 'AF 946');
-  // Livraison à domicile proposée
-  await ta.check('input[name=home_delivery]');
+  // Forfait de livraison à domicile (l'option est proposée sur tous les trajets)
   await ta.fill('#home_delivery_price', '10');
   await ta.fill('#home_delivery_area', 'Douala : Akwa, Bonapriso');
   await shot(ta, '01-publier');

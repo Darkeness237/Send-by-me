@@ -15,13 +15,15 @@ type Props = {
   acceptedCategories: string[];
   homeDeliveryCents?: number | null;
   homeDeliveryArea?: string | null;
+  creditCents?: number;
 };
 
-export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories, homeDeliveryCents, homeDeliveryArea }: Props) {
+export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories, homeDeliveryCents, homeDeliveryArea, creditCents = 0 }: Props) {
   const [state, action, pending] = useActionState(requestBooking, null);
   const [weight, setWeight] = useState(Math.min(5, maxKg));
   const [delivery, setDelivery] = useState(false);
   const q = quote(pricePerKgCents, weight || 0.5, delivery && homeDeliveryCents ? homeDeliveryCents : 0);
+  const discount = Math.min(creditCents, q.commissionCents);
   const categories = CATEGORIES.filter((c) => acceptedCategories.includes(c.id));
 
   return (
@@ -81,7 +83,8 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
             <span>
               <span className="block font-semibold">Livraison à domicile · +{euros(homeDeliveryCents)}</span>
               <span className="block text-sm text-muted">
-                Le voyageur apporte le colis chez le destinataire{homeDeliveryArea ? ` (${homeDeliveryArea})` : ""}.
+                Le destinataire ne peut pas aller au point de rendez-vous ? Le voyageur lui apporte le colis
+                {homeDeliveryArea ? ` (${homeDeliveryArea})` : ""}.
               </span>
             </span>
           </label>
@@ -121,9 +124,15 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
           <dt>Frais de service</dt>
           <dd>{euros(q.feeCents)}</dd>
         </div>
+        {discount > 0 && (
+          <div className="flex justify-between font-semibold text-ok">
+            <dt>Crédit parrainage</dt>
+            <dd>−{euros(discount)}</dd>
+          </div>
+        )}
         <div className="flex justify-between border-t border-line pt-2 text-lg font-bold">
           <dt>Total</dt>
-          <dd>{euros(q.totalCents)}</dd>
+          <dd>{euros(q.totalCents - discount)}</dd>
         </div>
       </dl>
 

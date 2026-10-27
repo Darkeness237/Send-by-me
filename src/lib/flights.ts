@@ -82,8 +82,6 @@ export type FlightInput = {
   toAirport: string;
   hasStopover: boolean;
   departureUtc: Date;
-  capacityKg: number;
-  baggageAllowanceKg: number | null;
 };
 
 export type FlightCheckResult = {
@@ -113,16 +111,6 @@ export async function checkFlight(input: FlightInput): Promise<FlightCheckResult
 
   const toOk = airportsFor(input.toCity).includes(input.toAirport);
   notes.push({ ok: toOk, label: toOk ? `Arrivée à ${input.toAirport}, cohérente avec ${input.toCity}` : `L'aéroport ${input.toAirport} ne dessert pas ${input.toCity}` });
-
-  if (input.baggageAllowanceKg != null) {
-    const bagOk = input.capacityKg <= input.baggageAllowanceKg;
-    notes.push({
-      ok: bagOk,
-      label: bagOk
-        ? `Kilos proposés compris dans la franchise bagage (${input.baggageAllowanceKg} kg)`
-        : `Kilos proposés supérieurs à la franchise bagage (${input.baggageAllowanceKg} kg)`,
-    });
-  }
 
   const basicOk = notes.every((n) => n.ok);
   const live = basicOk ? await lookupFlight(input) : null;

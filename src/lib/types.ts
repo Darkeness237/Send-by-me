@@ -87,6 +87,7 @@ export type Booking = {
   delivery_cents?: number;
   delivery_address?: string | null;
   fee_cents: number;
+  discount_cents?: number;
   total_cents: number;
   status: BookingStatus;
   payout_status?: PayoutStatus;

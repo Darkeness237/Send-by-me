@@ -7,16 +7,28 @@ import { submitKeepingValues } from "@/components/ui/keep-form";
 import { Field, FormMessage, Input, Select, Textarea } from "@/components/ui/field";
 import { AIRLINES, airportsFor, FLIGHT_NUMBER_RE, normalizeFlightNumber } from "@/lib/flights";
 import { PLACES } from "@/lib/places";
+import { priceGuide, priceLevel, type MarketPrice } from "@/lib/price-guide";
+import { euros } from "@/lib/pricing";
 import { CATEGORIES, type TripMode } from "@/lib/types";
 
-export function PublishForm() {
+const LEVEL = {
+  attractive: { label: "Prix attractif : vous recevrez plus de demandes", bar: "bg-ok", text: "text-ok" },
+  fair: { label: "Prix juste, dans la moyenne de la ligne", bar: "bg-ok", text: "text-ok" },
+  high: { label: "Au-dessus du prix conseillé : vous risquez de recevoir moins de demandes", bar: "bg-signal", text: "text-signal-deep" },
+  over: { label: "Trop élevé : le prix maximum sur cette ligne est dépassé", bar: "bg-danger", text: "text-danger" },
+} as const;
+
+export function PublishForm({ market }: { market: MarketPrice[] }) {
   const [state, action, pending] = useActionState(publishTrip, null);
   const [mode, setMode] = useState<TripMode>("plane");
   const [fromCity, setFromCity] = useState("");
   const [toCity, setToCity] = useState("");
   const [carrier, setCarrier] = useState("");
   const [flight, setFlight] = useState("");
-  const [delivery, setDelivery] = useState(false);
+  const [price, setPrice] = useState(9);
+  const guide = priceGuide(fromCity, toCity, mode, market);
+  const priceCents = Math.round((price || 0) * 100);
+  const level = priceLevel(priceCents, guide);
 
   const fromAirports = airportsFor(fromCity);
   const toAirports = airportsFor(toCity);
@@ -121,8 +133,8 @@ export function PublishForm() {
                 ))}
               </Select>
             </Field>
-            <Field label="Franchise bagage en soute (kg)" htmlFor="baggage_allowance_kg" hint="Indiquée sur votre billet, par exemple 2 × 23 kg = 46.">
-              <Input id="baggage_allowance_kg" name="baggage_allowance_kg" type="number" min={0} max={200} step={1} required defaultValue={23} />
+            <Field label="Bagages inclus dans le billet (kg)" htmlFor="baggage_allowance_kg" hint="Facultatif. Vous pouvez proposer plus si vous ajoutez des valises.">
+              <Input id="baggage_allowance_kg" name="baggage_allowance_kg" type="number" min={0} max={200} step={1} />
             </Field>
             <label className="flex items-center gap-3 self-end rounded-xl border border-line px-3.5 py-3 text-[15px] has-checked:border-brand has-checked:bg-brand-pale">
               <input type="checkbox" name="has_stopover" className="h-4 w-4 accent-brand" />
@@ -153,12 +165,48 @@ export function PublishForm() {
         <legend className="sr-only">Kilos et prix</legend>
         <h2 className="text-lg font-bold">Vos kilos</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Kilos disponibles" htmlFor="capacity_kg">
-            <Input id="capacity_kg" name="capacity_kg" type="number" min={1} max={100} step={0.5} required defaultValue={10} />
+          <Field label="Kilos disponibles" htmlFor="capacity_kg" hint="Toutes vos valises comprises, jusqu'à 300 kg.">
+            <Input id="capacity_kg" name="capacity_kg" type="number" min={1} max={300} step={0.5} required defaultValue={10} />
           </Field>
-          <Field label="Prix au kilo (€)" htmlFor="price_per_kg" hint="C'est ce que vous recevez. Les frais de service sont payés par l'expéditeur.">
-            <Input id="price_per_kg" name="price_per_kg" type="number" min={1} max={100} step={0.5} required defaultValue={9} />
+          <Field label="Prix au kilo (€)" htmlFor="price_per_kg" hint="C'est ce que vous recevez par kilo.">
+            <Input
+              id="price_per_kg"
+              name="price_per_kg"
+              type="number"
+              min={1}
+              max={guide.maxCents / 100}
+              step={0.5}
+              required
+              value={price || ""}
+              onChange={(e) => setPrice(Number(e.target.value))}
+            />
           </Field>
+        </div>
+
+        <div className="rounded-2xl bg-paper p-4" aria-live="polite">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="font-semibold">
+              Prix conseillé : {euros(guide.lowCents)} à {euros(guide.highCents)} le kilo
+            </p>
+            <p className="text-sm text-muted">
+              {guide.source === "market" ? `D'après ${guide.sample} annonces sur cette ligne` : "Estimation pour ce type de trajet"}
+            </p>
+          </div>
+          {/* Jauge : zone conseillée au centre, plafond à droite */}
+          <div className="relative mt-3 h-2 rounded-full bg-line" aria-hidden="true">
+            <span
+              className="absolute inset-y-0 rounded-full bg-ok/40"
+              style={{ left: `${(guide.lowCents / guide.maxCents) * 100}%`, width: `${((guide.highCents - guide.lowCents) / guide.maxCents) * 100}%` }}
+            />
+            <span
+              className={`absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white ${LEVEL[level].bar}`}
+              style={{ left: `${Math.min(100, (priceCents / guide.maxCents) * 100)}%` }}
+            />
+          </div>
+          <p className={`mt-3 text-sm font-semibold ${LEVEL[level].text}`}>{LEVEL[level].label}</p>
+          <p className="mt-1 text-sm text-ink-soft">
+            Pour 5 kg, vous recevez <span className="font-semibold">{euros(priceCents * 5)}</span>. Maximum autorisé : {euros(guide.maxCents)} le kilo.
+          </p>
         </div>
         <div>
           <p className="text-sm font-semibold">Colis que vous acceptez</p>
@@ -183,24 +231,20 @@ export function PublishForm() {
           <Input id="dropoff_note" name="dropoff_note" maxLength={300} placeholder="À Akwa, le lendemain de mon arrivée" />
         </Field>
 
-        <div className="rounded-2xl border border-line p-4 has-[input[name=home_delivery]:checked]:border-brand">
-          <label className="flex items-start gap-3">
-            <input type="checkbox" name="home_delivery" checked={delivery} onChange={(e) => setDelivery(e.target.checked)} className="mt-1 h-4 w-4 accent-brand" />
-            <span>
-              <span className="block font-semibold">Je propose la livraison à domicile</span>
-              <span className="block text-sm text-muted">L&apos;expéditeur peut la choisir en option. Le forfait vous revient en entier.</span>
-            </span>
-          </label>
-          {delivery && (
-            <div className="mt-4 grid gap-4 sm:grid-cols-[160px_1fr]">
-              <Field label="Forfait (€)" htmlFor="home_delivery_price">
-                <Input id="home_delivery_price" name="home_delivery_price" type="number" min={1} max={100} step={0.5} required defaultValue={10} />
-              </Field>
-              <Field label="Zone desservie" htmlFor="home_delivery_area" hint="Quartiers ou villes où vous pouvez livrer.">
-                <Input id="home_delivery_area" name="home_delivery_area" required maxLength={200} placeholder="Douala : Akwa, Bonapriso, Bonamoussadi" />
-              </Field>
-            </div>
-          )}
+        <div className="rounded-2xl border border-line p-4">
+          <p className="font-semibold">Livraison à domicile</p>
+          <p className="mt-1 text-sm text-muted">
+            Si le destinataire ne peut pas venir au point de rendez-vous, l&apos;expéditeur peut choisir la livraison à domicile en option.
+            Fixez votre forfait : il vous revient en entier.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-[160px_1fr]">
+            <Field label="Forfait (€)" htmlFor="home_delivery_price">
+              <Input id="home_delivery_price" name="home_delivery_price" type="number" min={1} max={100} step={0.5} required defaultValue={10} />
+            </Field>
+            <Field label="Zone desservie" htmlFor="home_delivery_area" hint="Facultatif. Quartiers ou villes où vous livrez.">
+              <Input id="home_delivery_area" name="home_delivery_area" maxLength={200} placeholder="Douala : Akwa, Bonapriso, Bonamoussadi" />
+            </Field>
+          </div>
         </div>
 
         <Field label="Un mot pour les expéditeurs" htmlFor="notes" hint="Facultatif. Vos règles : colis ouverts, pas de liquides…">

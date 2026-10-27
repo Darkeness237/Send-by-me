@@ -1,9 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED = ["/espace", "/publier", "/reservations", "/admin"];
+const PROTECTED = ["/espace", "/publier", "/reservations", "/admin", "/messages"];
 
 export async function proxy(request: NextRequest) {
+  // Retour de connexion (Google, Facebook, e-mail) arrivé sur l'accueil : Supabase y renvoie quand
+  // l'adresse de retour n'est pas dans sa liste autorisée. On le fait suivre vers /auth/confirm.
+  const { pathname, searchParams } = request.nextUrl;
+  if (pathname === "/" && (searchParams.has("code") || searchParams.has("token_hash"))) {
+    const confirm = request.nextUrl.clone();
+    confirm.pathname = "/auth/confirm";
+    return NextResponse.redirect(confirm);
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return NextResponse.next();

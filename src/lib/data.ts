@@ -5,6 +5,7 @@ import { demoTrips } from "./demo";
 import { isSupabaseConfigured } from "./env";
 import { normalize } from "./places";
 import { createClient } from "./supabase/server";
+import { computeMarket, type MarketPrice } from "./price-guide";
 import type { Booking, Profile, Trip } from "./types";
 
 const TRIP_SELECT =
@@ -283,4 +284,55 @@ export async function getThreadMessages(thread: { bookingId?: string; inquiryId?
   q = thread.bookingId ? q.eq("booking_id", thread.bookingId) : q.eq("inquiry_id", thread.inquiryId!);
   const { data } = await q.order("created_at", { ascending: true }).limit(500);
   return data ?? [];
+}
+
+/** Prix observés par ligne sur les 6 derniers mois (pour le prix conseillé). */
+export async function getMarketPrices(): Promise<MarketPrice[]> {
+  await connection();
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const since = new Date(Date.now() - 180 * 864e5).toISOString();
+  const { data } = await supabase
+    .from("trips")
+    .select("from_city, to_city, mode, price_per_kg_cents")
+    .neq("status", "cancelled")
+    .gte("created_at", since)
+    .limit(5000);
+  return computeMarket((data ?? []) as Parameters<typeof computeMarket>[0]);
+}
+
+// ── Parrainage ──────────────────────────────────────────────────
+export async function getCreditBalance(userId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase.from("credit_entries").select("amount_cents").eq("user_id", userId);
+  return (data ?? []).reduce((n, e) => n + (e.amount_cents as number), 0);
+}
+
+export async function getReferrer(code: string) {
+  await connection();
+  if (!isSupabaseConfigured) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.from("profiles").select("full_name").eq("referral_code", code).maybeSingle();
+  return data as { full_name: string } | null;
+}
+
+export async function getReferralStats(userId: string) {
+  const supabase = await createClient();
+  const [{ data: profile }, { data: referrals }, { data: credits }] = await Promise.all([
+    supabase.from("profiles").select("referral_code").eq("id", userId).single(),
+    supabase.from("referrals").select("status, created_at, referee:profiles!referrals_referee_id_fkey(full_name)").eq("referrer_id", userId).order("created_at", { ascending: false }),
+    supabase.from("credit_entries").select("amount_cents, reason, created_at").eq("user_id", userId).order("created_at", { ascending: false }),
+  ]);
+  const list = (referrals ?? []).map((r) => ({
+    status: r.status as "pending" | "rewarded",
+    created_at: r.created_at as string,
+    name: (first(r.referee as unknown) as { full_name: string } | null)?.full_name || "Membre",
+  }));
+  return {
+    code: (profile?.referral_code as string) ?? "",
+    referrals: list,
+    balance: (credits ?? []).reduce((n, e) => n + (e.amount_cents as number), 0),
+    earned: (credits ?? []).filter((e) => e.reason === "referral_reward").reduce((n, e) => n + (e.amount_cents as number), 0),
+    credits: (credits ?? []) as { amount_cents: number; reason: string; created_at: string }[],
+  };
 }

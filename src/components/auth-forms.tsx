@@ -57,7 +57,7 @@ function passwordStrength(pw: string) {
   return { level: 3, label: "Solide" };
 }
 
-export function SignUpForm({ next }: { next?: string }) {
+export function SignUpForm({ next, referral }: { next?: string; referral?: string }) {
   const [state, action, pending] = useActionState(signUp, null);
   const [password, setPassword] = useState("");
   const strength = passwordStrength(password);
@@ -65,6 +65,7 @@ export function SignUpForm({ next }: { next?: string }) {
   return (
     <form action={action} onSubmit={submitKeepingValues(action)} className="space-y-5">
       <input type="hidden" name="suite" value={next ?? ""} />
+      {referral && <input type="hidden" name="parrain" value={referral} />}
 
       <fieldset>
         <legend className="text-sm font-semibold">Vous souhaitez</legend>

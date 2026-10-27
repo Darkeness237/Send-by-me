@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/env";
+import { getMarketPrices } from "@/lib/data";
 import { checkFlight, normalizeFlightNumber } from "@/lib/flights";
+import { priceGuide } from "@/lib/price-guide";
+import { euros } from "@/lib/pricing";
 import { zonedToUtc } from "@/lib/format";
 import { findPlace } from "@/lib/places";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -21,7 +24,7 @@ const tripSchema = z
     departure_date: z.iso.date("Date de départ invalide"),
     departure_time: z.string().regex(/^\d{2}:\d{2}$/, "Heure de départ invalide"),
     mode: z.enum(["plane", "car", "bus", "train"]),
-    capacity_kg: z.coerce.number().min(1, "Au moins 1 kg").max(100, "100 kg maximum"),
+    capacity_kg: z.coerce.number().min(1, "Au moins 1 kg").max(300, "300 kg maximum"),
     price_per_kg: z.coerce.number().min(1, "1 € minimum par kg").max(100, "100 € maximum par kg"),
     accepted_categories: z.array(z.enum(categoryIds)).min(1, "Choisissez au moins un type de colis"),
     pickup_note: z.string().trim().max(300).optional(),
@@ -34,8 +37,7 @@ const tripSchema = z
     has_stopover: z.literal("on").optional(),
     baggage_allowance_kg: z.coerce.number().min(0).max(200).optional(),
     ticket_name_matches: z.literal("on").optional(),
-    home_delivery: z.literal("on").optional(),
-    home_delivery_price: z.coerce.number().min(1, "Forfait de livraison : 1 € minimum").max(100, "Forfait de livraison : 100 € maximum").optional(),
+    home_delivery_price: z.coerce.number().min(1, "Forfait de livraison : 1 € minimum").max(100, "Forfait de livraison : 100 € maximum").default(10),
     home_delivery_area: z.string().trim().max(200).optional(),
   })
   .refine((d) => d.from_city.toLowerCase() !== d.to_city.toLowerCase(), {
@@ -67,8 +69,8 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
   let transport: Record<string, unknown> = {};
   let transportCheck: Awaited<ReturnType<typeof checkFlight>> | null = null;
   if (d.mode === "plane") {
-    if (!d.carrier || !d.transport_ref || !d.from_airport || !d.to_airport || d.baggage_allowance_kg == null) {
-      return { error: "Indiquez la compagnie, le numéro de vol, les aéroports et votre franchise bagage." };
+    if (!d.carrier || !d.transport_ref || !d.from_airport || !d.to_airport) {
+      return { error: "Indiquez la compagnie, le numéro de vol et les aéroports." };
     }
     if (d.ticket_name_matches !== "on") return { error: "Confirmez que le nom sur votre billet correspond à votre pièce d'identité." };
     const flightNumber = normalizeFlightNumber(d.transport_ref);
@@ -81,8 +83,6 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
       toAirport: d.to_airport,
       hasStopover: d.has_stopover === "on",
       departureUtc: departure,
-      capacityKg: d.capacity_kg,
-      baggageAllowanceKg: d.baggage_allowance_kg,
     });
     if (check.inputError) return { error: `${check.inputError}. Vérifiez votre billet.` };
     transport = {
@@ -91,7 +91,7 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
       from_airport: d.from_airport,
       to_airport: d.to_airport,
       has_stopover: d.has_stopover === "on",
-      baggage_allowance_kg: d.baggage_allowance_kg,
+      baggage_allowance_kg: d.baggage_allowance_kg ?? null,
     };
     transportCheck = check;
   } else if (d.mode !== "car") {
@@ -99,9 +99,10 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
     transport = { carrier: d.carrier, transport_ref: d.transport_ref || null };
   }
 
-  const wantsDelivery = d.home_delivery === "on";
-  if (wantsDelivery && (!d.home_delivery_price || !d.home_delivery_area)) {
-    return { error: "Indiquez le forfait et la zone de livraison à domicile." };
+  // Plafond de prix de la ligne : le total payé par l'expéditeur doit rester raisonnable.
+  const guide = priceGuide(from?.city ?? d.from_city, to?.city ?? d.to_city, d.mode, await getMarketPrices());
+  if (Math.round(d.price_per_kg * 100) > guide.maxCents) {
+    return { error: `Prix trop élevé pour cette ligne : ${euros(guide.maxCents)} le kilo maximum (prix conseillé ${euros(guide.lowCents)} à ${euros(guide.highCents)}).` };
   }
 
   const supabase = await createClient();
@@ -109,8 +110,8 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
     .from("trips")
     .insert({
       ...transport,
-      home_delivery_cents: wantsDelivery ? Math.round(d.home_delivery_price! * 100) : null,
-      home_delivery_area: wantsDelivery ? d.home_delivery_area : null,
+      home_delivery_cents: Math.round(d.home_delivery_price * 100),
+      home_delivery_area: d.home_delivery_area || null,
       traveler_id: userId,
       from_city: from?.city ?? d.from_city,
       from_country: from?.country ?? "—",

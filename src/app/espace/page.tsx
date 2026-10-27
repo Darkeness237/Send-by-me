@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { Bell, Check, MessageCircle, Package, Plane, Shield, Trash2, UserRound, X } from "lucide-react";
+import { Bell, Check, Gift, MessageCircle, Package, Plane, Shield, Trash2, UserRound, X } from "lucide-react";
 import { deleteAlert } from "@/app/actions/account";
 import { acceptBooking, declineBooking } from "@/app/actions/bookings";
 import { cancelTrip } from "@/app/actions/trips";
@@ -46,6 +46,9 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
               <Shield className="h-4 w-4" aria-hidden="true" /> Administration
             </ButtonLink>
           )}
+          <ButtonLink href="/espace/parrainage" variant="outline" size="sm">
+            <Gift className="h-4 w-4" aria-hidden="true" /> Parrainage
+          </ButtonLink>
           <ButtonLink href="/messages" variant="outline" size="sm">
             <MessageCircle className="h-4 w-4" aria-hidden="true" /> Messages
           </ButtonLink>

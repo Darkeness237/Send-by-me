@@ -12,10 +12,11 @@ function GoogleLogo() {
 }
 
 /** Bouton « Continuer avec Google » (formulaire serveur, fonctionne sans JavaScript). */
-export function GoogleButton({ next }: { next?: string }) {
+export function GoogleButton({ next, referral }: { next?: string; referral?: string }) {
   return (
     <form action={signInWithGoogle}>
       <input type="hidden" name="suite" value={next ?? ""} />
+      {referral && <input type="hidden" name="parrain" value={referral} />}
       <button
         type="submit"
         className="flex h-13 w-full items-center justify-center gap-3 rounded-full border border-line bg-white text-[15px] font-semibold text-ink hover:border-ink/30"
@@ -38,10 +39,11 @@ function FacebookLogo() {
   );
 }
 
-export function FacebookButton({ next }: { next?: string }) {
+export function FacebookButton({ next, referral }: { next?: string; referral?: string }) {
   return (
     <form action={signInWithFacebook}>
       <input type="hidden" name="suite" value={next ?? ""} />
+      {referral && <input type="hidden" name="parrain" value={referral} />}
       <button
         type="submit"
         className="flex h-13 w-full items-center justify-center gap-3 rounded-full border border-line bg-white text-[15px] font-semibold text-ink hover:border-ink/30"
@@ -54,11 +56,11 @@ export function FacebookButton({ next }: { next?: string }) {
 }
 
 /** Les deux boutons de connexion sociale. */
-export function SocialButtons({ next }: { next?: string }) {
+export function SocialButtons({ next, referral }: { next?: string; referral?: string }) {
   return (
     <div className="space-y-3">
-      <GoogleButton next={next} />
-      <FacebookButton next={next} />
+      <GoogleButton next={next} referral={referral} />
+      <FacebookButton next={next} referral={referral} />
     </div>
   );
 }
