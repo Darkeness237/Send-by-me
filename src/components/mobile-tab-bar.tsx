@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
 import { MessageCircle, PackagePlus, Plane, Search, UserRound } from "lucide-react";
 
 const TABS = [
@@ -14,7 +15,19 @@ const TABS = [
 
 /** Barre d'onglets en bas d'écran sur mobile (comme une application) : envoyer et proposer ses kilos à portée de pouce. */
 export function MobileTabBar() {
-  const path = usePathname();
+  // L'onglet actif dépend de l'adresse : rendu sans onglet actif en attendant, pour ne pas bloquer la page.
+  return (
+    <Suspense fallback={<TabBar path="" />}>
+      <ActiveTabBar />
+    </Suspense>
+  );
+}
+
+function ActiveTabBar() {
+  return <TabBar path={usePathname()} />;
+}
+
+function TabBar({ path }: { path: string }) {
   return (
     <nav
       aria-label="Navigation principale"
