@@ -26,8 +26,9 @@ export default function Home() {
       <main>
         {/* Hero */}
         <section className="relative overflow-hidden bg-ink text-white">
-          <div className="mx-auto grid max-w-6xl gap-10 px-4 pt-10 pb-16 sm:px-6 md:pt-16 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-14 lg:pb-24">
-            <div>
+          {/* Mobile : texte, recherche, tableau. Desktop : texte | tableau, puis recherche sur toute la largeur. */}
+          <div className="mx-auto grid max-w-6xl gap-8 px-4 pt-10 pb-10 sm:px-6 md:pt-16 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-x-14 lg:gap-y-10 lg:pb-12">
+            <div className="lg:col-start-1 lg:row-start-1">
               <h1 className="display text-[40px] sm:text-[56px] lg:text-[64px]">
                 Vos colis voyagent dans la valise de quelqu&apos;un.
               </h1>
@@ -35,7 +36,7 @@ export default function Home() {
                 Des voyageurs vérifiés proposent leurs kilos libres entre l&apos;Europe et l&apos;Afrique. Vous payez en
                 ligne, et l&apos;argent reste bloqué jusqu&apos;à ce que votre destinataire ait le colis en main.
               </p>
-              <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/70">
+              <ul className="mt-6 hidden flex-wrap gap-x-6 gap-y-2 text-sm text-white/70 sm:flex">
                 <li className="flex items-center gap-2">
                   <BadgeCheck className="h-4 w-4 text-signal" aria-hidden="true" /> Identités vérifiées
                 </li>
@@ -47,12 +48,14 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-            <Suspense fallback={<div className="h-[300px] rounded-2xl bg-[#0b1630] ring-1 ring-white/10" />}>
-              <LiveBoard />
-            </Suspense>
-          </div>
-          <div className="relative mx-auto -mb-px max-w-6xl px-4 pb-8 sm:px-6 lg:-mt-6">
-            <SearchForm />
+            <div className="lg:col-span-2 lg:row-start-2">
+              <SearchForm />
+            </div>
+            <div className="lg:col-start-2 lg:row-start-1">
+              <Suspense fallback={<div className="h-[300px] rounded-2xl bg-[#0b1630] ring-1 ring-white/10" />}>
+                <LiveBoard />
+              </Suspense>
+            </div>
           </div>
         </section>
 

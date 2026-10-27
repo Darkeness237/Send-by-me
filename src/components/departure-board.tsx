@@ -29,7 +29,7 @@ export function DepartureBoard({ trips }: { trips: Trip[] }) {
         <span className="wide text-white/80">Prochains départs</span>
         <span>Kilos libres · prix au kg</span>
       </div>
-      <table className="w-full border-separate border-spacing-y-1.5 text-[13px] sm:text-[15px]">
+      <table className="w-full max-w-xl border-separate border-spacing-y-1.5 text-[13px] sm:text-[15px]">
         <caption className="sr-only">Prochains trajets avec des kilos disponibles</caption>
         <thead className="sr-only">
           <tr>

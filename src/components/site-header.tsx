@@ -34,7 +34,7 @@ export function SiteHeader({ tone = "light" }: { tone?: "light" | "dark" }) {
         <Link href="/" aria-label="Send By Me, accueil" className="shrink-0">
           <Logo tone={dark ? "light" : "dark"} />
         </Link>
-        <nav className={`ml-4 hidden items-center gap-1 text-sm font-medium md:flex ${dark ? "text-white/80" : "text-ink-soft"}`}>
+        <nav className={`ml-4 hidden items-center gap-1 text-sm font-medium lg:flex ${dark ? "text-white/80" : "text-ink-soft"}`}>
           <Link href="/recherche" className={`rounded-full px-3 py-2 ${dark ? "hover:bg-white/10" : "hover:bg-ink/5"}`}>
             Trouver un voyageur
           </Link>
