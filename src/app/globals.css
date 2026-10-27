@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+/*
+  Send By Me — design tokens
+  Univers : signalétique d'aéroport. Bleu nuit, bleu Send, jaune de signalétique.
+*/
+@theme {
+  --color-ink: #0f1e3d;
+  --color-ink-soft: #2a3a5c;
+  --color-muted: #5b6782;
+  --color-line: #dfe4ec;
+  --color-paper: #f4f6f9;
+  --color-card: #ffffff;
+  --color-brand: #0a7cd6;
+  --color-brand-deep: #075fa6;
+  --color-brand-pale: #e6f2fc;
+  --color-signal: #ffc21a;
+  --color-signal-deep: #e0a400;
+  --color-ok: #16a34a;
+  --color-ok-pale: #e8f6ed;
+  --color-warn: #b45309;
+  --color-warn-pale: #fdf3e2;
+  --color-danger: #c62828;
+  --color-danger-pale: #fdecec;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-tag: 14px;
+  --shadow-tag: 0 1px 0 rgb(15 30 61 / 0.04), 0 8px 24px -12px rgb(15 30 61 / 0.18);
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-signal);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Titres élargis, façon panneau d'aéroport */
+.display {
+  font-stretch: 118%;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+}
+.wide {
+  font-stretch: 112%;
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tableau des départs à volets */
+.flap {
+  display: inline-grid;
+  place-items: center;
+  width: 0.78em;
+  height: 1.18em;
+  margin-right: 2px;
+  border-radius: 3px;
+  background: linear-gradient(#1b2b4d 0 49%, #0b1630 51% 100%);
+  color: var(--color-signal);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.04);
+}
+.flap.blank {
+  color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .flap-anim {
+    animation: flap-in 0.5s cubic-bezier(0.3, 1.4, 0.6, 1) both;
+    transform-origin: 50% 50%;
+  }
+  @keyframes flap-in {
+    0% {
+      transform: rotateX(90deg);
+      opacity: 0;
+    }
+    100% {
+      transform: rotateX(0);
+      opacity: 1;
+    }
+  }
+}
+
+/* Encoche latérale des étiquettes bagage */
+.tag-notch {
+  position: relative;
+}
+.tag-notch::before,
+.tag-notch::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 999px;
+  background: var(--color-paper);
+}
+.tag-notch::before {
+  left: -9px;
+}
+.tag-notch::after {
+  right: -9px;
+}
+.perforation {
+  background-image: linear-gradient(90deg, var(--color-line) 50%, transparent 50%);
+  background-size: 10px 1px;
+  background-repeat: repeat-x;
+  height: 1px;
+}
+.perforation-y {
+  background-image: linear-gradient(180deg, var(--color-line) 50%, transparent 50%);
+  background-size: 1px 10px;
+  background-repeat: repeat-y;
+  width: 1px;
+}
