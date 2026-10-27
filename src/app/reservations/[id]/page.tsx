@@ -244,7 +244,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
       {/* Messagerie */}
       <aside className="flex max-h-[80vh] flex-col rounded-3xl bg-white ring-1 ring-line lg:sticky lg:top-6">
         <div className="flex flex-wrap items-center gap-3 border-b border-line p-5">
-          <Avatar name={other?.full_name || "Membre"} verified={other?.id_verified} certified={other?.certified} size={40} />
+          <Avatar name={other?.full_name || "Membre"} verified={other?.id_verified} certified={other?.certified} src={other?.avatar_url} size={40} />
           <div>
             <p className="font-semibold">{other?.full_name || "Membre"}</p>
             <p className="text-sm text-muted">{isSender ? "Voyageur" : "Expéditeur"}</p>

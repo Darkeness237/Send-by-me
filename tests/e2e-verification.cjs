@@ -35,7 +35,7 @@ async function signup(b, name, email, next = '/espace') {
   const uid = sql(`select id from auth.users where email='v${run}@test.fr'`);
   await m.waitForSelector('text=Faites certifier votre compte');
   await m.selectOption('#document_type', 'cni');
-  const inputs = m.locator('input[type=file]');
+  const inputs = m.locator('form:has(#document_type) input[type=file]');
   await inputs.nth(0).setInputFiles(fx('fixtures-recto.png'));
   await inputs.nth(1).setInputFiles(fx('fixtures-verso.png'));
   await inputs.nth(2).setInputFiles(fx('fixtures-selfie.png'));
@@ -101,6 +101,7 @@ async function signup(b, name, email, next = '/espace') {
   // Admin : valide les deux, les fichiers sont supprimés
   const a = await signup(b, 'Admin V.', `adm${run}@test.fr`);
   sql(`update auth.users set raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}' where email='adm${run}@test.fr'`);
+  sql(`update profiles set onboarded_at = now() where id = (select id from auth.users where email='adm${run}@test.fr')`);
   await a.context().clearCookies();
   await a.goto(BASE + '/connexion?suite=/admin');
   await a.fill('#email', `adm${run}@test.fr`); await a.fill('#password', 'motdepasse-solide-1');
@@ -131,12 +132,12 @@ async function signup(b, name, email, next = '/espace') {
   log('le membre voit son identité vérifiée sur son profil');
 
   // Adresse : 2e étape → compte certifié
-  await m.fill('#phone', '+33 6 12 34 56 78');
+  await m.fill('#addr_phone', '+33 6 12 34 56 78');
   await m.fill('#address_line', '12 rue des Lilas');
   await m.fill('#postal_code', '75011');
   await m.fill('#address_city', 'Paris');
   await m.fill('#country_addr', 'France');
-  await m.locator('input[type=file]').last().setInputFiles(fx('fixtures-recto.png'));
+  await m.locator('form:has(#address_line) input[type=file]').setInputFiles(fx('fixtures-recto.png'));
   await m.waitForFunction(() => document.querySelector('input[name="proof_path"]').value, null, { timeout: 20000 });
   await m.click('button:has-text("Envoyer mon justificatif")');
   await m.waitForSelector('text=/justificatif de domicile est en cours/');

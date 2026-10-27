@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED = ["/espace", "/publier", "/reservations", "/admin", "/messages"];
+const PROTECTED = ["/espace", "/publier", "/reservations", "/admin", "/messages", "/bienvenue", "/notifications", "/demandes/nouvelle"];
 
 export async function proxy(request: NextRequest) {
   // Retour de connexion (Google, Facebook, e-mail) arrivé sur l'accueil : Supabase y renvoie quand

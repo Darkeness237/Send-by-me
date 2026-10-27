@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession, getUserId } from "@/lib/supabase/server";
 import { applyDeliveryOutcome } from "@/lib/delivery-ops";
+import { notifyBooking } from "@/lib/notify-events";
 import { TRAVELER_STEPS, type TravelerStep } from "@/lib/tracking";
 
 const uuid = z.uuid();
@@ -27,6 +28,7 @@ export async function markTravelStep(bookingId: string, step: TravelerStep) {
 
   await db.from("booking_events").insert({ booking_id: bookingId, kind: step });
   if (step === "out_for_delivery") await db.from("bookings").update({ delivery_status: "out_for_delivery" }).eq("id", bookingId);
+  await notifyBooking(bookingId, step);
   revalidatePath(`/reservations/${bookingId}`);
 }
 

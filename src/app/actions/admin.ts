@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { notifySafe } from "@/lib/notify";
+import { notifyBooking } from "@/lib/notify-events";
 import { isStripeConfigured, stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession } from "@/lib/supabase/server";
@@ -77,6 +79,7 @@ export async function refundBooking(_: FormState, formData: FormData): Promise<F
   }
 
   const { data: ok } = await admin.rpc("refund_booking", { p_booking_id: b.id });
+  if (ok) await notifyBooking(b.id, "refunded");
   revalidatePath("/admin");
   revalidatePath(`/reservations/${b.id}`);
   return ok ? { ok: "Remboursement effectué." } : { error: "Remboursé sur Stripe, mais la réservation n'a pas pu être mise à jour : vérifiez-la." };
@@ -125,6 +128,13 @@ export async function reviewIdentity(_: FormState, formData: FormData): Promise<
   if (files.length) await db.storage.from(VERIF_BUCKET).remove(files);
   revalidatePath("/admin");
   const what = v.kind === "address" ? "Adresse vérifiée" : "Identité vérifiée";
+  await notifySafe(v.user_id, {
+    kind: `verification_${decision}`,
+    title: decision === "approved" ? `${what} !` : "Vérification refusée",
+    body: decision === "approved" ? "Votre badge est maintenant visible par les autres membres." : `Motif : ${reason}. Vous pouvez envoyer de nouveaux documents.`,
+    href: "/espace/profil",
+    email: true,
+  });
   return { ok: decision === "approved" ? `${what}. Documents supprimés.` : "Demande refusée. Documents supprimés." };
 }
 

@@ -5,17 +5,17 @@
   Charte issue du logo : marine (texte), bleu-vert (main droite, avion), orange (main gauche, colis), crème (fond du logo).
 */
 @theme {
-  --color-ink: #12324f;
-  --color-ink-soft: #2d4a66;
-  --color-muted: #5f6f82;
-  --color-line: #e5e0d6;
-  --color-paper: #f8f5ef;
+  --color-ink: #0e304c;
+  --color-ink-soft: #2b4964;
+  --color-muted: #5f6f80;
+  --color-line: #e8e1d3;
+  --color-paper: #fbf8f1;
   --color-card: #ffffff;
-  --color-brand: #137284;
-  --color-brand-deep: #0c5868;
-  --color-brand-pale: #e2f2f4;
-  --color-signal: #f28c28;
-  --color-signal-deep: #c2610f;
+  --color-brand: #2f7a82;
+  --color-brand-deep: #22606a;
+  --color-brand-pale: #e6f2f1;
+  --color-signal: #eb9332;
+  --color-signal-deep: #c46f14;
   --color-ok: #16a34a;
   --color-ok-pale: #e8f6ed;
   --color-warn: #b45309;
@@ -23,10 +23,10 @@
   --color-danger: #c62828;
   --color-danger-pale: #fdecec;
 
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-nunito), ui-rounded, ui-sans-serif, system-ui, sans-serif;
 
   --radius-tag: 14px;
-  --shadow-tag: 0 1px 0 rgb(18 50 79 / 0.04), 0 8px 24px -12px rgb(18 50 79 / 0.18);
+  --shadow-tag: 0 1px 0 rgb(14 48 76 / 0.04), 0 8px 24px -12px rgb(14 48 76 / 0.18);
 }
 
 :root {
@@ -58,13 +58,13 @@ body {
 
 /* Titres élargis, façon panneau d'aéroport */
 .display {
-  font-stretch: 118%;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.02;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
 }
 .wide {
-  font-stretch: 112%;
+  font-weight: 800;
+  letter-spacing: 0.01em;
 }
 .tabular {
   font-variant-numeric: tabular-nums;
@@ -136,4 +136,87 @@ body {
   background-size: 1px 10px;
   background-repeat: repeat-y;
   width: 1px;
+}
+
+/* ── Animation d'ouverture ─────────────────────────────────── */
+.intro-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-paper);
+  pointer-events: none;
+  animation: intro-out 0.5s ease-in 1.9s forwards;
+}
+.intro-splash__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.intro-splash__base {
+  animation: intro-pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+/* L'avion part du bas de l'anneau, prend de la vitesse et monte à sa place. */
+.intro-splash__plane {
+  animation: intro-takeoff 1s cubic-bezier(0.55, 0, 0.25, 1) 0.35s both;
+}
+.intro-splash__word {
+  animation: intro-rise 0.5s ease-out 1s both;
+}
+.intro-splash__trail {
+  height: 3px;
+  width: 150px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-signal), var(--color-brand));
+  transform-origin: left;
+  animation: intro-trail 0.6s ease-out 1.2s both;
+}
+html.no-intro .intro-splash {
+  display: none;
+}
+@keyframes intro-pop {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes intro-takeoff {
+  0% { opacity: 0; transform: translate(-34%, 42%) rotate(14deg) scale(0.55); }
+  25% { opacity: 1; transform: translate(-24%, 34%) rotate(12deg) scale(0.62); }
+  70% { transform: translate(6%, -6%) rotate(-4deg) scale(1.04); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes intro-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes intro-trail {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes intro-out {
+  to { opacity: 0; visibility: hidden; }
+}
+
+/* Apparition douce des blocs en arrivant sur une page */
+.reveal {
+  animation: reveal-up 0.6s ease-out both;
+  animation-delay: var(--reveal-delay, 0s);
+}
+.reveal-delay-1 { --reveal-delay: 0.1s; }
+.reveal-delay-2 { --reveal-delay: 0.2s; }
+.reveal-delay-3 { --reveal-delay: 0.3s; }
+/* Pendant l'animation d'ouverture, les blocs attendent qu'elle s'efface. */
+html:not(.no-intro) .reveal {
+  animation-delay: calc(1.95s + var(--reveal-delay, 0s));
+}
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-splash { display: none; }
+  .reveal { animation: none; }
 }

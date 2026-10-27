@@ -27,36 +27,43 @@ const example = quote(900, 5);
 export default function Home() {
   return (
     <>
-      <SiteHeader tone="dark" />
+      <SiteHeader />
       <main>
         {/* Hero */}
-        <section className="relative overflow-hidden bg-ink text-white">
+        <section className="relative overflow-hidden bg-paper text-ink">
+          {/* Halos aux couleurs des deux mains du logo */}
+          <span className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-signal/15 blur-3xl" aria-hidden="true" />
+          <span className="pointer-events-none absolute -right-24 top-40 h-[28rem] w-[28rem] rounded-full bg-brand/15 blur-3xl" aria-hidden="true" />
           {/* Mobile : texte, recherche, tableau. Desktop : texte | tableau, puis recherche sur toute la largeur. */}
           <div className="mx-auto grid max-w-6xl gap-8 px-4 pt-10 pb-10 sm:px-6 md:pt-16 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-x-14 lg:gap-y-10 lg:pb-12">
             <div className="lg:col-start-1 lg:row-start-1">
-              <h1 className="display text-[40px] sm:text-[56px] lg:text-[64px]">
-                Vos colis voyagent dans la valise de quelqu&apos;un.
+              <h1 className="display reveal text-[40px] sm:text-[56px] lg:text-[64px]">
+                Vos colis <span className="text-brand">voyagent</span> dans la valise de{" "}
+                <span className="relative whitespace-nowrap">
+                  quelqu&apos;un.
+                  <span className="absolute inset-x-0 -bottom-1 h-2 rounded-full bg-signal/60" aria-hidden="true" />
+                </span>
               </h1>
-              <p className="mt-5 max-w-[34rem] text-lg leading-relaxed text-white/75">
+              <p className="reveal reveal-delay-1 mt-5 max-w-[34rem] text-lg leading-relaxed text-ink-soft">
                 Des voyageurs vérifiés proposent leurs kilos libres entre l&apos;Europe et l&apos;Afrique. Vous payez en
                 ligne, et l&apos;argent reste bloqué jusqu&apos;à ce que votre destinataire ait le colis en main.
               </p>
-              <ul className="mt-6 hidden flex-wrap gap-x-6 gap-y-2 text-sm text-white/70 sm:flex">
+              <ul className="mt-6 hidden flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-ink-soft sm:flex">
                 <li className="flex items-center gap-2">
-                  <BadgeCheck className="h-4 w-4 text-signal" aria-hidden="true" /> Identités vérifiées
+                  <BadgeCheck className="h-4 w-4 text-brand" aria-hidden="true" /> Identités vérifiées
                 </li>
                 <li className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-signal" aria-hidden="true" /> Paiement bloqué jusqu&apos;à la livraison
+                  <Lock className="h-4 w-4 text-brand" aria-hidden="true" /> Paiement bloqué jusqu&apos;à la livraison
                 </li>
                 <li className="flex items-center gap-2">
-                  <KeyRound className="h-4 w-4 text-signal" aria-hidden="true" /> Code de remise à 6 chiffres
+                  <KeyRound className="h-4 w-4 text-brand" aria-hidden="true" /> Code de remise à 6 chiffres
                 </li>
               </ul>
             </div>
-            <div className="lg:col-span-2 lg:row-start-2">
+            <div className="reveal reveal-delay-2 lg:col-span-2 lg:row-start-2">
               <SearchForm />
             </div>
-            <div className="relative lg:col-start-2 lg:row-start-1">
+            <div className="reveal reveal-delay-3 relative lg:col-start-2 lg:row-start-1">
               <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] bg-signal sm:aspect-[5/4] lg:aspect-[4/5]">
                 <Image
                   src={voyageuse}

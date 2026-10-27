@@ -1,17 +1,29 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { MessageCircle, Plus } from "lucide-react";
+import { Bell, MessageCircle, Plus } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { buttonClass } from "@/components/ui/button";
-import { getUnreadCount } from "@/lib/data";
+import { getUnreadCount, getUnreadNotificationCount } from "@/lib/data";
 import { getUserId } from "@/lib/supabase/server";
 
 async function AccountLinks({ dark }: { dark: boolean }) {
   const userId = await getUserId();
   if (userId) {
-    const unread = await getUnreadCount(userId);
+    const [unread, alerts] = await Promise.all([getUnreadCount(userId), getUnreadNotificationCount(userId)]);
     return (
       <>
+        <Link
+          href="/notifications"
+          aria-label={alerts ? `Notifications, ${alerts} non lues` : "Notifications"}
+          className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full ${dark ? "hover:bg-white/10" : "hover:bg-ink/5"}`}
+        >
+          <Bell className="h-5 w-5" aria-hidden="true" />
+          {alerts > 0 && (
+            <span className="tabular absolute -top-0.5 -right-0.5 min-w-4.5 rounded-full bg-signal px-1 text-center text-[11px] leading-4.5 font-bold text-ink">
+              {alerts > 9 ? "9+" : alerts}
+            </span>
+          )}
+        </Link>
         <Link
           href="/messages"
           aria-label={unread ? `Messages, ${unread} non lus` : "Messages"}
@@ -53,6 +65,9 @@ export function SiteHeader({ tone = "light" }: { tone?: "light" | "dark" }) {
         <nav className={`ml-4 hidden items-center gap-1 text-sm font-medium lg:flex ${dark ? "text-white/80" : "text-ink-soft"}`}>
           <Link href="/recherche" className={`rounded-full px-3 py-2 ${dark ? "hover:bg-white/10" : "hover:bg-ink/5"}`}>
             Trouver un voyageur
+          </Link>
+          <Link href="/demandes" className={`rounded-full px-3 py-2 ${dark ? "hover:bg-white/10" : "hover:bg-ink/5"}`}>
+            Demandes d&apos;envoi
           </Link>
           <Link href="/comment-ca-marche" className={`rounded-full px-3 py-2 ${dark ? "hover:bg-white/10" : "hover:bg-ink/5"}`}>
             Comment ça marche

@@ -10,7 +10,8 @@ import { signOut } from "@/app/actions/auth";
 import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { getMyAlerts, getMySendings, getMyTrips, getProfile } from "@/lib/data";
+import { RequestCard } from "@/components/request-card";
+import { getMyAlerts, getMyRequests, getMySendings, getMyTrips, getProfile } from "@/lib/data";
 import { dayLabel, kg } from "@/lib/format";
 import { codeFor, tzFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
@@ -25,8 +26,14 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
   const { userId, isAdmin } = await getSession();
   if (!userId) redirect("/connexion?suite=/espace");
   const { onglet } = await searchParams;
-  const tab = onglet === "trajets" ? "trajets" : "envois";
-  const [profile, sendings, trips, alerts] = await Promise.all([getProfile(userId), getMySendings(userId), getMyTrips(userId), getMyAlerts(userId)]);
+  const tab = onglet === "trajets" ? "trajets" : onglet === "demandes" ? "demandes" : "envois";
+  const [profile, sendings, trips, alerts, requests] = await Promise.all([
+    getProfile(userId),
+    getMySendings(userId),
+    getMyTrips(userId),
+    getMyAlerts(userId),
+    getMyRequests(userId),
+  ]);
   const pendingRequests = trips.flatMap((t) => t.bookings).filter((b) => b.status === "pending").length;
 
   return (
@@ -67,6 +74,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
         {[
           ["envois", "Mes envois", sendings.length],
           ["trajets", "Mes trajets", trips.length],
+          ["demandes", "Mes demandes", requests.filter((r) => r.status === "open").length],
         ].map(([key, label, n]) => (
           <Link
             key={key}
@@ -106,7 +114,19 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
         </section>
       )}
 
-      {tab === "envois" ? (
+      {tab === "demandes" ? (
+        <section className="mt-6 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-white p-5 ring-1 ring-line">
+            <p className="text-ink-soft">Décrivez votre colis : les trajets qui correspondent vous sont proposés.</p>
+            <ButtonLink href="/demandes/nouvelle" variant="signal" size="sm">
+              Publier une demande
+            </ButtonLink>
+          </div>
+          {requests.map((r) => (
+            <RequestCard key={r.id} r={r} />
+          ))}
+        </section>
+      ) : tab === "envois" ? (
         <section className="mt-6 space-y-3">
           {sendings.length === 0 && (
             <div className="rounded-3xl bg-white px-6 py-12 text-center ring-1 ring-line">

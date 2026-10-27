@@ -20,6 +20,15 @@ function safeNext(raw: string | null) {
   return raw && raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith("/\\") ? raw : "/espace";
 }
 
+/** Premier passage : écran de bienvenue (photo, téléphone, identité) avant d'aller plus loin. */
+async function afterLogin(supabase: Awaited<ReturnType<typeof createClient>>, next: string, skip = false) {
+  if (skip) return next;
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return next;
+  const { data: profile } = await supabase.from("profiles").select("onboarded_at").eq("id", data.user.id).maybeSingle();
+  return profile && !profile.onboarded_at ? `/bienvenue?suite=${encodeURIComponent(next)}` : next;
+}
+
 // Liens envoyés par e-mail : confirmation d'inscription et réinitialisation du mot de passe.
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
@@ -31,12 +40,12 @@ export async function GET(request: NextRequest) {
 
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
-    if (!error) return NextResponse.redirect(`${origin}${next}`);
+    if (!error) return NextResponse.redirect(`${origin}${await afterLogin(supabase, next, type === "recovery")}`);
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       await attachReferral(supabase, searchParams.get("parrain"));
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(`${origin}${await afterLogin(supabase, next)}`);
     }
   }
   return NextResponse.redirect(`${origin}/connexion?erreur=lien`);

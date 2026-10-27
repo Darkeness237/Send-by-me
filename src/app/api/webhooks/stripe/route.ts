@@ -1,6 +1,8 @@
 import { randomInt } from "node:crypto";
 import type Stripe from "stripe";
 import { requestPartnerDelivery } from "@/lib/delivery-partner";
+import { notifySafe } from "@/lib/notify";
+import { notifyBooking } from "@/lib/notify-events";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -37,6 +39,7 @@ export async function POST(request: Request) {
       const userId = vs.metadata?.user_id ?? vs.client_reference_id;
       if (userId && /^[0-9a-f-]{36}$/.test(userId)) {
         await createAdminClient().from("profiles").update({ id_verified: true }).eq("id", userId);
+        await notifySafe(userId, { kind: "verification_approved", title: "Identité vérifiée !", body: "Votre badge bleu est maintenant visible.", href: "/espace/profil", email: true });
       }
       break;
     }
@@ -86,6 +89,7 @@ async function markPaid(session: Stripe.Checkout.Session) {
       .from("booking_secrets")
       .upsert({ booking_id: bookingId, sender_id: booking.sender_id, delivery_code: code, attempts: 0 }, { onConflict: "booking_id", ignoreDuplicates: true });
     await scheduleHomeDelivery(bookingId);
+    await notifyBooking(bookingId, "paid");
   }
 }
 

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/env";
 import { getMarketPrices } from "@/lib/data";
 import { checkFlight, normalizeFlightNumber } from "@/lib/flights";
+import { notifySafe } from "@/lib/notify";
 import { priceGuide } from "@/lib/price-guide";
 import { euros } from "@/lib/pricing";
 import { zonedToUtc } from "@/lib/format";
@@ -151,6 +152,7 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
       .update({ transport_check: transportCheck.status, transport_check_notes: transportCheck.notes })
       .eq("id", data.id);
   }
+  await notifyMatchingRequesters(data.id, userId, from.city, to.city, departure, d.capacity_kg, d.accepted_categories);
   revalidatePath("/recherche");
   redirect(`/trajets/${data.id}?publie=1`);
 }
@@ -181,4 +183,33 @@ export async function cancelTrip(tripId: string) {
       .eq("status", "pending");
   }
   revalidatePath("/espace");
+}
+
+const escapeLike = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
+
+/** Nouveau trajet : les expéditeurs dont la demande correspond sont prévenus (e-mail compris). */
+async function notifyMatchingRequesters(tripId: string, travelerId: string, from: string, to: string, departure: Date, capacityKg: number, categories: string[]) {
+  const day = departure.toISOString().slice(0, 10);
+  const { data: requests } = await createAdminClient()
+    .from("shipment_requests")
+    .select("sender_id, weight_kg, category")
+    .eq("status", "open")
+    .ilike("from_city", escapeLike(from))
+    .ilike("to_city", escapeLike(to))
+    .lte("earliest_date", day)
+    .gte("latest_date", day)
+    .neq("sender_id", travelerId)
+    .limit(100);
+  const senders = new Set((requests ?? []).filter((r) => Number(r.weight_kg) <= capacityKg && categories.includes(r.category as string)).map((r) => r.sender_id as string));
+  await Promise.all(
+    [...senders].map((id) =>
+      notifySafe(id, {
+        kind: "trip_match",
+        title: `Nouveau trajet ${from} → ${to}`,
+        body: "Un voyageur part dans vos dates avec assez de kilos pour votre colis. Réservez avant qu'il ne soit complet.",
+        href: `/trajets/${tripId}`,
+        email: true,
+      }),
+    ),
+  );
 }

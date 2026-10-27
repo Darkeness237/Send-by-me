@@ -39,7 +39,7 @@ export function LiveRefresh({ bookingId, inquiryId }: { bookingId?: string; inqu
   return null;
 }
 
-/** Boîte de réception : rafraîchit la liste à chaque nouveau message reçu (la RLS ne transmet que ceux du membre). */
+/** Boîte de réception et notifications : rafraîchit à chaque nouveau message ou notification (la RLS filtre par membre). */
 export function LiveInbox() {
   const router = useRouter();
   useEffect(() => {
@@ -53,6 +53,7 @@ export function LiveInbox() {
       channel = supabase
         .channel("inbox")
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => router.refresh())
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, () => router.refresh())
         .subscribe();
     })();
     return () => {

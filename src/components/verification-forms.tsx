@@ -180,8 +180,8 @@ export function AddressVerificationForm({ userId, contact }: { userId: string; c
   }
   return (
     <form action={action} className="space-y-4">
-      <Field label="Téléphone" htmlFor="phone" hint="Jamais affiché aux autres membres.">
-        <Input id="phone" name="phone" type="tel" required autoComplete="tel" defaultValue={contact?.phone ?? ""} placeholder="+33 6 12 34 56 78" />
+      <Field label="Téléphone" htmlFor="addr_phone" hint="Jamais affiché aux autres membres.">
+        <Input id="addr_phone" name="phone" type="tel" required autoComplete="tel" defaultValue={contact?.phone ?? ""} placeholder="+33 6 12 34 56 78" />
       </Field>
       <Field label="Adresse" htmlFor="address_line">
         <Input id="address_line" name="address_line" required maxLength={200} autoComplete="street-address" defaultValue={contact?.address_line ?? ""} />

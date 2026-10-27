@@ -8,7 +8,9 @@ import { BookingForm } from "@/components/booking-form";
 import { PageShell } from "@/components/page-shell";
 import { startInquiry } from "@/app/actions/messages";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { getCreditBalance, getTrip, getTripProof } from "@/lib/data";
+import { proposeTrip } from "@/app/actions/requests";
+import { RequestCard } from "@/components/request-card";
+import { getCreditBalance, getTrip, getTripProof, matchingRequests } from "@/lib/data";
 import { isSupabaseConfigured } from "@/lib/env";
 import { TripProofForm } from "@/components/verification-forms";
 import { isUpcoming, kg, longDate, memberSince, timeLabel } from "@/lib/format";
@@ -37,9 +39,10 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
   const left = Math.max(0, trip.capacity_kg - trip.reserved_kg);
   const traveler = trip.traveler;
   const isOwner = userId === trip.traveler_id;
-  const [proof, credit] = await Promise.all([
+  const [proof, credit, requests] = await Promise.all([
     isOwner && isSupabaseConfigured ? getTripProof(trip.id) : null,
     userId && !isOwner && isSupabaseConfigured ? getCreditBalance(userId) : 0,
+    isOwner && isSupabaseConfigured && trip.status === "published" ? matchingRequests(trip) : Promise.resolve([]),
   ]);
   const bookable = trip.status === "published" && left >= 0.5 && isUpcoming(trip.departure_at);
 
@@ -104,7 +107,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
           {traveler && (
             <section className="rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
               <div className="flex items-center gap-4">
-                <Avatar name={traveler.full_name || "Voyageur"} verified={traveler.id_verified} certified={traveler.certified} size={56} />
+                <Avatar name={traveler.full_name || "Voyageur"} verified={traveler.id_verified} certified={traveler.certified} src={traveler.avatar_url} size={56} />
                 <div>
                   <h2 className="text-lg font-bold">{traveler.full_name || "Voyageur"}</h2>
                   <p className="flex flex-wrap items-center gap-x-3 text-sm text-muted">
@@ -252,6 +255,25 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
                 <ButtonLink href="/espace" variant="outline">
                   Voir mes demandes
                 </ButtonLink>
+                {requests.length > 0 && (
+                  <div className="border-t border-line pt-5">
+                    <h3 className="font-bold">
+                      {requests.length} expéditeur{requests.length > 1 ? "s cherchent" : " cherche"} un voyageur sur votre ligne
+                    </h3>
+                    <ul className="mt-3 space-y-3">
+                      {requests.map((r) => (
+                        <li key={r.id} className="space-y-2">
+                          <RequestCard r={r} />
+                          <form action={proposeTrip.bind(null, r.id, trip.id)}>
+                            <Button type="submit" size="sm" className="w-full">
+                              Proposer mon trajet
+                            </Button>
+                          </form>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <div className="border-t border-line pt-5">
                   <h3 className="font-bold">Justificatif de voyage</h3>
                   {trip.ticket_verified ? (

@@ -26,6 +26,9 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   log('voyageur inscrit, redirigé vers /publier');
   const d = new Date(Date.now() + 4 * 864e5).toISOString().slice(0, 10);
   await ta.fill('#from_city', 'Paris'); await ta.fill('#to_city', 'Douala');
+  await ta.waitForSelector('#from_airport option[value=CDG]', { state: 'attached' });
+  await ta.waitForSelector('#to_airport option[value=DLA]', { state: 'attached' });
+  log('aéroports proposés pour Paris :', (await ta.locator('#from_airport option').allTextContents()).map((t) => t.split(' ')[0]).join(', '));
   await ta.fill('#departure_date', d); await ta.fill('#departure_time', '09:30');
   await ta.fill('#capacity_kg', '20'); await ta.fill('#price_per_kg', '9');
   await ta.fill('#pickup_note', 'Gare de Lyon, la veille du départ');
@@ -41,8 +44,6 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   log('numéro de vol incohérent avec la compagnie → refusé');
   await ta.fill('#transport_ref', 'AF 946');
   // Forfait de livraison à domicile (l'option est proposée sur tous les trajets)
-  await ta.fill('#home_delivery_price', '10');
-  await ta.fill('#home_delivery_area', 'Douala : Akwa, Bonapriso');
   await shot(ta, '01-publier');
   await Promise.all([ta.waitForURL('**/trajets/**'), ta.click('button:has-text("Publier mon trajet")')]);
   const tripUrl = ta.url().split('?')[0];
@@ -66,7 +67,7 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   await sb.waitForSelector('text=acceptez-vous des chaussures');
   log('question envoyée avant réservation');
   await ta.goto(BASE + '/espace');
-  log('badge non lu chez le voyageur :', await ta.getAttribute('a[href="/messages"]', 'aria-label'));
+  log('badge non lu chez le voyageur :', await ta.getAttribute('header a[href="/messages"]', 'aria-label'));
   await ta.goto(BASE + '/messages');
   await ta.click('a:has-text("acceptez-vous des chaussures")');
   await ta.waitForURL('**/messages/**');
@@ -75,18 +76,16 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   await sb.waitForSelector('text=Oui, sans problème', { timeout: 15000 });
   log('réponse reçue en temps réel par l\'expéditeur');
   await ta.goto(BASE + '/espace');
-  log('badge après lecture :', await ta.getAttribute('a[href="/messages"]', 'aria-label'));
+  log('badge après lecture :', await ta.getAttribute('header a[href="/messages"]', 'aria-label'));
   await sb.goto(tripUrl);
   await sb.fill('#weight_kg', '6');
   await sb.selectOption('#category', 'clothing');
   await sb.fill('#description', 'Vêtements et fournitures scolaires');
   await sb.fill('#recipient_name', 'Marie Ngo');
   await sb.fill('#recipient_phone', '+237 699 00 00 00');
-  await sb.check('input[name=home_delivery]');
-  await sb.fill('#delivery_address', 'Bonapriso, rue des Cocotiers, face pharmacie');
   await sb.check('input[name=declaration]');
   await shot(sb, '03-reserver-mobile');
-  await Promise.all([sb.waitForURL('**/reservations/**'), sb.click('button:has-text("Envoyer ma demande")')]);
+  await Promise.all([sb.waitForURL('**/reservations/**'), sb.click('button:has-text("Envoyer ma demande")')]).catch(async (e) => { console.log('alerte :', await sb.locator('[role=alert]').allTextContents()); throw e; });
   const bookingUrl = sb.url().split('?')[0];
   const bookingId = bookingUrl.split('/').pop();
   log('demande envoyée', bookingId);

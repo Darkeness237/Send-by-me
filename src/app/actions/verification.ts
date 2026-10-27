@@ -118,9 +118,16 @@ export async function submitAddressVerification(_: FormState, formData: FormData
   const { data: profile } = await admin.from("profiles").select("address_verified").eq("id", userId).single();
   if (profile?.address_verified) return { ok: "Votre adresse est déjà vérifiée." };
 
-  await admin
-    .from("member_contacts")
-    .upsert({ user_id: userId, ...parsed.data, postal_code: parsed.data.postal_code || null, updated_at: new Date().toISOString() });
+  // Un numéro différent de celui vérifié par SMS n'est plus considéré comme vérifié.
+  const { data: current } = await admin.from("member_contacts").select("phone").eq("user_id", userId).maybeSingle();
+  const phoneChanged = current?.phone?.replace(/\s/g, "") !== parsed.data.phone.replace(/\s/g, "");
+  await admin.from("member_contacts").upsert({
+    user_id: userId,
+    ...parsed.data,
+    postal_code: parsed.data.postal_code || null,
+    ...(phoneChanged ? { phone_verified_at: null } : {}),
+    updated_at: new Date().toISOString(),
+  });
   const { error } = await admin.from("identity_verifications").insert({
     user_id: userId,
     kind: "address",

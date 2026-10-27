@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/env";
 import { homeDeliveryFor } from "@/lib/delivery";
+import { notifyBooking, notifyMessage } from "@/lib/notify-events";
 import { quote, roundKg } from "@/lib/pricing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getUserId } from "@/lib/supabase/server";
@@ -122,6 +123,7 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
   }
   // Crédit de parrainage : déduit des frais, au plus la commission Send By Me (la part du voyageur est intacte).
   await admin.rpc("apply_booking_credit", { p_booking_id: booking.id, p_max_cents: q.commissionCents });
+  await notifyBooking(booking.id, "requested");
   redirect(`/reservations/${booking.id}`);
 }
 
@@ -131,7 +133,8 @@ export async function acceptBooking(bookingId: string) {
   const b = await loadBooking(bookingId);
   if (!b || b.traveler_id !== userId || b.status !== "pending") return;
   const admin = createAdminClient();
-  await admin.rpc("accept_booking", { p_booking_id: bookingId, p_traveler_id: userId });
+  const { data: accepted } = await admin.rpc("accept_booking", { p_booking_id: bookingId, p_traveler_id: userId });
+  if (accepted) await notifyBooking(bookingId, "accepted");
   refresh(bookingId);
 }
 
@@ -145,6 +148,7 @@ export async function declineBooking(bookingId: string) {
   } else if (b.status === "accepted") {
     await admin.rpc("release_booking", { p_booking_id: bookingId, p_new_status: "declined" });
   }
+  await notifyBooking(bookingId, "declined");
   refresh(bookingId);
 }
 
@@ -168,7 +172,13 @@ export async function confirmPickup(bookingId: string) {
   const b = await loadBooking(bookingId);
   if (!b || b.traveler_id !== userId || b.status !== "paid") return;
   const admin = createAdminClient();
-  await admin.from("bookings").update({ status: "picked_up", updated_at: new Date().toISOString() }).eq("id", bookingId).eq("status", "paid");
+  const { data: picked } = await admin
+    .from("bookings")
+    .update({ status: "picked_up", updated_at: new Date().toISOString() })
+    .eq("id", bookingId)
+    .eq("status", "paid")
+    .select("id");
+  if (picked?.length) await notifyBooking(bookingId, "picked_up");
   refresh(bookingId);
 }
 
@@ -203,6 +213,7 @@ export async function confirmDelivery(_: FormState, formData: FormData): Promise
 
   const now = new Date().toISOString();
   await admin.from("bookings").update({ status: "delivered", delivered_at: now, updated_at: now }).eq("id", bookingId).eq("status", "picked_up");
+  await notifyBooking(bookingId, "delivered");
   refresh(bookingId);
   return { ok: "Livraison confirmée. Le paiement va vous être versé." };
 }
@@ -222,6 +233,7 @@ export async function sendMessage(_: FormState, formData: FormData): Promise<For
   const supabase = await createClient();
   const { error } = await supabase.from("messages").insert({ ...thread, author_id: userId, body });
   if (error) return { error: "Message non envoyé." };
+  await notifyMessage("booking_id" in thread ? { bookingId } : { inquiryId }, userId, body);
   revalidatePath("booking_id" in thread ? `/reservations/${bookingId}` : `/messages/${inquiryId}`);
   revalidatePath("/messages");
   return null;

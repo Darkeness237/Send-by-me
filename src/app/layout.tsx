@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo } from "next/font/google";
+import { Nunito } from "next/font/google";
 import { SITE_URL } from "@/lib/env";
+import { INTRO_SCRIPT, IntroSplash } from "@/components/intro-splash";
 import { PwaInstall } from "@/components/pwa";
 import "./globals.css";
 
-const archivo = Archivo({
+// Police arrondie, dans l'esprit du nom « Send By Me » du logo.
+const nunito = Nunito({
   subsets: ["latin", "latin-ext"],
-  axes: ["wdth"],
-  variable: "--font-archivo",
+  variable: "--font-nunito",
   display: "swap",
 });
 
@@ -41,15 +42,19 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#12324F",
+  themeColor: "#0E304C",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={archivo.variable}>
+    <html lang="fr" className={nunito.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
+      </head>
       <body className="min-h-dvh">
+        <IntroSplash />
         {children}
         <PwaInstall />
       </body>

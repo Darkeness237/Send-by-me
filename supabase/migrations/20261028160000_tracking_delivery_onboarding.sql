@@ -47,6 +47,9 @@ begin
 end;
 $$;
 revoke execute on function private.new_tracking_code() from public, anon, authenticated;
+-- Valeur par défaut de bookings.tracking_code : le serveur (service_role) crée les réservations.
+grant usage on schema private to service_role;
+grant execute on function private.new_tracking_code() to service_role;
 
 alter table public.bookings add column tracking_code text unique check (tracking_code ~ '^SBM-[A-Z0-9]{8}$');
 update public.bookings set tracking_code = private.new_tracking_code() where tracking_code is null;
@@ -182,3 +185,22 @@ select id, sender_id, delivery_address from public.bookings where delivery_addre
 on conflict do nothing;
 alter table public.bookings drop constraint bookings_home_delivery_check;
 alter table public.bookings drop column delivery_address;
+
+-- ─────────────────────────────────────────────────────────────
+-- Vérification du téléphone par code SMS (envoyé via Brevo par le serveur)
+-- ─────────────────────────────────────────────────────────────
+alter table public.member_contacts add column phone_verified_at timestamptz;
+revoke update (phone) on public.member_contacts from authenticated; -- le numéro vérifié n'est modifié que par le serveur
+
+create table public.phone_verifications (
+  user_id uuid primary key references public.profiles (id) on delete cascade,
+  phone text not null check (phone ~ '^\+[0-9]{8,15}$'),
+  code_hash text not null,
+  attempts smallint not null default 0,
+  sent_count smallint not null default 1,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+alter table public.phone_verifications enable row level security;
+-- Aucune politique : table réservée au serveur.
+revoke all on public.phone_verifications from anon, authenticated;

@@ -2,6 +2,7 @@ import "server-only";
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { notifyBooking } from "@/lib/notify-events";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Hors des actions serveur : appelé uniquement par l'administration (après contrôle du rôle) et par le webhook du partenaire.
@@ -23,6 +24,7 @@ export async function applyDeliveryOutcome(bookingId: string, outcome: "delivere
     await db.from("bookings").update({ delivery_status: "failed", updated_at: now }).eq("id", bookingId);
     await db.from("booking_events").insert({ booking_id: bookingId, kind: "delivery_failed", note: note?.slice(0, 300) ?? null });
   }
+  await notifyBooking(bookingId, outcome === "delivered" ? "delivered" : "delivery_failed");
   revalidatePath(`/reservations/${bookingId}`);
   return true;
 }

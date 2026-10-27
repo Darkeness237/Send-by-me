@@ -118,6 +118,7 @@ async function signup(ctx, name, email, next = '/espace') {
 
   // Promotion admin (app_metadata, côté serveur uniquement) puis reconnexion
   sql(`update auth.users set raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}' where email='a${run}@test.fr'`);
+  sql(`update profiles set onboarded_at = now() where id = (select id from auth.users where email='a${run}@test.fr')`);
   await adminCtx.clearCookies();
   await ad.goto(BASE + '/connexion?suite=%2Fadmin%3Fonglet%3Dsignalements');
   await ad.fill('#email', `a${run}@test.fr`); await ad.fill('#password', 'motdepasse-solide-1');

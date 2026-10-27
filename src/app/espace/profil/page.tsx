@@ -5,6 +5,7 @@ import { Suspense, type ReactNode } from "react";
 import { BadgeCheck, CheckCircle2, Circle, Clock, ShieldCheck } from "lucide-react";
 import { startIdentityCheck } from "@/app/actions/verification";
 import { ProfileForm } from "@/components/account-forms";
+import { AvatarUploader, PhoneVerifier } from "@/components/onboarding-forms";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import { AddressVerificationForm, IdentityVerificationForm } from "@/components/verification-forms";
@@ -53,7 +54,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(20),
-    supabase.from("member_contacts").select("phone, address_line, postal_code, address_city, country").eq("user_id", userId).maybeSingle(),
+    supabase.from("member_contacts").select("phone, phone_verified_at, address_line, postal_code, address_city, country").eq("user_id", userId).maybeSingle(),
   ]);
   const last = (kind: string) => (requests ?? []).find((r) => r.kind === kind) as Request;
   const idReq = last("identity");
@@ -65,6 +66,14 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
         ← Mon espace
       </Link>
       <h1 className="display mt-4 text-3xl sm:text-4xl">Mon profil</h1>
+
+      <section className="mt-6 space-y-5 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+        <AvatarUploader userId={userId} current={profile.avatar_url} name={profile.full_name || "vous"} />
+        <div className="border-t border-line pt-5">
+          <h2 className="mb-3 font-bold">Téléphone</h2>
+          <PhoneVerifier verifiedPhone={contact?.phone_verified_at ? (contact.phone as string) : null} />
+        </div>
+      </section>
 
       <section className="mt-6" aria-labelledby="certif">
         {profile.certified ? (

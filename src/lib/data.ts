@@ -380,3 +380,117 @@ export async function trackShipment(code: string): Promise<Shipment | null> {
   const { data } = await supabase.rpc("track_shipment", { p_code: code });
   return (data as Shipment) ?? null;
 }
+
+// ── Notifications ───────────────────────────────────────────────
+export type AppNotification = { id: number; kind: string; title: string; body: string | null; href: string | null; read_at: string | null; created_at: string };
+
+export async function getNotifications(userId: string, limit = 50): Promise<AppNotification[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("notifications").select("id, kind, title, body, href, read_at, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(limit);
+  return (data ?? []) as AppNotification[];
+}
+
+export async function getUnreadNotificationCount(userId: string) {
+  const supabase = await createClient();
+  const { count } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", userId).is("read_at", null);
+  return count ?? 0;
+}
+
+// ── Demandes d'envoi ────────────────────────────────────────────
+export type ShipmentRequest = {
+  id: string;
+  sender_id: string;
+  from_city: string;
+  from_country: string;
+  to_city: string;
+  to_country: string;
+  earliest_date: string;
+  latest_date: string;
+  weight_kg: number;
+  length_cm: number | null;
+  width_cm: number | null;
+  height_cm: number | null;
+  category: string;
+  description: string;
+  declared_value_cents: number | null;
+  max_price_per_kg_cents: number | null;
+  wants_home_delivery: boolean;
+  photos: string[];
+  status: "open" | "matched" | "closed";
+  created_at: string;
+  sender?: Profile | null;
+};
+
+const REQUEST_SELECT = "*, sender:profiles!shipment_requests_sender_id_fkey(id, full_name, avatar_url, id_verified, certified, created_at)";
+
+export async function listRequests(q: { from?: string; to?: string } = {}, limit = 40): Promise<ShipmentRequest[]> {
+  await connection();
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  let query = supabase
+    .from("shipment_requests")
+    .select(REQUEST_SELECT)
+    .eq("status", "open")
+    .gte("latest_date", new Date().toISOString().slice(0, 10))
+    .order("earliest_date", { ascending: true })
+    .limit(limit);
+  if (q.from) query = query.ilike("from_city", escapeLike(q.from));
+  if (q.to) query = query.ilike("to_city", escapeLike(q.to));
+  const { data } = await query;
+  return (data ?? []) as ShipmentRequest[];
+}
+
+export async function getRequest(id: string): Promise<ShipmentRequest | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.from("shipment_requests").select(REQUEST_SELECT).eq("id", id).maybeSingle();
+  return (data as ShipmentRequest) ?? null;
+}
+
+export async function getMyRequests(userId: string): Promise<ShipmentRequest[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("shipment_requests").select("*").eq("sender_id", userId).order("created_at", { ascending: false });
+  return (data ?? []) as ShipmentRequest[];
+}
+
+/** Trajets publiés qui conviennent à une demande : même ligne, dans les dates, assez de kilos, type de colis accepté. */
+export async function matchingTrips(r: ShipmentRequest, limit = 12): Promise<Trip[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("trips")
+    .select(TRIP_SELECT)
+    .eq("status", "published")
+    .ilike("from_city", escapeLike(r.from_city))
+    .ilike("to_city", escapeLike(r.to_city))
+    .gte("departure_at", new Date(Math.max(Date.now(), new Date(r.earliest_date).getTime())).toISOString())
+    .lte("departure_at", `${r.latest_date}T23:59:59Z`)
+    .order("departure_at", { ascending: true })
+    .limit(50);
+  const trips = ((data ?? []) as Trip[]).filter(
+    (t) =>
+      t.capacity_kg - t.reserved_kg >= Number(r.weight_kg) &&
+      (t.accepted_categories as string[]).includes(r.category) &&
+      (!r.max_price_per_kg_cents || t.price_per_kg_cents <= r.max_price_per_kg_cents),
+  );
+  return withRatings(trips.slice(0, limit));
+}
+
+/** Demandes ouvertes qui conviennent à un trajet (pour le voyageur). */
+export async function matchingRequests(t: Trip, limit = 12): Promise<ShipmentRequest[]> {
+  const supabase = await createClient();
+  const day = t.departure_at.slice(0, 10);
+  const { data } = await supabase
+    .from("shipment_requests")
+    .select(REQUEST_SELECT)
+    .eq("status", "open")
+    .ilike("from_city", escapeLike(t.from_city))
+    .ilike("to_city", escapeLike(t.to_city))
+    .lte("earliest_date", day)
+    .gte("latest_date", day)
+    .neq("sender_id", t.traveler_id)
+    .limit(50);
+  const left = t.capacity_kg - t.reserved_kg;
+  return ((data ?? []) as ShipmentRequest[])
+    .filter((r) => Number(r.weight_kg) <= left && (t.accepted_categories as string[]).includes(r.category))
+    .slice(0, limit);
+}

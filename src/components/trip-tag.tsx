@@ -50,7 +50,7 @@ export function TripTag({ trip, goodPrice }: { trip: Trip; goodPrice?: boolean }
       <div className="perforation mx-5 sm:mx-6" />
 
       <div className="flex items-center gap-3 px-5 py-3.5 sm:px-6">
-        {traveler && <Avatar name={traveler.full_name || "Voyageur"} verified={traveler.id_verified} certified={traveler.certified} size={34} />}
+        {traveler && <Avatar name={traveler.full_name || "Voyageur"} verified={traveler.id_verified} certified={traveler.certified} src={traveler.avatar_url} size={34} />}
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-ink">
             {traveler?.full_name || "Voyageur"}

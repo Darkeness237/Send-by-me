@@ -27,9 +27,12 @@ export async function signIn(_: FormState, formData: FormData): Promise<FormStat
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { error: "E-mail ou mot de passe incorrect." };
-  redirect(safeNext(formData.get("suite")));
+  const next = safeNext(formData.get("suite"));
+  // Premier passage : écran de bienvenue (photo, téléphone, identité).
+  const { data: profile } = await supabase.from("profiles").select("onboarded_at").eq("id", data.user.id).maybeSingle();
+  redirect(profile && !profile.onboarded_at ? `/bienvenue?suite=${encodeURIComponent(next)}` : next);
 }
 
 const signupSchema = credentials.extend({
