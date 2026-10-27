@@ -14,22 +14,16 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
-import { getBooking, getDeliveryCode, getMessages, markThreadRead } from "@/lib/data";
+import { markTravelStep } from "@/app/actions/tracking";
+import { TrackingTimeline } from "@/components/tracking-timeline";
+import { getBooking, getDeliveryAddress, getDeliveryCode, getMessages, getTrackingEvents, markThreadRead } from "@/lib/data";
 import { kg, longDate, timeLabel } from "@/lib/format";
 import { codeFor, tzFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
 import { createClient, getUserId } from "@/lib/supabase/server";
-import { CATEGORIES, type BookingStatus } from "@/lib/types";
+import { CATEGORIES } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Ma réservation", robots: { index: false } };
-
-const STEPS: Array<[BookingStatus, string]> = [
-  ["pending", "Demande envoyée"],
-  ["accepted", "Acceptée par le voyageur"],
-  ["paid", "Payée, argent bloqué"],
-  ["picked_up", "Colis remis au voyageur"],
-  ["delivered", "Livré au destinataire"],
-];
 
 async function BookingView({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string>> }) {
   const userId = await getUserId();
@@ -42,7 +36,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
   const isSender = booking.sender_id === userId;
   const isTraveler = trip.traveler_id === userId;
 
-  const [messages, , code, myReview] = await Promise.all([
+  const [messages, , code, myReview, events, deliveryAddress] = await Promise.all([
     getMessages(booking.id),
     markThreadRead(userId, booking.id),
     isSender && ["paid", "picked_up"].includes(booking.status) ? getDeliveryCode(booking.id) : Promise.resolve(null),
@@ -52,10 +46,13 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
       const { data } = await supabase.from("reviews").select("id").eq("booking_id", booking.id).eq("author_id", userId).maybeSingle();
       return data;
     })(),
+    getTrackingEvents(booking.id),
+    isSender && booking.delivery_cents ? getDeliveryAddress(booking.id) : Promise.resolve(null),
   ]);
+  const hasEvent = (k: string) => events.some((e) => e.kind === k);
+  const homeDelivery = Boolean(booking.delivery_cents);
 
   const other = isSender ? trip.traveler : booking.sender;
-  const stepIndex = STEPS.findIndex(([s]) => s === booking.status);
   const closed = booking.status === "declined" || booking.status === "cancelled" || booking.status === "refunded";
   const reportable = ["paid", "picked_up", "delivered", "refunded"].includes(booking.status);
 
@@ -83,20 +80,25 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
             {longDate(trip.departure_at, tzFor(trip.from_city))}, {timeLabel(trip.departure_at, tzFor(trip.from_city))} · {trip.from_city} → {trip.to_city}
           </p>
 
-          {!closed && (
-            <ol className="mt-6 space-y-3">
-              {STEPS.map(([s, label], i) => (
-                <li key={s} className="flex items-center gap-3 text-[15px]">
-                  <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${i <= stepIndex ? "bg-ink text-signal" : "bg-paper text-muted ring-1 ring-line"}`}
-                  >
-                    {i + 1}
-                  </span>
-                  <span className={i <= stepIndex ? "font-semibold" : "text-muted"}>{label}</span>
-                </li>
-              ))}
-            </ol>
-          )}
+          <div className="mt-6 rounded-2xl bg-paper p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-bold">Suivi de l&apos;envoi</h2>
+              {booking.tracking_code && (
+                <Link href={`/suivi/${booking.tracking_code}`} className="wide tabular rounded-full bg-white px-3 py-1 text-sm font-bold ring-1 ring-line hover:ring-brand">
+                  {booking.tracking_code}
+                </Link>
+              )}
+            </div>
+            <TrackingTimeline events={events} homeDelivery={homeDelivery} />
+            {isSender && booking.tracking_code && !closed && (
+              <p className="mt-4 text-sm text-muted">
+                Envoyez ce lien à {booking.recipient_name} pour qu&apos;il suive le colis :{" "}
+                <Link href={`/suivi/${booking.tracking_code}`} className="font-semibold text-brand">
+                  send-by-me.com/suivi/{booking.tracking_code}
+                </Link>
+              </p>
+            )}
+          </div>
 
           <dl className="mt-6 grid gap-4 border-t border-line pt-6 text-[15px] sm:grid-cols-2">
             <div>
@@ -110,15 +112,16 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
               <dt className="text-sm text-muted">Destinataire</dt>
               <dd className="font-semibold">{booking.recipient_name}</dd>
               <dd className="tabular text-ink-soft">{booking.recipient_phone}</dd>
-              {booking.delivery_address && (
+              {booking.delivery_cents ? (
                 <dd className="mt-1 text-ink-soft">
-                  <span className="font-semibold text-ink">Livraison à domicile :</span> {booking.delivery_address}
+                  <span className="font-semibold text-ink">Livraison à domicile Send By Me</span>
+                  {isSender && deliveryAddress ? ` : ${deliveryAddress}` : " : notre livreur partenaire récupère le colis à l'arrivée."}
                 </dd>
-              )}
+              ) : null}
             </div>
             <div>
               <dt className="text-sm text-muted">{isTraveler ? "Vous recevrez" : "Total"}</dt>
-              <dd className="wide tabular text-xl font-extrabold">{euros(isTraveler ? booking.base_cents + (booking.delivery_cents ?? 0) : booking.total_cents)}</dd>
+              <dd className="wide tabular text-xl font-extrabold">{euros(isTraveler ? booking.base_cents : booking.total_cents)}</dd>
               {!isTraveler && (
                 <dd className="tabular text-sm text-muted">
                   Transport {euros(booking.base_cents)}
@@ -184,12 +187,41 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
               </form>
             </Action>
           )}
-          {isTraveler && booking.status === "picked_up" && <DeliveryCodeForm bookingId={booking.id} />}
+          {isTraveler && booking.status === "picked_up" && (
+            <div className="space-y-5">
+              {!hasEvent("departed") ? (
+                <Action text="Tenez l'expéditeur informé : il suit son colis en direct.">
+                  <form action={markTravelStep.bind(null, booking.id, "departed")}>
+                    <Button type="submit">Je suis parti</Button>
+                  </form>
+                </Action>
+              ) : !hasEvent("arrived") ? (
+                <Action text="Bon voyage ! Prévenez dès votre arrivée.">
+                  <form action={markTravelStep.bind(null, booking.id, "arrived")}>
+                    <Button type="submit">Je suis arrivé</Button>
+                  </form>
+                </Action>
+              ) : null}
+              {homeDelivery ? (
+                hasEvent("arrived") && !hasEvent("out_for_delivery") ? (
+                  <Action text="Livraison à domicile : remettez le colis au livreur partenaire Send By Me. Le paiement vous est versé dès que le destinataire l'a reçu.">
+                    <form action={markTravelStep.bind(null, booking.id, "out_for_delivery")}>
+                      <Button type="submit">J&apos;ai remis le colis au livreur</Button>
+                    </form>
+                  </Action>
+                ) : hasEvent("out_for_delivery") ? (
+                  <Action text="Colis remis au livreur. Le paiement vous sera versé dès la livraison confirmée." />
+                ) : null
+              ) : (
+                <DeliveryCodeForm bookingId={booking.id} />
+              )}
+            </div>
+          )}
           {booking.status === "delivered" && (
             <div className="space-y-6">
               <p role="status" className="rounded-2xl bg-ok-pale px-4 py-3 font-medium text-ok">
                 Livraison confirmée.{" "}
-                {isTraveler ? `Vous allez recevoir ${euros(booking.base_cents + (booking.delivery_cents ?? 0))}.` : `${booking.recipient_name} a bien reçu le colis.`}
+                {isTraveler ? `Vous allez recevoir ${euros(booking.base_cents)}.` : `${booking.recipient_name} a bien reçu le colis.`}
               </p>
               {myReview ? (
                 <p className="text-muted">Merci pour votre avis.</p>

@@ -5,8 +5,8 @@ import { publishTrip } from "@/app/actions/trips";
 import { Button } from "@/components/ui/button";
 import { submitKeepingValues } from "@/components/ui/keep-form";
 import { Field, FormMessage, Input, Select, Textarea } from "@/components/ui/field";
-import { AIRLINES, airportsFor, FLIGHT_NUMBER_RE, normalizeFlightNumber } from "@/lib/flights";
-import { PLACES } from "@/lib/places";
+import { splitCity, useCitySearch } from "@/components/use-city-search";
+import { AIRLINES, FLIGHT_NUMBER_RE, normalizeFlightNumber } from "@/lib/flights";
 import { priceGuide, priceLevel, type MarketPrice } from "@/lib/price-guide";
 import { euros } from "@/lib/pricing";
 import { CATEGORIES, type TripMode } from "@/lib/types";
@@ -26,12 +26,14 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
   const [carrier, setCarrier] = useState("");
   const [flight, setFlight] = useState("");
   const [price, setPrice] = useState(9);
-  const guide = priceGuide(fromCity, toCity, mode, market);
+  const from = useCitySearch(fromCity);
+  const to = useCitySearch(toCity);
+  const guide = priceGuide(splitCity(fromCity).city, splitCity(toCity).city, mode, market);
   const priceCents = Math.round((price || 0) * 100);
   const level = priceLevel(priceCents, guide);
 
-  const fromAirports = airportsFor(fromCity);
-  const toAirports = airportsFor(toCity);
+  const fromAirports = from.selected?.airports ?? [];
+  const toAirports = to.selected?.airports ?? [];
   const flightNorm = normalizeFlightNumber(flight);
   const flightHint =
     flight && !FLIGHT_NUMBER_RE.test(flightNorm)
@@ -43,23 +45,28 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
   const section = "space-y-5 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8";
   return (
     <form action={action} onSubmit={submitKeepingValues(action)} className="space-y-6">
-      <datalist id="places-publish">
-        {PLACES.map((p) => (
-          <option key={p.slug} value={p.city}>
-            {p.country}
-          </option>
-        ))}
-      </datalist>
+      {[
+        ["cities-from", from.options],
+        ["cities-to", to.options],
+      ].map(([id, list]) => (
+        <datalist key={id as string} id={id as string}>
+          {(list as typeof from.options).map((o) => (
+            <option key={`${o.city}-${o.country}`} value={`${o.city}, ${o.country}`}>
+              {o.airports.map((a) => a.iata).join(" · ")}
+            </option>
+          ))}
+        </datalist>
+      ))}
 
       <fieldset className={section}>
         <legend className="sr-only">Trajet</legend>
         <h2 className="text-lg font-bold">Votre trajet</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Ville de départ" htmlFor="from_city">
-            <Input id="from_city" name="from_city" list="places-publish" required autoComplete="off" placeholder="Paris" value={fromCity} onChange={(e) => setFromCity(e.target.value)} />
+          <Field label="Ville de départ" htmlFor="from_city" hint="Toutes les villes desservies par un aéroport, dans le monde entier.">
+            <Input id="from_city" name="from_city" list="cities-from" required autoComplete="off" placeholder="Paris, France" value={fromCity} onChange={(e) => setFromCity(e.target.value)} />
           </Field>
           <Field label="Ville d'arrivée" htmlFor="to_city">
-            <Input id="to_city" name="to_city" list="places-publish" required autoComplete="off" placeholder="Douala" value={toCity} onChange={(e) => setToCity(e.target.value)} />
+            <Input id="to_city" name="to_city" list="cities-to" required autoComplete="off" placeholder="Douala, Cameroun" value={toCity} onChange={(e) => setToCity(e.target.value)} />
           </Field>
           <Field label="Date de départ" htmlFor="departure_date">
             <Input id="departure_date" name="departure_date" type="date" required />
@@ -114,21 +121,21 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
               />
             </Field>
             <Field label="Aéroport de départ" htmlFor="from_airport">
-              <Select id="from_airport" name="from_airport" required key={fromAirports.join()} defaultValue={fromAirports[0] ?? ""}>
+              <Select id="from_airport" name="from_airport" required key={fromAirports.map((a) => a.iata).join()} defaultValue={fromAirports[0]?.iata ?? ""}>
                 {fromAirports.length === 0 && <option value="">Choisissez d&apos;abord la ville de départ</option>}
-                {fromAirports.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {fromAirports.map((a) => (
+                  <option key={a.iata} value={a.iata}>
+                    {a.iata} · {a.name}
                   </option>
                 ))}
               </Select>
             </Field>
             <Field label="Aéroport d'arrivée finale" htmlFor="to_airport">
-              <Select id="to_airport" name="to_airport" required key={toAirports.join()} defaultValue={toAirports[0] ?? ""}>
+              <Select id="to_airport" name="to_airport" required key={toAirports.map((a) => a.iata).join()} defaultValue={toAirports[0]?.iata ?? ""}>
                 {toAirports.length === 0 && <option value="">Choisissez d&apos;abord la ville d&apos;arrivée</option>}
-                {toAirports.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {toAirports.map((a) => (
+                  <option key={a.iata} value={a.iata}>
+                    {a.iata} · {a.name}
                   </option>
                 ))}
               </Select>
@@ -231,21 +238,10 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
           <Input id="dropoff_note" name="dropoff_note" maxLength={300} placeholder="À Akwa, le lendemain de mon arrivée" />
         </Field>
 
-        <div className="rounded-2xl border border-line p-4">
-          <p className="font-semibold">Livraison à domicile</p>
-          <p className="mt-1 text-sm text-muted">
-            Si le destinataire ne peut pas venir au point de rendez-vous, l&apos;expéditeur peut choisir la livraison à domicile en option.
-            Fixez votre forfait : il vous revient en entier.
-          </p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-[160px_1fr]">
-            <Field label="Forfait (€)" htmlFor="home_delivery_price">
-              <Input id="home_delivery_price" name="home_delivery_price" type="number" min={1} max={100} step={0.5} required defaultValue={10} />
-            </Field>
-            <Field label="Zone desservie" htmlFor="home_delivery_area" hint="Facultatif. Quartiers ou villes où vous livrez.">
-              <Input id="home_delivery_area" name="home_delivery_area" maxLength={200} placeholder="Douala : Akwa, Bonapriso, Bonamoussadi" />
-            </Field>
-          </div>
-        </div>
+        <p className="rounded-2xl bg-paper px-4 py-3 text-sm text-ink-soft">
+          Si le destinataire ne peut pas venir au point de rendez-vous, l&apos;expéditeur peut choisir la livraison à domicile : elle est
+          assurée par le partenaire de livraison de Send By Me, à qui vous remettez simplement le colis à votre arrivée.
+        </p>
 
         <Field label="Un mot pour les expéditeurs" htmlFor="notes" hint="Facultatif. Vos règles : colis ouverts, pas de liquides…">
           <Textarea id="notes" name="notes" maxLength={1000} />

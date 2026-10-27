@@ -9,7 +9,8 @@ import { checkFlight, normalizeFlightNumber } from "@/lib/flights";
 import { priceGuide } from "@/lib/price-guide";
 import { euros } from "@/lib/pricing";
 import { zonedToUtc } from "@/lib/format";
-import { findPlace } from "@/lib/places";
+import { findCity } from "@/lib/airports";
+import { findPlace, splitCity } from "@/lib/places";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/types";
@@ -37,8 +38,6 @@ const tripSchema = z
     has_stopover: z.literal("on").optional(),
     baggage_allowance_kg: z.coerce.number().min(0).max(200).optional(),
     ticket_name_matches: z.literal("on").optional(),
-    home_delivery_price: z.coerce.number().min(1, "Forfait de livraison : 1 € minimum").max(100, "Forfait de livraison : 100 € maximum").default(10),
-    home_delivery_area: z.string().trim().max(200).optional(),
   })
   .refine((d) => d.from_city.toLowerCase() !== d.to_city.toLowerCase(), {
     message: "Le départ et l'arrivée doivent être différents",
@@ -56,11 +55,24 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const d = parsed.data;
 
-  const from = findPlace(d.from_city);
-  const to = findPlace(d.to_city);
+  // « Ville, Pays » : la ville est retrouvée dans la base mondiale des aéroports (pays, fuseau, aéroports).
+  const place = (raw: string) => {
+    const { city, country } = splitCity(raw);
+    const known = findPlace(city);
+    const world = findCity(city, country || known?.country);
+    return {
+      city: world?.city ?? known?.city ?? city,
+      country: world?.country ?? known?.country ?? (country || "—"),
+      tz: world?.tz ?? known?.tz ?? "Europe/Paris",
+      airports: world?.airports.map((a) => a.iata) ?? (known ? [known.code] : []),
+    };
+  };
+  const from = place(d.from_city);
+  const to = place(d.to_city);
+  if (from.city.toLowerCase() === to.city.toLowerCase()) return { error: "Le départ et l'arrivée doivent être différents" };
 
   // L'heure saisie est l'heure locale de la ville de départ.
-  const departure = zonedToUtc(d.departure_date, d.departure_time, from?.tz ?? "Europe/Paris");
+  const departure = zonedToUtc(d.departure_date, d.departure_time, from.tz);
   if (Number.isNaN(departure.getTime()) || departure.getTime() < Date.now() + 3600_000) {
     return { error: "Le départ doit être dans le futur (au moins dans une heure)." };
   }
@@ -77,8 +89,10 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
     const check = await checkFlight({
       carrier: d.carrier,
       flightNumber,
-      fromCity: from?.city ?? d.from_city,
-      toCity: to?.city ?? d.to_city,
+      fromCity: from.city,
+      toCity: to.city,
+      fromAirports: from.airports,
+      toAirports: to.airports,
       fromAirport: d.from_airport,
       toAirport: d.to_airport,
       hasStopover: d.has_stopover === "on",
@@ -100,7 +114,7 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
   }
 
   // Plafond de prix de la ligne : le total payé par l'expéditeur doit rester raisonnable.
-  const guide = priceGuide(from?.city ?? d.from_city, to?.city ?? d.to_city, d.mode, await getMarketPrices());
+  const guide = priceGuide(from.city, to.city, d.mode, await getMarketPrices());
   if (Math.round(d.price_per_kg * 100) > guide.maxCents) {
     return { error: `Prix trop élevé pour cette ligne : ${euros(guide.maxCents)} le kilo maximum (prix conseillé ${euros(guide.lowCents)} à ${euros(guide.highCents)}).` };
   }
@@ -110,13 +124,13 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
     .from("trips")
     .insert({
       ...transport,
-      home_delivery_cents: Math.round(d.home_delivery_price * 100),
-      home_delivery_area: d.home_delivery_area || null,
       traveler_id: userId,
-      from_city: from?.city ?? d.from_city,
-      from_country: from?.country ?? "—",
-      to_city: to?.city ?? d.to_city,
-      to_country: to?.country ?? "—",
+      from_city: from.city,
+      from_country: from.country,
+      from_tz: from.tz,
+      to_city: to.city,
+      to_country: to.country,
+      to_tz: to.tz,
       departure_at: departure.toISOString(),
       mode: d.mode,
       capacity_kg: d.capacity_kg,

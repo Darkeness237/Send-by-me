@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/env";
+import { homeDeliveryFor } from "@/lib/delivery";
 import { quote, roundKg } from "@/lib/pricing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getUserId } from "@/lib/supabase/server";
@@ -67,7 +68,7 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
   const admin = createAdminClient();
   const { data: trip } = await admin
     .from("trips")
-    .select("id, traveler_id, status, departure_at, capacity_kg, reserved_kg, price_per_kg_cents, accepted_categories, home_delivery_cents")
+    .select("id, traveler_id, status, departure_at, capacity_kg, reserved_kg, price_per_kg_cents, accepted_categories, to_country")
     .eq("id", d.trip_id)
     .maybeSingle();
 
@@ -91,7 +92,7 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
   if (count) return { error: "Vous avez déjà une demande en cours sur ce trajet." };
 
   // Prix recalculé ici, à partir du trajet en base.
-  const q = quote(trip.price_per_kg_cents, d.weight_kg, wantsDelivery ? trip.home_delivery_cents : 0);
+  const q = quote(trip.price_per_kg_cents, d.weight_kg, wantsDelivery ? homeDeliveryFor(trip.to_country) : 0);
 
   const { data: booking, error } = await admin
     .from("bookings")
@@ -105,7 +106,7 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
       recipient_phone: d.recipient_phone,
       base_cents: q.baseCents,
       delivery_cents: q.deliveryCents,
-      delivery_address: wantsDelivery ? d.delivery_address : null,
+      delivery_status: wantsDelivery ? "requested" : null,
       fee_cents: q.feeCents,
       commission_rate: q.commissionRate,
       processing_cents: q.processingCents,
@@ -115,6 +116,10 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
     .single();
 
   if (error || !booking) return { error: "La demande n'a pas pu être envoyée. Réessayez." };
+  if (wantsDelivery) {
+    // Adresse gardée à part : seuls l'expéditeur et l'équipe (pour le partenaire de livraison) la voient.
+    await admin.from("booking_deliveries").insert({ booking_id: booking.id, sender_id: userId, address: d.delivery_address });
+  }
   // Crédit de parrainage : déduit des frais, au plus la commission Send By Me (la part du voyageur est intacte).
   await admin.rpc("apply_booking_credit", { p_booking_id: booking.id, p_max_cents: q.commissionCents });
   redirect(`/reservations/${booking.id}`);

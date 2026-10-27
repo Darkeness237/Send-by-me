@@ -12,6 +12,7 @@ import { getCreditBalance, getTrip, getTripProof } from "@/lib/data";
 import { isSupabaseConfigured } from "@/lib/env";
 import { TripProofForm } from "@/components/verification-forms";
 import { isUpcoming, kg, longDate, memberSince, timeLabel } from "@/lib/format";
+import { homeDeliveryFor } from "@/lib/delivery";
 import { airlineName, TRANSPORT_CHECK_LABEL } from "@/lib/flights";
 import { codeFor, tzFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
@@ -216,18 +217,13 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
                   </div>
                 </div>
               )}
-              {trip.home_delivery_cents ? (
-                <div className="flex gap-3">
-                  <House className="mt-0.5 h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
-                  <div>
-                    <dt className="font-semibold">Livraison à domicile en option · +{euros(trip.home_delivery_cents)}</dt>
-                    <dd className="text-muted">
-                      Si le destinataire ne peut pas venir au point de rendez-vous, le voyageur lui apporte le colis
-                      {trip.home_delivery_area ? ` (${trip.home_delivery_area})` : ""}.
-                    </dd>
-                  </div>
+              <div className="flex gap-3">
+                <House className="mt-0.5 h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+                <div>
+                  <dt className="font-semibold">Livraison à domicile en option · +{euros(homeDeliveryFor(trip.to_country))}</dt>
+                  <dd className="text-muted">Si le destinataire ne peut pas venir, notre partenaire de livraison lui apporte le colis.</dd>
                 </div>
-              ) : null}
+              </div>
             </dl>
             <h3 className="mt-6 font-semibold">Colis acceptés</h3>
             <ul className="mt-3 flex flex-wrap gap-2">
@@ -300,8 +296,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
                 pricePerKgCents={trip.price_per_kg_cents}
                 maxKg={left}
                 acceptedCategories={trip.accepted_categories}
-                homeDeliveryCents={trip.home_delivery_cents}
-                homeDeliveryArea={trip.home_delivery_area}
+                homeDeliveryCents={homeDeliveryFor(trip.to_country)}
                 creditCents={credit}
               />
             )}

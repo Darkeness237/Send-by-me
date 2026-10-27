@@ -13,16 +13,15 @@ type Props = {
   pricePerKgCents: number;
   maxKg: number;
   acceptedCategories: string[];
-  homeDeliveryCents?: number | null;
-  homeDeliveryArea?: string | null;
+  homeDeliveryCents: number;
   creditCents?: number;
 };
 
-export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories, homeDeliveryCents, homeDeliveryArea, creditCents = 0 }: Props) {
+export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories, homeDeliveryCents, creditCents = 0 }: Props) {
   const [state, action, pending] = useActionState(requestBooking, null);
   const [weight, setWeight] = useState(Math.min(5, maxKg));
   const [delivery, setDelivery] = useState(false);
-  const q = quote(pricePerKgCents, weight || 0.5, delivery && homeDeliveryCents ? homeDeliveryCents : 0);
+  const q = quote(pricePerKgCents, weight || 0.5, delivery ? homeDeliveryCents : 0);
   const discount = Math.min(creditCents, q.commissionCents);
   const categories = CATEGORIES.filter((c) => acceptedCategories.includes(c.id));
 
@@ -70,7 +69,7 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
         </Field>
       </div>
 
-      {homeDeliveryCents ? (
+      {homeDeliveryCents > 0 ? (
         <div className="rounded-2xl border border-line p-4 has-checked:border-brand has-checked:bg-brand-pale/40">
           <label className="flex items-start gap-3">
             <input
@@ -83,13 +82,13 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
             <span>
               <span className="block font-semibold">Livraison à domicile · +{euros(homeDeliveryCents)}</span>
               <span className="block text-sm text-muted">
-                Le destinataire ne peut pas aller au point de rendez-vous ? Le voyageur lui apporte le colis
-                {homeDeliveryArea ? ` (${homeDeliveryArea})` : ""}.
+                Le destinataire ne peut pas aller au point de rendez-vous ? Notre partenaire de livraison récupère le colis auprès
+                du voyageur à l&apos;arrivée et l&apos;apporte chez lui.
               </span>
             </span>
           </label>
           {delivery && (
-            <Field label="Adresse de livraison" htmlFor="delivery_address" hint="Visible uniquement par le voyageur de cette réservation.">
+            <Field label="Adresse de livraison" htmlFor="delivery_address" hint="Transmise uniquement à notre partenaire de livraison, jamais au voyageur.">
               <Textarea id="delivery_address" name="delivery_address" required minLength={5} maxLength={300} rows={2} placeholder="Quartier, rue, point de repère" />
             </Field>
           )}

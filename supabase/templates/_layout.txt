@@ -1,0 +1,2 @@
+Modèles d'e-mail Send By Me pour Supabase > Authentication > Emails (Templates).
+Copier le sujet et le contenu HTML de chaque fichier dans le modèle correspondant.

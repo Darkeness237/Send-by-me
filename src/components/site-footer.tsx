@@ -29,6 +29,7 @@ export function SiteFooter() {
           <ul className="space-y-2 text-sm">
             <li><Link href="/comment-ca-marche" className="hover:text-white">Comment ça marche</Link></li>
             <li><Link href="/securite" className="hover:text-white">Sécurité et confiance</Link></li>
+            <li><Link href="/suivi" className="hover:text-white">Suivre un colis</Link></li>
             <li><Link href="/objets-interdits" className="hover:text-white">Objets interdits</Link></li>
             <li><Link href="/publier" className="hover:text-white">Proposer mes kilos</Link></li>
           </ul>

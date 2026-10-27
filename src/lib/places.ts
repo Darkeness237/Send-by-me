@@ -75,3 +75,9 @@ export function parseCorridor(slug: string): [Place, Place] | null {
   }
   return null;
 }
+
+/** « Paris, France » → { city: "Paris", country: "France" }. */
+export function splitCity(value: string) {
+  const [city, ...rest] = value.split(",");
+  return { city: city.trim(), country: rest.join(",").trim() };
+}

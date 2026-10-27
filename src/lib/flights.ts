@@ -1,4 +1,3 @@
-import { findPlace } from "@/lib/places";
 import type { TransportCheck, TransportCheckNote } from "@/lib/types";
 
 // Compagnies présentes sur les lignes Europe ↔ Afrique desservies (code IATA → nom).
@@ -35,33 +34,6 @@ export const AIRLINES: { code: string; name: string }[] = [
   { code: "BA", name: "British Airways" },
 ];
 
-/** Aéroports acceptés pour chaque ville (le premier est l'aéroport principal). */
-export const CITY_AIRPORTS: Record<string, string[]> = {
-  paris: ["CDG", "ORY", "BVA"],
-  lyon: ["LYS"],
-  marseille: ["MRS"],
-  bordeaux: ["BOD"],
-  lille: ["LIL"],
-  toulouse: ["TLS"],
-  bruxelles: ["BRU", "CRL"],
-  douala: ["DLA"],
-  yaounde: ["NSI"],
-  dakar: ["DSS"],
-  abidjan: ["ABJ"],
-  libreville: ["LBV"],
-  kinshasa: ["FIH"],
-  brazzaville: ["BZV"],
-  lome: ["LFW"],
-  cotonou: ["COO"],
-  bamako: ["BKO"],
-  casablanca: ["CMN"],
-};
-
-export function airportsFor(city: string): string[] {
-  const p = findPlace(city);
-  return p ? (CITY_AIRPORTS[p.slug] ?? [p.code]) : [];
-}
-
 export function airlineName(code: string | null | undefined) {
   return AIRLINES.find((a) => a.code === code)?.name ?? code ?? "";
 }
@@ -78,6 +50,8 @@ export type FlightInput = {
   flightNumber: string;
   fromCity: string;
   toCity: string;
+  fromAirports: string[]; // aéroports de la ville de départ
+  toAirports: string[];
   fromAirport: string;
   toAirport: string;
   hasStopover: boolean;
@@ -106,10 +80,10 @@ export async function checkFlight(input: FlightInput): Promise<FlightCheckResult
   const prefixOk = input.flightNumber.startsWith(input.carrier);
   notes.push({ ok: prefixOk, label: prefixOk ? "Le numéro de vol correspond à la compagnie" : "Le numéro de vol ne correspond pas à la compagnie" });
 
-  const fromOk = airportsFor(input.fromCity).includes(input.fromAirport);
+  const fromOk = input.fromAirports.includes(input.fromAirport);
   notes.push({ ok: fromOk, label: fromOk ? `Départ de ${input.fromAirport}, cohérent avec ${input.fromCity}` : `L'aéroport ${input.fromAirport} ne dessert pas ${input.fromCity}` });
 
-  const toOk = airportsFor(input.toCity).includes(input.toAirport);
+  const toOk = input.toAirports.includes(input.toAirport);
   notes.push({ ok: toOk, label: toOk ? `Arrivée à ${input.toAirport}, cohérente avec ${input.toCity}` : `L'aéroport ${input.toAirport} ne dessert pas ${input.toCity}` });
 
   const basicOk = notes.every((n) => n.ok);

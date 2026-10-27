@@ -60,8 +60,8 @@ export type Trip = {
   notes: string | null;
   status: TripStatus;
   ticket_verified?: boolean;
-  home_delivery_cents?: number | null;
-  home_delivery_area?: string | null;
+  from_tz?: string | null;
+  to_tz?: string | null;
   carrier?: string | null;
   transport_ref?: string | null;
   from_airport?: string | null;
@@ -85,7 +85,8 @@ export type Booking = {
   recipient_phone: string;
   base_cents: number;
   delivery_cents?: number;
-  delivery_address?: string | null;
+  delivery_status?: "requested" | "scheduled" | "out_for_delivery" | "delivered" | "failed" | null;
+  tracking_code?: string;
   fee_cents: number;
   discount_cents?: number;
   total_cents: number;

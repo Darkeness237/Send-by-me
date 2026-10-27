@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { setVerified } from "@/app/actions/admin";
+import { completeHomeDelivery } from "@/app/actions/tracking";
+import { DELIVERY_STATUS_LABEL, type DeliveryStatus } from "@/lib/delivery";
 import { PayoutForm, RefundForm, ResolveReportForm, ReviewForm } from "@/components/admin-forms";
 import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
@@ -20,6 +22,7 @@ export const metadata: Metadata = { title: "Administration", robots: { index: fa
 const TABS = [
   ["verifications", "Vérifications"],
   ["signalements", "Signalements"],
+  ["livraisons", "Livraisons"],
   ["versements", "Versements"],
   ["membres", "Membres"],
   ["reservations", "Réservations"],
@@ -36,14 +39,15 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
   const tab: Tab = (TABS.find(([k]) => k === sp.onglet)?.[0] ?? "verifications") as Tab;
   const db = createAdminClient();
 
-  const [{ count: pendingIds }, { count: pendingProofs }, { count: openReports }, { count: duePayouts }, { count: unverified }] = await Promise.all([
+  const [{ count: pendingIds }, { count: pendingProofs }, { count: openReports }, { count: duePayouts }, { count: unverified }, { count: openDeliveries }] = await Promise.all([
     db.from("identity_verifications").select("id", { count: "exact", head: true }).eq("status", "pending"),
     db.from("trip_proofs").select("trip_id", { count: "exact", head: true }).eq("status", "pending"),
     db.from("reports").select("id", { count: "exact", head: true }).eq("status", "open"),
     db.from("bookings").select("id", { count: "exact", head: true }).eq("payout_status", "due"),
     db.from("profiles").select("id", { count: "exact", head: true }).eq("id_verified", false),
+    db.from("bookings").select("id", { count: "exact", head: true }).gt("delivery_cents", 0).in("status", ["paid", "picked_up"]),
   ]);
-  const counts: Record<Tab, number | null> = { verifications: (pendingIds ?? 0) + (pendingProofs ?? 0), signalements: openReports, versements: duePayouts, membres: unverified, reservations: null };
+  const counts: Record<Tab, number | null> = { verifications: (pendingIds ?? 0) + (pendingProofs ?? 0), signalements: openReports, livraisons: openDeliveries, versements: duePayouts, membres: unverified, reservations: null };
 
   let content: React.ReactNode = null;
 
@@ -201,6 +205,63 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
       </ul>
     ) : (
       <Empty text="Aucun signalement ouvert." />
+    );
+  }
+
+  if (tab === "livraisons") {
+    const { data: rows } = await db
+      .from("bookings")
+      .select("id, status, tracking_code, delivery_status, delivery_partner_ref, weight_kg, recipient_name, recipient_phone, trip:trips(to_city, departure_at), delivery:booking_deliveries(address)")
+      .gt("delivery_cents", 0)
+      .in("status", ["paid", "picked_up"])
+      .order("created_at", { ascending: true })
+      .limit(100);
+    const { data: steps } = await db
+      .from("booking_events")
+      .select("booking_id, kind")
+      .in("booking_id", (rows ?? []).map((r) => r.id as string))
+      .in("kind", ["arrived", "out_for_delivery"]);
+    const done = new Set((steps ?? []).map((e) => `${e.booking_id}:${e.kind}`));
+    content = rows?.length ? (
+      <ul className="space-y-3">
+        {(rows as Row[]).map((b) => {
+          const trip = one(b.trip);
+          const id = b.id as string;
+          return (
+            <li key={id} className="rounded-2xl bg-white p-5 ring-1 ring-line">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="font-bold">
+                  <span className="wide tabular">{b.tracking_code as string}</span> · {trip?.to_city as string} · {b.weight_kg as number} kg
+                </p>
+                <span className="rounded-full bg-paper px-2.5 py-0.5 text-xs font-semibold">
+                  {DELIVERY_STATUS_LABEL[(b.delivery_status as DeliveryStatus) ?? "requested"]}
+                  {done.has(`${id}:arrived`) ? " · voyageur arrivé" : ""}
+                  {done.has(`${id}:out_for_delivery`) ? " · colis remis au livreur" : ""}
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-ink-soft">
+                {b.recipient_name as string} · {b.recipient_phone as string} · {(one(b.delivery)?.address as string) ?? "adresse manquante"}
+              </p>
+              <p className="text-sm text-muted">
+                Départ {trip ? dayLabel(trip.departure_at as string) : "—"}
+                {b.delivery_partner_ref ? ` · réf. partenaire ${b.delivery_partner_ref as string}` : " · pas encore transmis au partenaire"}
+              </p>
+              {b.status === "picked_up" && (
+                <div className="mt-3 flex gap-2">
+                  <form action={completeHomeDelivery.bind(null, id, "delivered")}>
+                    <button type="submit" className={buttonClass("primary", "sm")}>Livré au destinataire</button>
+                  </form>
+                  <form action={completeHomeDelivery.bind(null, id, "failed")}>
+                    <button type="submit" className={buttonClass("ghost", "sm")}>Échec de livraison</button>
+                  </form>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    ) : (
+      <Empty text="Aucune livraison à domicile en cours." />
     );
   }
 

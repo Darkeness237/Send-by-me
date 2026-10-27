@@ -1,7 +1,7 @@
 // Calcul des prix — toujours refait côté serveur, jamais lu depuis le formulaire.
 //
-// Le voyageur fixe son prix au kilo (et, s'il le propose, un forfait de livraison à domicile) :
-// ces montants lui reviennent intégralement. L'expéditeur paie en plus des frais de service qui couvrent :
+// Le voyageur fixe son prix au kilo, qui lui revient intégralement. La livraison à domicile est un service
+// Send By Me (partenaire de livraison) facturé à part. L'expéditeur paie en plus des frais de service qui couvrent :
 //   1. la commission Send By Me, dégressive selon le poids (plus le colis est lourd, plus le taux baisse) ;
 //   2. les frais bancaires Stripe, estimés pour que la commission nette reste celle annoncée.
 
@@ -27,7 +27,7 @@ export const STRIPE_FIXED_CENTS = 25;
 export type Quote = {
   weightKg: number;
   baseCents: number; // transport, revient au voyageur
-  deliveryCents: number; // livraison à domicile, revient au voyageur
+  deliveryCents: number; // livraison à domicile, service Send By Me
   commissionRate: number;
   commissionCents: number; // marge nette Send By Me
   processingCents: number; // frais bancaires estimés
@@ -48,15 +48,15 @@ export function quote(pricePerKgCents: number, weightKg: number, homeDeliveryCen
   const kg = roundKg(weightKg);
   const baseCents = Math.round(pricePerKgCents * kg);
   const deliveryCents = Math.max(0, Math.round(homeDeliveryCents));
-  const payoutCents = baseCents + deliveryCents;
+  const payoutCents = baseCents;
 
   const commissionRate = commissionRateFor(kg);
-  const commissionCents = Math.max(MIN_COMMISSION_CENTS, Math.round(payoutCents * commissionRate));
+  const commissionCents = Math.max(MIN_COMMISSION_CENTS, Math.round(baseCents * commissionRate));
 
-  // Total tel que, une fois les frais Stripe prélevés sur le total, il reste voyageur + commission.
-  const net = payoutCents + commissionCents;
+  // Total tel que, une fois les frais Stripe prélevés sur le total, il reste voyageur + livraison + commission.
+  const net = baseCents + deliveryCents + commissionCents;
   const totalCents = Math.ceil((net + STRIPE_FIXED_CENTS) / (1 - STRIPE_RATE) / 10) * 10; // arrondi aux 10 centimes
-  const feeCents = totalCents - payoutCents;
+  const feeCents = totalCents - baseCents - deliveryCents;
   return {
     weightKg: kg,
     baseCents,

@@ -336,3 +336,47 @@ export async function getReferralStats(userId: string) {
     credits: (credits ?? []) as { amount_cents: number; reason: string; created_at: string }[],
   };
 }
+
+// ── Suivi d'envoi ───────────────────────────────────────────────
+export type TrackingEvent = { kind: string; at: string; note: string | null };
+
+export async function getTrackingEvents(bookingId: string): Promise<TrackingEvent[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("booking_events")
+    .select("kind, created_at, note")
+    .eq("booking_id", bookingId)
+    .order("created_at", { ascending: true });
+  return (data ?? []).map((e) => ({ kind: e.kind as string, at: e.created_at as string, note: (e.note as string) ?? null }));
+}
+
+/** Adresse de livraison à domicile (lisible par l'expéditeur uniquement, RLS). */
+export async function getDeliveryAddress(bookingId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase.from("booking_deliveries").select("address").eq("booking_id", bookingId).maybeSingle();
+  return (data?.address as string) ?? null;
+}
+
+export type Shipment = {
+  code: string;
+  status: string;
+  weight_kg: number;
+  home_delivery: boolean;
+  delivery_status: string | null;
+  from_city: string;
+  to_city: string;
+  from_tz: string | null;
+  departure_at: string;
+  mode: string;
+  transport_ref: string | null;
+  events: TrackingEvent[];
+};
+
+/** Suivi public par numéro : villes et étapes seulement (fonction en base, sans nom ni adresse). */
+export async function trackShipment(code: string): Promise<Shipment | null> {
+  await connection();
+  if (!isSupabaseConfigured || !/^SBM-[A-Z0-9]{8}$/i.test(code.trim())) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("track_shipment", { p_code: code });
+  return (data as Shipment) ?? null;
+}

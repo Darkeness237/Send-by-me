@@ -1,5 +1,6 @@
 import { randomInt } from "node:crypto";
 import type Stripe from "stripe";
+import { requestPartnerDelivery } from "@/lib/delivery-partner";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -84,5 +85,31 @@ async function markPaid(session: Stripe.Checkout.Session) {
     await admin
       .from("booking_secrets")
       .upsert({ booking_id: bookingId, sender_id: booking.sender_id, delivery_code: code, attempts: 0 }, { onConflict: "booking_id", ignoreDuplicates: true });
+    await scheduleHomeDelivery(bookingId);
   }
+}
+
+/** Livraison à domicile payée : la course est demandée au partenaire (sinon l'équipe la planifie depuis l'administration). */
+async function scheduleHomeDelivery(bookingId: string) {
+  const admin = createAdminClient();
+  const { data: b } = await admin
+    .from("bookings")
+    .select("id, tracking_code, delivery_cents, weight_kg, recipient_name, recipient_phone, trip:trips(to_city, to_country, arrival_at, departure_at)")
+    .eq("id", bookingId)
+    .maybeSingle();
+  if (!b?.delivery_cents) return;
+  const { data: d } = await admin.from("booking_deliveries").select("address").eq("booking_id", bookingId).maybeSingle();
+  const trip = Array.isArray(b.trip) ? b.trip[0] : b.trip;
+  if (!d || !trip) return;
+  const ref = await requestPartnerDelivery({
+    trackingCode: b.tracking_code,
+    city: trip.to_city,
+    country: trip.to_country,
+    address: d.address,
+    recipientName: b.recipient_name,
+    recipientPhone: b.recipient_phone,
+    weightKg: Number(b.weight_kg),
+    expectedAt: trip.arrival_at ?? trip.departure_at,
+  });
+  if (ref) await admin.from("bookings").update({ delivery_status: "scheduled", delivery_partner_ref: ref }).eq("id", bookingId);
 }

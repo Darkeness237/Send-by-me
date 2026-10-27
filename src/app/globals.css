@@ -2,20 +2,20 @@
 
 /*
   Send By Me — design tokens
-  Univers : signalétique d'aéroport. Bleu nuit, bleu Send, jaune de signalétique.
+  Charte issue du logo : marine (texte), bleu-vert (main droite, avion), orange (main gauche, colis), crème (fond du logo).
 */
 @theme {
-  --color-ink: #0f1e3d;
-  --color-ink-soft: #2a3a5c;
-  --color-muted: #5b6782;
-  --color-line: #dfe4ec;
-  --color-paper: #f4f6f9;
+  --color-ink: #12324f;
+  --color-ink-soft: #2d4a66;
+  --color-muted: #5f6f82;
+  --color-line: #e5e0d6;
+  --color-paper: #f8f5ef;
   --color-card: #ffffff;
-  --color-brand: #0a7cd6;
-  --color-brand-deep: #075fa6;
-  --color-brand-pale: #e6f2fc;
-  --color-signal: #ffc21a;
-  --color-signal-deep: #e0a400;
+  --color-brand: #137284;
+  --color-brand-deep: #0c5868;
+  --color-brand-pale: #e2f2f4;
+  --color-signal: #f28c28;
+  --color-signal-deep: #c2610f;
   --color-ok: #16a34a;
   --color-ok-pale: #e8f6ed;
   --color-warn: #b45309;
@@ -26,7 +26,7 @@
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
 
   --radius-tag: 14px;
-  --shadow-tag: 0 1px 0 rgb(15 30 61 / 0.04), 0 8px 24px -12px rgb(15 30 61 / 0.18);
+  --shadow-tag: 0 1px 0 rgb(18 50 79 / 0.04), 0 8px 24px -12px rgb(18 50 79 / 0.18);
 }
 
 :root {
