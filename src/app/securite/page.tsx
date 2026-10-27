@@ -32,8 +32,16 @@ export default function Security() {
       <section>
         <h2>Identité vérifiée</h2>
         <p>
-          Le badge bleu signifie que notre équipe a contrôlé une pièce d&apos;identité du membre. Nous vous conseillons de privilégier
-          les voyageurs vérifiés et ayant déjà des avis.
+          Le badge bleu signifie que notre équipe a contrôlé une pièce d&apos;identité du membre et un selfie. Nous vous conseillons de
+          privilégier les voyageurs vérifiés et ayant déjà des avis.
+        </p>
+      </section>
+      <section>
+        <h2>Trajet vérifié</h2>
+        <p>
+          Le voyageur peut nous envoyer son billet ou sa carte d&apos;embarquement. Si le nom, le trajet et la date correspondent, son trajet
+          reçoit le badge « Trajet vérifié ». Les documents d&apos;identité et les billets sont stockés dans un espace privé, consultés
+          uniquement par l&apos;équipe, puis supprimés dès la fin du contrôle.
         </p>
       </section>
       <section>

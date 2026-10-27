@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { BadgeCheck } from "lucide-react";
 import { ProfileForm } from "@/components/account-forms";
+import { IdentityVerificationForm } from "@/components/verification-forms";
+import { createClient } from "@/lib/supabase/server";
 import { PageShell } from "@/components/page-shell";
 import { getProfile } from "@/lib/data";
 import { getUserId } from "@/lib/supabase/server";
@@ -15,6 +17,14 @@ async function Profile() {
   if (!userId) redirect("/connexion?suite=/espace/profil");
   const profile = await getProfile(userId);
   if (!profile) redirect("/espace");
+  const supabase = await createClient();
+  const { data: lastRequest } = await supabase
+    .from("identity_verifications")
+    .select("status, rejection_reason, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
@@ -29,16 +39,23 @@ async function Profile() {
           <p className="flex items-center gap-2 font-semibold text-brand-deep">
             <BadgeCheck className="h-5 w-5" aria-hidden="true" /> Identité vérifiée
           </p>
+        ) : lastRequest?.status === "pending" ? (
+          <>
+            <p className="font-semibold">Vérification en cours</p>
+            <p className="mt-1 text-sm text-muted">Notre équipe examine vos documents, en général sous 24 heures. Le badge apparaîtra ici.</p>
+          </>
         ) : (
           <>
-            <p className="font-semibold">Identité non vérifiée</p>
-            <p className="mt-1 text-sm text-muted">
-              Les membres vérifiés reçoivent plus de demandes. Envoyez une photo de votre pièce d&apos;identité à{" "}
-              <a href="mailto:verification@send-by-me.com" className="font-semibold text-brand">
-                verification@send-by-me.com
-              </a>{" "}
-              depuis l&apos;adresse de votre compte. Elle est supprimée après contrôle.
+            <p className="font-semibold">Faites vérifier votre identité</p>
+            <p className="mt-1 mb-4 text-sm text-muted">
+              Le badge bleu rassure les autres membres : les voyageurs et expéditeurs vérifiés reçoivent plus de demandes.
             </p>
+            {lastRequest?.status === "rejected" && (
+              <p role="alert" className="mb-4 rounded-xl bg-danger-pale px-4 py-3 text-sm text-danger">
+                Votre dernière demande a été refusée : {lastRequest.rejection_reason}. Vous pouvez en envoyer une nouvelle.
+              </p>
+            )}
+            <IdentityVerificationForm userId={userId} />
           </>
         )}
       </div>

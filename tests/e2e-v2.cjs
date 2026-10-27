@@ -14,7 +14,7 @@ async function signup(ctx, name, email, next = '/espace') {
   await p.goto(`${BASE}/inscription?suite=${encodeURIComponent(next)}`);
   await p.fill('#full_name', name); await p.fill('#email', email); await p.fill('#password', 'motdepasse-solide-1');
   await p.check('input[name=terms]');
-  await Promise.all([p.waitForURL('**' + next.split('?')[0] + '**'), p.click('button[type=submit]')]);
+  await Promise.all([p.waitForURL('**' + next.split('?')[0] + '**'), p.click('form:has(#password) button[type=submit]')]);
   return p;
 }
 
@@ -48,7 +48,7 @@ async function signup(ctx, name, email, next = '/espace') {
     await ta.fill('#from_city', 'Paris'); await ta.fill('#to_city', 'Dakar');
     await ta.fill('#departure_date', d); await ta.fill('#departure_time', '14:00');
     await ta.fill('#capacity_kg', String(cap)); await ta.fill('#price_per_kg', '8');
-    await Promise.all([ta.waitForURL('**/trajets/**'), ta.click('button[type=submit]')]);
+    await Promise.all([ta.waitForURL('**/trajets/**'), ta.click('button:has-text("Publier mon trajet")')]);
     return ta.url().split('?')[0];
   };
   const trip1 = await publish(15);
@@ -118,16 +118,16 @@ async function signup(ctx, name, email, next = '/espace') {
   // Promotion admin (app_metadata, côté serveur uniquement) puis reconnexion
   sql(`update auth.users set raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}' where email='a${run}@test.fr'`);
   await adminCtx.clearCookies();
-  await ad.goto(BASE + '/connexion?suite=/admin');
+  await ad.goto(BASE + '/connexion?suite=%2Fadmin%3Fonglet%3Dsignalements');
   await ad.fill('#email', `a${run}@test.fr`); await ad.fill('#password', 'motdepasse-solide-1');
-  await Promise.all([ad.waitForURL('**/admin**'), ad.click('button[type=submit]')]);
+  await Promise.all([ad.waitForURL('**/admin**'), ad.click('form:has(#password) button[type=submit]')]);
   await ad.waitForSelector('h1:has-text("Administration")');
   log('admin connecté');
   await ad.waitForSelector('text=ne répond plus depuis deux jours');
   const item = ad.locator('li', { hasText: 'ne répond plus depuis deux jours' }).last();
   await item.locator('input[name=resolution]').fill('Voyageur contacté, livraison confirmée.');
   await item.locator('button:has-text("Clore")').click();
-  await ad.waitForSelector('text=ne répond plus depuis deux jours', { state: 'detached' });
+  for (let i = 0; i < 30 && sql(`select status from reports where booking_id='${bookingId}'`) !== 'resolved'; i++) await ad.waitForTimeout(500);
   log('signalement clos →', sql(`select status from reports where booking_id='${bookingId}'`));
   await ad.goto(BASE + '/admin?onglet=versements');
   await ad.fill(`#ref-${bookingId}`, 'VIR-2026-001');

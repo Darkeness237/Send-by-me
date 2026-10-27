@@ -59,7 +59,8 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
     return { error: error.code === "weak_password" ? "Mot de passe trop faible, choisissez-en un plus long." : "Inscription impossible avec cette adresse." };
   }
   if (!data.session) {
-    return { ok: "Compte créé. Ouvrez le lien reçu par e-mail pour l'activer." };
+    const next = safeNext(formData.get("suite"));
+    redirect(`/connexion?inscrit=1&suite=${encodeURIComponent(next)}`);
   }
   redirect(safeNext(formData.get("suite")));
 }
@@ -70,4 +71,20 @@ export async function signOut() {
     await supabase.auth.signOut();
   }
   redirect("/");
+}
+
+/** Connexion ou inscription avec Google (OAuth, flux PKCE). Le retour passe par /auth/confirm. */
+export async function signInWithGoogle(formData: FormData) {
+  if (!isSupabaseConfigured) redirect("/connexion?erreur=demo");
+  const next = safeNext(formData.get("suite"));
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${SITE_URL}/auth/confirm?suite=${encodeURIComponent(next)}`,
+      queryParams: { prompt: "select_account" },
+    },
+  });
+  if (error || !data.url) redirect("/connexion?erreur=google");
+  redirect(data.url);
 }

@@ -152,3 +152,10 @@ export async function getMyAlerts(userId: string) {
     }),
   );
 }
+
+/** État du justificatif de voyage, pour le voyageur (RLS : lui seul le voit). */
+export async function getTripProof(tripId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase.from("trip_proofs").select("status, rejection_reason").eq("trip_id", tripId).maybeSingle();
+  return data as { status: "pending" | "approved" | "rejected"; rejection_reason: string | null } | null;
+}

@@ -51,7 +51,10 @@ export function TripTag({ trip }: { trip: Trip }) {
       <div className="flex items-center gap-3 px-5 py-3.5 sm:px-6">
         {traveler && <Avatar name={traveler.full_name || "Voyageur"} verified={traveler.id_verified} size={34} />}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-ink">{traveler?.full_name || "Voyageur"}</p>
+          <p className="truncate text-sm font-semibold text-ink">
+            {traveler?.full_name || "Voyageur"}
+            {trip.ticket_verified && <span className="ml-2 rounded-full bg-ok-pale px-2 py-0.5 text-xs font-semibold text-ok">Trajet vérifié</span>}
+          </p>
           {traveler?.rating_count ? (
             <p className="flex items-center gap-1 text-xs text-muted">
               <Star className="h-3.5 w-3.5 fill-signal text-signal" aria-hidden="true" />

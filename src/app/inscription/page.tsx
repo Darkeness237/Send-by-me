@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthLayout } from "@/components/auth-layout";
+import { GoogleButton, OrDivider } from "@/components/google-button";
 import { SignUpForm } from "@/components/auth-forms";
 
 export const metadata: Metadata = {
@@ -10,7 +11,13 @@ export const metadata: Metadata = {
 
 async function Form({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  return <SignUpForm next={sp.suite} />;
+  return (
+    <>
+      <GoogleButton next={sp.suite} />
+      <OrDivider />
+      <SignUpForm next={sp.suite} />
+    </>
+  );
 }
 
 export default function SignUpPage(props: PageProps<"/inscription">) {

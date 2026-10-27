@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { markPayoutPaid, refundBooking, resolveReport } from "@/app/actions/admin";
+import { markPayoutPaid, refundBooking, resolveReport, reviewIdentity, reviewTripProof } from "@/app/actions/admin";
 import { Button } from "@/components/ui/button";
 import { FormMessage, Input } from "@/components/ui/field";
 
@@ -56,6 +56,26 @@ export function RefundForm({ bookingId }: { bookingId: string }) {
       <Button type="submit" size="sm" variant="danger" disabled={pending}>
         {pending ? "Remboursement…" : "Rembourser"}
       </Button>
+      {state?.error && <FormMessage state={state} />}
+    </form>
+  );
+}
+
+export function ReviewForm({ kind, id }: { kind: "identity" | "trip"; id: string }) {
+  const [state, action, pending] = useActionState(kind === "identity" ? reviewIdentity : reviewTripProof, null);
+  if (state?.ok) return <FormMessage state={state} />;
+  return (
+    <form action={action} className="space-y-2">
+      <input type="hidden" name={kind === "identity" ? "verification_id" : "trip_id"} value={id} />
+      <Input name="reason" placeholder="Motif en cas de refus (photo floue, pièce expirée…)" aria-label="Motif du refus" />
+      <div className="flex gap-2">
+        <Button type="submit" name="decision" value="approved" size="sm" disabled={pending}>
+          Valider
+        </Button>
+        <Button type="submit" name="decision" value="rejected" size="sm" variant="danger" disabled={pending}>
+          Refuser
+        </Button>
+      </div>
       {state?.error && <FormMessage state={state} />}
     </form>
   );

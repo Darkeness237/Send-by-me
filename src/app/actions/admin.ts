@@ -81,3 +81,66 @@ export async function refundBooking(_: FormState, formData: FormData): Promise<F
   revalidatePath(`/reservations/${b.id}`);
   return ok ? { ok: "Remboursement effectué." } : { error: "Remboursé sur Stripe, mais la réservation n'a pas pu être mise à jour : vérifiez-la." };
 }
+
+// ── Vérification des documents ──────────────────────────────────
+const VERIF_BUCKET = "verification-documents";
+
+/** Valide ou refuse une pièce d'identité, puis supprime les fichiers (on ne garde que la décision). */
+export async function reviewIdentity(_: FormState, formData: FormData): Promise<FormState> {
+  const adminId = await requireAdmin();
+  const id = Number(formData.get("verification_id"));
+  const decision = formData.get("decision");
+  const reason = String(formData.get("reason") ?? "").trim().slice(0, 500);
+  if (!Number.isInteger(id) || (decision !== "approved" && decision !== "rejected")) return { error: "Décision invalide." };
+  if (decision === "rejected" && reason.length < 3) return { error: "Indiquez au membre pourquoi la pièce est refusée." };
+
+  const db = createAdminClient();
+  const { data: v } = await db
+    .from("identity_verifications")
+    .select("id, user_id, front_path, back_path, selfie_path")
+    .eq("id", id)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (!v) return { error: "Cette demande a déjà été traitée." };
+
+  if (decision === "approved") {
+    await db.from("profiles").update({ id_verified: true }).eq("id", v.user_id);
+  }
+  await db
+    .from("identity_verifications")
+    .update({
+      status: decision,
+      rejection_reason: decision === "rejected" ? reason : null,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: adminId,
+      front_path: null,
+      back_path: null,
+      selfie_path: null,
+    })
+    .eq("id", id);
+  const files = [v.front_path, v.back_path, v.selfie_path].filter(Boolean) as string[];
+  if (files.length) await db.storage.from(VERIF_BUCKET).remove(files);
+  revalidatePath("/admin");
+  return { ok: decision === "approved" ? "Identité vérifiée. Documents supprimés." : "Demande refusée. Documents supprimés." };
+}
+
+export async function reviewTripProof(_: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const tripId = String(formData.get("trip_id") ?? "");
+  const decision = formData.get("decision");
+  const reason = String(formData.get("reason") ?? "").trim().slice(0, 500);
+  if (!uuid.safeParse(tripId).success || (decision !== "approved" && decision !== "rejected")) return { error: "Décision invalide." };
+  if (decision === "rejected" && reason.length < 3) return { error: "Indiquez au voyageur pourquoi le justificatif est refusé." };
+
+  const db = createAdminClient();
+  const { data: proof } = await db.from("trip_proofs").select("file_path").eq("trip_id", tripId).eq("status", "pending").maybeSingle();
+  if (!proof) return { error: "Ce justificatif a déjà été traité." };
+  if (decision === "approved") await db.from("trips").update({ ticket_verified: true }).eq("id", tripId);
+  await db
+    .from("trip_proofs")
+    .update({ status: decision, rejection_reason: decision === "rejected" ? reason : null, reviewed_at: new Date().toISOString(), file_path: null })
+    .eq("trip_id", tripId);
+  if (proof.file_path) await db.storage.from(VERIF_BUCKET).remove([proof.file_path]);
+  revalidatePath("/admin");
+  return { ok: decision === "approved" ? "Trajet vérifié. Justificatif supprimé." : "Justificatif refusé et supprimé." };
+}

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { setVerified } from "@/app/actions/admin";
-import { PayoutForm, RefundForm, ResolveReportForm } from "@/components/admin-forms";
+import { PayoutForm, RefundForm, ResolveReportForm, ReviewForm } from "@/components/admin-forms";
 import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { buttonClass } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { REPORT_REASONS, type BookingStatus } from "@/lib/types";
 export const metadata: Metadata = { title: "Administration", robots: { index: false } };
 
 const TABS = [
+  ["verifications", "Vérifications"],
   ["signalements", "Signalements"],
   ["versements", "Versements"],
   ["membres", "Membres"],
@@ -32,17 +33,118 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
   const { userId, isAdmin } = await getSession();
   if (!userId || !isAdmin) notFound(); // la page n'existe pas pour les autres membres
   const sp = await searchParams;
-  const tab: Tab = (TABS.find(([k]) => k === sp.onglet)?.[0] ?? "signalements") as Tab;
+  const tab: Tab = (TABS.find(([k]) => k === sp.onglet)?.[0] ?? "verifications") as Tab;
   const db = createAdminClient();
 
-  const [{ count: openReports }, { count: duePayouts }, { count: unverified }] = await Promise.all([
+  const [{ count: pendingIds }, { count: pendingProofs }, { count: openReports }, { count: duePayouts }, { count: unverified }] = await Promise.all([
+    db.from("identity_verifications").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    db.from("trip_proofs").select("trip_id", { count: "exact", head: true }).eq("status", "pending"),
     db.from("reports").select("id", { count: "exact", head: true }).eq("status", "open"),
     db.from("bookings").select("id", { count: "exact", head: true }).eq("payout_status", "due"),
     db.from("profiles").select("id", { count: "exact", head: true }).eq("id_verified", false),
   ]);
-  const counts: Record<Tab, number | null> = { signalements: openReports, versements: duePayouts, membres: unverified, reservations: null };
+  const counts: Record<Tab, number | null> = { verifications: (pendingIds ?? 0) + (pendingProofs ?? 0), signalements: openReports, versements: duePayouts, membres: unverified, reservations: null };
 
   let content: React.ReactNode = null;
+
+  if (tab === "verifications") {
+    const BUCKET = "verification-documents";
+    const sign = async (path: string | null) => (path ? (await db.storage.from(BUCKET).createSignedUrl(path, 300)).data?.signedUrl ?? null : null);
+    const [{ data: ids }, { data: proofs }] = await Promise.all([
+      db
+        .from("identity_verifications")
+        .select("id, document_type, front_path, back_path, selfie_path, created_at, user:profiles!identity_verifications_user_id_fkey(full_name, city)")
+        .eq("status", "pending")
+        .order("created_at", { ascending: true })
+        .limit(50),
+      db
+        .from("trip_proofs")
+        .select("trip_id, file_path, created_at, trip:trips(from_city, to_city, departure_at), traveler:profiles!trip_proofs_traveler_id_fkey(full_name)")
+        .eq("status", "pending")
+        .order("created_at", { ascending: true })
+        .limit(50),
+    ]);
+    const DOC: Record<string, string> = { cni: "Carte d'identité", passport: "Passeport", residence_permit: "Titre de séjour", driving_license: "Permis de conduire" };
+    const idRows = await Promise.all(
+      ((ids ?? []) as Row[]).map(async (v) => ({
+        v,
+        files: (
+          await Promise.all([
+            ["Recto", v.front_path],
+            ["Verso", v.back_path],
+            ["Selfie", v.selfie_path],
+          ].map(async ([label, path]) => [label, await sign(path as string | null)] as const))
+        ).filter(([, url]) => url),
+      })),
+    );
+    const proofRows = await Promise.all(((proofs ?? []) as Row[]).map(async (p) => ({ p, url: await sign(p.file_path as string | null) })));
+    const Doc = ({ label, url }: { label: string; url: string }) => (
+      <a href={url} target="_blank" rel="noreferrer noopener" className="block overflow-hidden rounded-xl ring-1 ring-line hover:ring-brand">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={url} alt={label} className="h-36 w-full bg-paper object-cover" />
+        <span className="block px-2 py-1 text-xs font-semibold">{label}</span>
+      </a>
+    );
+    content =
+      idRows.length || proofRows.length ? (
+        <div className="space-y-8">
+          {idRows.length > 0 && (
+            <section>
+              <h2 className="mb-3 font-bold">Pièces d&apos;identité</h2>
+              <ul className="space-y-3">
+                {idRows.map(({ v, files }) => (
+                  <li key={v.id as number} className="rounded-2xl bg-white p-5 ring-1 ring-line">
+                    <p className="font-bold">
+                      {(one(v.user)?.full_name as string) || "Membre"} · {DOC[v.document_type as string]}
+                    </p>
+                    <p className="text-sm text-muted">Déposé le {dayLabel(v.created_at as string)} · liens valables 5 minutes</p>
+                    <div className="mt-3 grid grid-cols-3 gap-2 sm:max-w-lg">
+                      {files.map(([label, url]) => (
+                        <Doc key={String(label)} label={String(label)} url={url as string} />
+                      ))}
+                    </div>
+                    <p className="mt-3 text-sm text-ink-soft">Vérifiez : nom identique au profil, pièce non expirée, visage du selfie identique à la photo.</p>
+                    <div className="mt-3">
+                      <ReviewForm kind="identity" id={String(v.id)} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {proofRows.length > 0 && (
+            <section>
+              <h2 className="mb-3 font-bold">Justificatifs de voyage</h2>
+              <ul className="space-y-3">
+                {proofRows.map(({ p, url }) => {
+                  const trip = one(p.trip);
+                  return (
+                    <li key={p.trip_id as string} className="rounded-2xl bg-white p-5 ring-1 ring-line">
+                      <p className="font-bold">
+                        {(one(p.traveler)?.full_name as string) || "Voyageur"} · {codeFor((trip?.from_city as string) ?? "")} ›{" "}
+                        {codeFor((trip?.to_city as string) ?? "")}
+                      </p>
+                      <p className="text-sm text-muted">Départ annoncé : {trip ? dayLabel(trip.departure_at as string) : "—"}</p>
+                      {url && (
+                        <a href={url} target="_blank" rel="noreferrer noopener" className="mt-2 inline-block text-sm font-semibold text-brand">
+                          Ouvrir le billet (lien valable 5 minutes)
+                        </a>
+                      )}
+                      <p className="mt-2 text-sm text-ink-soft">Vérifiez : même nom que le voyageur, même trajet et même date.</p>
+                      <div className="mt-3">
+                        <ReviewForm kind="trip" id={p.trip_id as string} />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+        </div>
+      ) : (
+        <Empty text="Aucune pièce à vérifier." />
+      );
+  }
 
   if (tab === "signalements") {
     const { data } = await db

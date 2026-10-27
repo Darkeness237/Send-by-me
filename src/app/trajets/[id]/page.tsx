@@ -7,7 +7,9 @@ import { Avatar } from "@/components/avatar";
 import { BookingForm } from "@/components/booking-form";
 import { PageShell } from "@/components/page-shell";
 import { ButtonLink } from "@/components/ui/button";
-import { getTrip } from "@/lib/data";
+import { getTrip, getTripProof } from "@/lib/data";
+import { isSupabaseConfigured } from "@/lib/env";
+import { TripProofForm } from "@/components/verification-forms";
 import { isUpcoming, kg, longDate, memberSince, timeLabel } from "@/lib/format";
 import { codeFor, tzFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
@@ -32,6 +34,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
   const left = Math.max(0, trip.capacity_kg - trip.reserved_kg);
   const traveler = trip.traveler;
   const isOwner = userId === trip.traveler_id;
+  const proof = isOwner && isSupabaseConfigured ? await getTripProof(trip.id) : null;
   const bookable = trip.status === "published" && left >= 0.5 && isUpcoming(trip.departure_at);
 
   return (
@@ -64,6 +67,11 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
                   <p className="mt-1 text-white/80">{trip.to_city}</p>
                 </div>
               </div>
+              {trip.ticket_verified && (
+                <p className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-ok/20 px-3 py-1 text-sm font-semibold text-[#7ee2a1]">
+                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Trajet vérifié : billet contrôlé par Send By Me
+                </p>
+              )}
               <h1 className="sr-only">
                 Trajet {trip.from_city} vers {trip.to_city}
               </h1>
@@ -165,6 +173,28 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
                 <ButtonLink href="/espace" variant="outline">
                   Voir mes demandes
                 </ButtonLink>
+                <div className="border-t border-line pt-5">
+                  <h3 className="font-bold">Justificatif de voyage</h3>
+                  {trip.ticket_verified ? (
+                    <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-ok">
+                      <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Trajet vérifié : le badge est visible par les expéditeurs.
+                    </p>
+                  ) : proof?.status === "pending" ? (
+                    <p className="mt-2 text-sm text-muted">Justificatif reçu, en cours de vérification.</p>
+                  ) : (
+                    <>
+                      <p className="mt-1 mb-3 text-sm text-muted">
+                        Envoyez votre billet pour obtenir le badge « Trajet vérifié ». Il est supprimé après contrôle.
+                      </p>
+                      {proof?.status === "rejected" && (
+                        <p role="alert" className="mb-3 rounded-xl bg-danger-pale px-3 py-2 text-sm text-danger">
+                          Justificatif refusé : {proof.rejection_reason}
+                        </p>
+                      )}
+                      <TripProofForm userId={userId!} tripId={trip.id} />
+                    </>
+                  )}
+                </div>
               </div>
             ) : !bookable ? (
               <p className="text-muted">Ce trajet n&apos;accepte plus de réservations.</p>

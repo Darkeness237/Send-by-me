@@ -53,6 +53,7 @@ export type Trip = {
   dropoff_note: string | null;
   notes: string | null;
   status: TripStatus;
+  ticket_verified?: boolean;
   created_at: string;
   traveler?: Profile | null;
 };
