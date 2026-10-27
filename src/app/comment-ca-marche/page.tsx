@@ -37,8 +37,9 @@ export default function HowItWorks() {
       <section>
         <h2>Les frais</h2>
         <p>
-          La publication de trajets est gratuite. L&apos;expéditeur paie le prix fixé par le voyageur, plus 12 % de frais de service
-          (2 € minimum). Ces frais financent la vérification des membres, le paiement sécurisé et le support.
+          La publication de trajets est gratuite. L&apos;expéditeur paie le prix fixé par le voyageur, la livraison à domicile s&apos;il
+          l&apos;a choisie, et des frais de service dégressifs selon le poids : 15 % jusqu&apos;à 5 kg, 12 % jusqu&apos;à 10 kg, 10 % jusqu&apos;à 20 kg
+          et 8 % au-delà, frais bancaires du paiement inclus (1,50 € net minimum). Ces frais financent la vérification des membres, le paiement sécurisé et le support.
         </p>
       </section>
       <div className="flex flex-wrap gap-3 pt-2">

@@ -53,24 +53,28 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
     const [{ data: ids }, { data: proofs }] = await Promise.all([
       db
         .from("identity_verifications")
-        .select("id, document_type, front_path, back_path, selfie_path, created_at, user:profiles!identity_verifications_user_id_fkey(full_name, city)")
+        .select(
+          "id, kind, document_type, front_path, back_path, selfie_path, created_at, user:profiles!identity_verifications_user_id_fkey(full_name, city, contact:member_contacts(last_name, phone, address_line, postal_code, address_city, country))",
+        )
         .eq("status", "pending")
         .order("created_at", { ascending: true })
         .limit(50),
       db
         .from("trip_proofs")
-        .select("trip_id, file_path, created_at, trip:trips(from_city, to_city, departure_at), traveler:profiles!trip_proofs_traveler_id_fkey(full_name)")
+        .select(
+          "trip_id, file_path, created_at, trip:trips(from_city, to_city, departure_at, carrier, transport_ref, transport_check), traveler:profiles!trip_proofs_traveler_id_fkey(full_name, contact:member_contacts(last_name))",
+        )
         .eq("status", "pending")
         .order("created_at", { ascending: true })
         .limit(50),
     ]);
-    const DOC: Record<string, string> = { cni: "Carte d'identité", passport: "Passeport", residence_permit: "Titre de séjour", driving_license: "Permis de conduire" };
+    const DOC: Record<string, string> = { cni: "Carte d'identité", passport: "Passeport", residence_permit: "Titre de séjour", driving_license: "Permis de conduire", proof_of_address: "Justificatif de domicile" };
     const idRows = await Promise.all(
       ((ids ?? []) as Row[]).map(async (v) => ({
         v,
         files: (
           await Promise.all([
-            ["Recto", v.front_path],
+            [v.kind === "address" ? "Justificatif" : "Recto", v.front_path],
             ["Verso", v.back_path],
             ["Selfie", v.selfie_path],
           ].map(async ([label, path]) => [label, await sign(path as string | null)] as const))
@@ -98,12 +102,30 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
                       {(one(v.user)?.full_name as string) || "Membre"} · {DOC[v.document_type as string]}
                     </p>
                     <p className="text-sm text-muted">Déposé le {dayLabel(v.created_at as string)} · liens valables 5 minutes</p>
+                    {(() => {
+                      const c = one(one(v.user)?.contact as Row | Row[] | null);
+                      if (!c) return null;
+                      return (
+                        <p className="mt-1 text-sm text-ink-soft">
+                          Nom déclaré : <span className="font-semibold">{(c.last_name as string) || "—"}</span>
+                          {v.kind === "address" && (
+                            <>
+                              {" "}· Adresse : {[c.address_line, c.postal_code, c.address_city, c.country].filter(Boolean).join(", ")} · Tél. {(c.phone as string) || "—"}
+                            </>
+                          )}
+                        </p>
+                      );
+                    })()}
                     <div className="mt-3 grid grid-cols-3 gap-2 sm:max-w-lg">
                       {files.map(([label, url]) => (
                         <Doc key={String(label)} label={String(label)} url={url as string} />
                       ))}
                     </div>
-                    <p className="mt-3 text-sm text-ink-soft">Vérifiez : nom identique au profil, pièce non expirée, visage du selfie identique à la photo.</p>
+                    <p className="mt-3 text-sm text-ink-soft">
+                      {v.kind === "address"
+                        ? "Vérifiez : document de moins de 3 mois (facture, avis d'imposition, attestation), même nom et même adresse que déclarés."
+                        : "Vérifiez : nom identique au nom déclaré, pièce non expirée, visage du selfie identique à la photo."}
+                    </p>
                     <div className="mt-3">
                       <ReviewForm kind="identity" id={String(v.id)} />
                     </div>
@@ -124,7 +146,11 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
                         {(one(p.traveler)?.full_name as string) || "Voyageur"} · {codeFor((trip?.from_city as string) ?? "")} ›{" "}
                         {codeFor((trip?.to_city as string) ?? "")}
                       </p>
-                      <p className="text-sm text-muted">Départ annoncé : {trip ? dayLabel(trip.departure_at as string) : "—"}</p>
+                      <p className="text-sm text-muted">
+                        Départ annoncé : {trip ? dayLabel(trip.departure_at as string) : "—"}
+                        {trip?.transport_ref ? ` · vol ${trip.transport_ref as string} (${(trip.transport_check as string) ?? "—"})` : ""}
+                        {" "}· nom déclaré : {(one(one(p.traveler)?.contact as Row | Row[] | null)?.last_name as string) || "—"}
+                      </p>
                       {url && (
                         <a href={url} target="_blank" rel="noreferrer noopener" className="mt-2 inline-block text-sm font-semibold text-brand">
                           Ouvrir le billet (lien valable 5 minutes)
@@ -181,7 +207,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
   if (tab === "versements") {
     const { data } = await db
       .from("bookings")
-      .select("id, base_cents, delivered_at, trip:trips(from_city, to_city, traveler:profiles!trips_traveler_id_fkey(full_name))")
+      .select("id, base_cents, delivery_cents, delivered_at, trip:trips(from_city, to_city, traveler:profiles!trips_traveler_id_fkey(full_name))")
       .eq("payout_status", "due")
       .order("delivered_at", { ascending: true })
       .limit(100);
@@ -193,7 +219,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
             <li key={b.id as string} className="flex flex-wrap items-center gap-4 rounded-2xl bg-white p-5 ring-1 ring-line">
               <div className="min-w-0 flex-1">
                 <p className="font-bold">
-                  {one(trip?.traveler)?.full_name as string} · <span className="tabular">{euros(b.base_cents as number)}</span>
+                  {one(trip?.traveler)?.full_name as string} · <span className="tabular">{euros((b.base_cents as number) + ((b.delivery_cents as number) ?? 0))}</span>
                 </p>
                 <p className="text-sm text-muted">
                   {codeFor((trip?.from_city as string) ?? "")} › {codeFor((trip?.to_city as string) ?? "")} · livré le{" "}

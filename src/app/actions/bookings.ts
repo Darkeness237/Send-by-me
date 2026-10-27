@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/env";
-import { quote } from "@/lib/pricing";
+import { quote, roundKg } from "@/lib/pricing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/types";
@@ -51,6 +51,8 @@ const requestSchema = z.object({
     .trim()
     .regex(/^\+?[0-9 ]{8,20}$/, "Numéro du destinataire invalide (ex. +237 6 99 00 00 00)"),
   declaration: z.literal("on", { error: "Confirmez que le colis ne contient aucun objet interdit" }),
+  home_delivery: z.literal("on").optional(),
+  delivery_address: z.string().trim().max(300).optional(),
 });
 
 export async function requestBooking(_: FormState, formData: FormData): Promise<FormState> {
@@ -65,17 +67,21 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
   const admin = createAdminClient();
   const { data: trip } = await admin
     .from("trips")
-    .select("id, traveler_id, status, departure_at, capacity_kg, reserved_kg, price_per_kg_cents, accepted_categories")
+    .select("id, traveler_id, status, departure_at, capacity_kg, reserved_kg, price_per_kg_cents, accepted_categories, home_delivery_cents")
     .eq("id", d.trip_id)
     .maybeSingle();
 
   if (!trip || trip.status !== "published") return { error: "Ce trajet n'accepte plus de réservations." };
   if (trip.traveler_id === userId) return { error: "Vous ne pouvez pas réserver votre propre trajet." };
   if (new Date(trip.departure_at).getTime() < Date.now()) return { error: "Ce trajet est déjà parti." };
-  if (Number(trip.capacity_kg) - Number(trip.reserved_kg) < d.weight_kg)
+  if (Number(trip.capacity_kg) - Number(trip.reserved_kg) < roundKg(d.weight_kg))
     return { error: "Il ne reste plus assez de kilos sur ce trajet." };
   if (!(trip.accepted_categories as string[]).includes(d.category))
     return { error: "Ce voyageur n'accepte pas ce type de colis." };
+
+  const wantsDelivery = d.home_delivery === "on";
+  if (wantsDelivery && !trip.home_delivery_cents) return { error: "Ce voyageur ne propose pas la livraison à domicile." };
+  if (wantsDelivery && (d.delivery_address ?? "").length < 5) return { error: "Indiquez l'adresse de livraison du destinataire." };
 
   const { count } = await admin
     .from("bookings")
@@ -86,20 +92,24 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
   if (count) return { error: "Vous avez déjà une demande en cours sur ce trajet." };
 
   // Prix recalculé ici, à partir du trajet en base.
-  const q = quote(trip.price_per_kg_cents, d.weight_kg);
+  const q = quote(trip.price_per_kg_cents, d.weight_kg, wantsDelivery ? trip.home_delivery_cents : 0);
 
   const { data: booking, error } = await admin
     .from("bookings")
     .insert({
       trip_id: trip.id,
       sender_id: userId,
-      weight_kg: d.weight_kg,
+      weight_kg: q.weightKg,
       category: d.category,
       description: d.description,
       recipient_name: d.recipient_name,
       recipient_phone: d.recipient_phone,
       base_cents: q.baseCents,
+      delivery_cents: q.deliveryCents,
+      delivery_address: wantsDelivery ? d.delivery_address : null,
       fee_cents: q.feeCents,
+      commission_rate: q.commissionRate,
+      processing_cents: q.processingCents,
       total_cents: q.totalCents,
     })
     .select("id")
@@ -191,20 +201,23 @@ export async function confirmDelivery(_: FormState, formData: FormData): Promise
   return { ok: "Livraison confirmée. Le paiement va vous être versé." };
 }
 
-// ── Messages ────────────────────────────────────────────────────
+// ── Messages (réservation ou question avant réservation) ─────────
 export async function sendMessage(_: FormState, formData: FormData): Promise<FormState> {
   const userId = await getUserId();
   if (!userId) return { error: "Connectez-vous." };
   const bookingId = String(formData.get("booking_id") ?? "");
+  const inquiryId = String(formData.get("inquiry_id") ?? "");
   const body = String(formData.get("body") ?? "").trim();
-  if (!uuid.safeParse(bookingId).success || !body) return null;
+  const thread = uuid.safeParse(bookingId).success ? { booking_id: bookingId } : uuid.safeParse(inquiryId).success ? { inquiry_id: inquiryId } : null;
+  if (!thread || !body) return null;
   if (body.length > 2000) return { error: "Message trop long (2000 caractères maximum)." };
 
-  // Client utilisateur : la RLS vérifie que l'auteur participe à la réservation.
+  // Client utilisateur : la RLS vérifie que l'auteur participe à la discussion.
   const supabase = await createClient();
-  const { error } = await supabase.from("messages").insert({ booking_id: bookingId, author_id: userId, body });
+  const { error } = await supabase.from("messages").insert({ ...thread, author_id: userId, body });
   if (error) return { error: "Message non envoyé." };
-  revalidatePath(`/reservations/${bookingId}`);
+  revalidatePath("booking_id" in thread ? `/reservations/${bookingId}` : `/messages/${inquiryId}`);
+  revalidatePath("/messages");
   return null;
 }
 

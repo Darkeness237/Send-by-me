@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthLayout } from "@/components/auth-layout";
-import { GoogleButton, OrDivider } from "@/components/google-button";
+import { OrDivider, SocialButtons } from "@/components/google-button";
 import { SignUpForm } from "@/components/auth-forms";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ async function Form({ searchParams }: { searchParams: Promise<Record<string, str
   const sp = await searchParams;
   return (
     <>
-      <GoogleButton next={sp.suite} />
+      <SocialButtons next={sp.suite} />
       <OrDivider />
       <SignUpForm next={sp.suite} />
     </>

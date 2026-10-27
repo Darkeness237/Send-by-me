@@ -38,7 +38,9 @@ export default function Terms() {
       <section>
         <h2>5. Paiement et frais</h2>
         <p>
-          L&apos;expéditeur paie le prix fixé par le voyageur et des frais de service de 12 % (2 € minimum). Les fonds sont conservés
+          L&apos;expéditeur paie le prix fixé par le voyageur et le cas échéant le forfait de livraison à domicile, ainsi que
+          des frais de service calculés selon le poids du colis (de 15 % à 8 % du montant versé au voyageur, 1,50 € minimum), majorés des frais
+          bancaires de paiement. Le détail est affiché avant toute demande. Les fonds sont conservés
           jusqu&apos;à la validation de la remise, puis versés au voyageur. En cas de non-livraison avérée, l&apos;expéditeur est remboursé.
         </p>
       </section>

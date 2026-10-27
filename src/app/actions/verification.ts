@@ -1,7 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
+import { SITE_URL } from "@/lib/env";
+import { isStripeConfigured, stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUserId } from "@/lib/supabase/server";
 import type { FormState } from "./auth";
@@ -48,6 +51,7 @@ export async function submitIdentityVerification(_: FormState, formData: FormDat
 
   const { error } = await admin.from("identity_verifications").insert({
     user_id: userId,
+    kind: "identity",
     document_type: parsed.data.document_type,
     front_path: front,
     back_path: back,
@@ -90,4 +94,68 @@ export async function submitTripProof(_: FormState, formData: FormData): Promise
   if (error) return { error: "Justificatif non enregistré. Réessayez." };
   revalidatePath(`/trajets/${tripId}`);
   return { ok: "Justificatif envoyé. Le badge « Trajet vérifié » apparaîtra après contrôle." };
+}
+
+// ── Adresse (deuxième étape du compte certifié) ─────────────────
+const addressSchema = z.object({
+  phone: z.string().trim().regex(/^\+?[0-9 ]{8,20}$/, "Numéro de téléphone invalide (ex. +33 6 12 34 56 78)"),
+  address_line: z.string().trim().min(5, "Indiquez votre adresse").max(200),
+  postal_code: z.string().trim().max(20).optional(),
+  address_city: z.string().trim().min(2, "Indiquez votre ville").max(80),
+  country: z.string().trim().min(2, "Indiquez votre pays").max(60),
+});
+
+export async function submitAddressVerification(_: FormState, formData: FormData): Promise<FormState> {
+  const userId = await getUserId();
+  if (!userId) return { error: "Connectez-vous." };
+  const parsed = addressSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const proof = ownPath(userId, formData.get("proof_path"));
+  if (!proof) return { error: "Ajoutez un justificatif de domicile de moins de 3 mois." };
+  if (!(await filesExist(userId, [proof]))) return { error: "Fichier introuvable. Déposez-le à nouveau." };
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin.from("profiles").select("address_verified").eq("id", userId).single();
+  if (profile?.address_verified) return { ok: "Votre adresse est déjà vérifiée." };
+
+  await admin
+    .from("member_contacts")
+    .upsert({ user_id: userId, ...parsed.data, postal_code: parsed.data.postal_code || null, updated_at: new Date().toISOString() });
+  const { error } = await admin.from("identity_verifications").insert({
+    user_id: userId,
+    kind: "address",
+    document_type: "proof_of_address",
+    front_path: proof,
+  });
+  if (error) {
+    return { error: error.code === "23505" ? "Un justificatif est déjà en cours d'examen." : "Demande non enregistrée. Réessayez." };
+  }
+  revalidatePath("/espace/profil");
+  return { ok: "Merci ! Votre justificatif de domicile est en cours d'examen." };
+}
+
+// ── KYC automatique avec Stripe Identity (si Stripe est configuré) ──
+export async function startIdentityCheck() {
+  const userId = await getUserId();
+  if (!userId) redirect("/connexion?suite=/espace/profil");
+  if (!isStripeConfigured) redirect("/espace/profil?kyc=indisponible");
+
+  const session = await stripe().identity.verificationSessions.create(
+    {
+      type: "document",
+      options: {
+        document: {
+          allowed_types: ["id_card", "passport", "driving_license"],
+          require_live_capture: true,
+          require_matching_selfie: true,
+        },
+      },
+      client_reference_id: userId,
+      metadata: { user_id: userId },
+      return_url: `${SITE_URL}/espace/profil?kyc=retour`,
+    },
+    { idempotencyKey: `kyc-${userId}-${Math.floor(Date.now() / 600_000)}` },
+  );
+  if (!session.url) redirect("/espace/profil?kyc=erreur");
+  redirect(session.url);
 }

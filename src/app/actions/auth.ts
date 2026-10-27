@@ -32,7 +32,16 @@ export async function signIn(_: FormState, formData: FormData): Promise<FormStat
 }
 
 const signupSchema = credentials.extend({
-  full_name: z.string().trim().min(2, "Indiquez votre prénom et l'initiale de votre nom").max(80),
+  first_name: z.string().trim().min(2, "Indiquez votre prénom").max(40),
+  last_name: z.string().trim().min(2, "Indiquez votre nom").max(60),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?[0-9 ]{8,20}$/, "Numéro de téléphone invalide (ex. +33 6 12 34 56 78)")
+    .optional()
+    .or(z.literal("")),
+  country: z.string().trim().max(60).optional(),
+  intent: z.enum(["send", "travel", "both"], { error: "Dites-nous ce que vous souhaitez faire" }),
   terms: z.literal("on", { error: "Acceptez les conditions d'utilisation pour continuer" }),
 });
 
@@ -41,7 +50,11 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
   const parsed = signupSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
-    full_name: formData.get("full_name"),
+    first_name: formData.get("first_name"),
+    last_name: formData.get("last_name"),
+    phone: formData.get("phone") ?? "",
+    country: formData.get("country") ?? undefined,
+    intent: formData.get("intent"),
     terms: formData.get("terms"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
@@ -51,7 +64,15 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { full_name: parsed.data.full_name },
+      // Le pseudonyme public est « Prénom N. » ; le nom complet et le téléphone restent privés (member_contacts).
+      data: {
+        display_name: `${parsed.data.first_name} ${parsed.data.last_name.charAt(0).toUpperCase()}.`,
+        full_name: `${parsed.data.first_name} ${parsed.data.last_name}`,
+        last_name: parsed.data.last_name,
+        phone: parsed.data.phone || null,
+        country: parsed.data.country || null,
+        intent: parsed.data.intent,
+      },
       emailRedirectTo: `${SITE_URL}/auth/confirm`,
     },
   });
@@ -73,18 +94,26 @@ export async function signOut() {
   redirect("/");
 }
 
-/** Connexion ou inscription avec Google (OAuth, flux PKCE). Le retour passe par /auth/confirm. */
-export async function signInWithGoogle(formData: FormData) {
+/** Connexion ou inscription avec Google ou Facebook (OAuth, flux PKCE). Le retour passe par /auth/confirm. */
+async function signInWithProvider(provider: "google" | "facebook", formData: FormData) {
   if (!isSupabaseConfigured) redirect("/connexion?erreur=demo");
   const next = safeNext(formData.get("suite"));
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
+    provider,
     options: {
       redirectTo: `${SITE_URL}/auth/confirm?suite=${encodeURIComponent(next)}`,
-      queryParams: { prompt: "select_account" },
+      ...(provider === "google" ? { queryParams: { prompt: "select_account" } } : { scopes: "email public_profile" }),
     },
   });
-  if (error || !data.url) redirect("/connexion?erreur=google");
+  if (error || !data.url) redirect(`/connexion?erreur=${provider}`);
   redirect(data.url);
+}
+
+export async function signInWithGoogle(formData: FormData) {
+  await signInWithProvider("google", formData);
+}
+
+export async function signInWithFacebook(formData: FormData) {
+  await signInWithProvider("facebook", formData);
 }

@@ -9,11 +9,12 @@ import { Avatar } from "@/components/avatar";
 import { ReportForm } from "@/components/account-forms";
 import { DeliveryCodeForm, MessageForm, ReviewForm } from "@/components/booking-client-forms";
 import { CallPanel } from "@/components/call-panel";
+import { ChatMessages } from "@/components/chat-messages";
 import { LiveRefresh } from "@/components/live-refresh";
 import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
-import { getBooking, getDeliveryCode, getMessages } from "@/lib/data";
+import { getBooking, getDeliveryCode, getMessages, markThreadRead } from "@/lib/data";
 import { kg, longDate, timeLabel } from "@/lib/format";
 import { codeFor, tzFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
@@ -41,8 +42,9 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
   const isSender = booking.sender_id === userId;
   const isTraveler = trip.traveler_id === userId;
 
-  const [messages, code, myReview] = await Promise.all([
+  const [messages, , code, myReview] = await Promise.all([
     getMessages(booking.id),
+    markThreadRead(userId, booking.id),
     isSender && ["paid", "picked_up"].includes(booking.status) ? getDeliveryCode(booking.id) : Promise.resolve(null),
     (async () => {
       if (booking.status !== "delivered") return null;
@@ -108,10 +110,21 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
               <dt className="text-sm text-muted">Destinataire</dt>
               <dd className="font-semibold">{booking.recipient_name}</dd>
               <dd className="tabular text-ink-soft">{booking.recipient_phone}</dd>
+              {booking.delivery_address && (
+                <dd className="mt-1 text-ink-soft">
+                  <span className="font-semibold text-ink">Livraison à domicile :</span> {booking.delivery_address}
+                </dd>
+              )}
             </div>
             <div>
               <dt className="text-sm text-muted">{isTraveler ? "Vous recevrez" : "Total"}</dt>
-              <dd className="wide tabular text-xl font-extrabold">{euros(isTraveler ? booking.base_cents : booking.total_cents)}</dd>
+              <dd className="wide tabular text-xl font-extrabold">{euros(isTraveler ? booking.base_cents + (booking.delivery_cents ?? 0) : booking.total_cents)}</dd>
+              {!isTraveler && (
+                <dd className="tabular text-sm text-muted">
+                  Transport {euros(booking.base_cents)}
+                  {booking.delivery_cents ? ` · livraison ${euros(booking.delivery_cents)}` : ""} · frais de service {euros(booking.fee_cents)}
+                </dd>
+              )}
             </div>
           </dl>
         </section>
@@ -175,7 +188,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
             <div className="space-y-6">
               <p role="status" className="rounded-2xl bg-ok-pale px-4 py-3 font-medium text-ok">
                 Livraison confirmée.{" "}
-                {isTraveler ? `Vous allez recevoir ${euros(booking.base_cents)}.` : `${booking.recipient_name} a bien reçu le colis.`}
+                {isTraveler ? `Vous allez recevoir ${euros(booking.base_cents + (booking.delivery_cents ?? 0))}.` : `${booking.recipient_name} a bien reçu le colis.`}
               </p>
               {myReview ? (
                 <p className="text-muted">Merci pour votre avis.</p>
@@ -198,27 +211,14 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
       {/* Messagerie */}
       <aside className="flex max-h-[80vh] flex-col rounded-3xl bg-white ring-1 ring-line lg:sticky lg:top-6">
         <div className="flex flex-wrap items-center gap-3 border-b border-line p-5">
-          <Avatar name={other?.full_name || "Membre"} verified={other?.id_verified} size={40} />
+          <Avatar name={other?.full_name || "Membre"} verified={other?.id_verified} certified={other?.certified} size={40} />
           <div>
             <p className="font-semibold">{other?.full_name || "Membre"}</p>
             <p className="text-sm text-muted">{isSender ? "Voyageur" : "Expéditeur"}</p>
           </div>
           {!closed && <CallPanel bookingId={booking.id} myId={userId} otherName={other?.full_name || "Membre"} />}
         </div>
-        <ol className="flex-1 space-y-3 overflow-y-auto p-5" aria-label="Messages">
-          {messages.length === 0 && <li className="text-center text-sm text-muted">Posez vos questions ici : lieu de remise, photos du colis…</li>}
-          {messages.map((m) => {
-            const mine = m.author_id === userId;
-            return (
-              <li key={m.id} className={`flex ${mine ? "justify-end" : ""}`}>
-                <p className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] whitespace-pre-line ${mine ? "bg-brand text-white" : "bg-paper"}`}>
-                  {m.body}
-                  <span className={`mt-1 block text-[11px] ${mine ? "text-white/70" : "text-muted"}`}>{timeLabel(m.created_at)}</span>
-                </p>
-              </li>
-            );
-          })}
-        </ol>
+        <ChatMessages messages={messages} myId={userId} empty="Posez vos questions ici : lieu de remise, photos du colis…" />
         {!closed && (
           <div className="border-t border-line p-4">
             <MessageForm bookingId={booking.id} />

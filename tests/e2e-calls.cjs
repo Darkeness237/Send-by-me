@@ -9,7 +9,7 @@ async function signup(b, name, email, next) {
   const p = await ctx.newPage();
   p.on('pageerror', (e) => console.log('PAGEERROR', name, e.message));
   await p.goto(`${BASE}/inscription?suite=${encodeURIComponent(next)}`);
-  await p.fill('#full_name', name); await p.fill('#email', email); await p.fill('#password', 'motdepasse-solide-1');
+  await p.fill('#first_name', String(name).split(' ')[0]); await p.fill('#last_name', (String(name).split(' ')[1] || 'Test').replace('.', '') + 'ndo'); await p.fill('#email', email); await p.fill('#password', 'motdepasse-solide-1');
   await p.check('input[name=terms]');
   await Promise.all([p.waitForURL('**' + next + '**'), p.click('form:has(#password) button[type=submit]')]);
   return p;
@@ -22,7 +22,8 @@ async function signup(b, name, email, next) {
   const d = new Date(Date.now() + 6 * 864e5).toISOString().slice(0, 10);
   await ta.fill('#from_city', 'Paris'); await ta.fill('#to_city', 'Abidjan');
   await ta.fill('#departure_date', d); await ta.fill('#departure_time', '11:00');
-  await Promise.all([ta.waitForURL('**/trajets/**'), ta.click('button:has-text("Publier mon trajet")')]);
+  await ta.selectOption('#mode', 'car');
+    await Promise.all([ta.waitForURL('**/trajets/**'), ta.click('button:has-text("Publier mon trajet")')]);
   const tripUrl = ta.url().split('?')[0];
 
   const sb = await signup(b, 'Nadia T.', `cs${run}@test.fr`, new URL(tripUrl).pathname);

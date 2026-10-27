@@ -13,9 +13,9 @@ async function signup(b, name, email, next = '/espace') {
   const p = await (await b.newContext()).newPage();
   p.on('pageerror', (e) => console.log('PAGEERROR', e.message));
   await p.goto(`${BASE}/inscription?suite=${encodeURIComponent(next)}`);
-  await p.fill('#full_name', name); await p.fill('#email', email); await p.fill('#password', 'motdepasse-solide-1');
+  await p.fill('#first_name', String(name).split(' ')[0]); await p.fill('#last_name', (String(name).split(' ')[1] || 'Test').replace('.', '') + 'ndo'); await p.fill('#email', email); await p.fill('#password', 'motdepasse-solide-1');
   await p.check('input[name=terms]');
-  await Promise.all([p.waitForURL('**' + next + '**'), p.click('form:has(#full_name) button[type=submit]')]);
+  await Promise.all([p.waitForURL('**' + next + '**'), p.click('form:has(#first_name) button[type=submit]')]);
   return p;
 }
 
@@ -30,16 +30,16 @@ async function signup(b, name, email, next = '/espace') {
   log('bouton Google → redirige vers :', new URL(g.url()).host + new URL(g.url()).pathname, g.url().includes('erreur=google') ? '(fournisseur non activé : message affiché)' : '');
 
   // Membre : dépôt de pièce d'identité
-  const NAME = `Awa ${String(run).slice(-5)}`;
+  const NAME = `Awa${String(run).slice(-5)} V.`;
   const m = await signup(b, NAME, `v${run}@test.fr`, '/espace/profil');
   const uid = sql(`select id from auth.users where email='v${run}@test.fr'`);
-  await m.waitForSelector('text=Faites vérifier votre identité');
+  await m.waitForSelector('text=Faites certifier votre compte');
   await m.selectOption('#document_type', 'cni');
   const inputs = m.locator('input[type=file]');
   await inputs.nth(0).setInputFiles(fx('fixtures-recto.png'));
   await inputs.nth(1).setInputFiles(fx('fixtures-verso.png'));
   await inputs.nth(2).setInputFiles(fx('fixtures-selfie.png'));
-  await m.waitForFunction(() => [...document.querySelectorAll('input[type=hidden][name$="_path"]')].every((i) => i.value), null, { timeout: 20000 });
+  await m.waitForFunction(() => [...document.querySelectorAll('input[name=front_path], input[name=back_path], input[name=selfie_path]')].every((i) => i.value), null, { timeout: 20000 });
   log('3 fichiers déposés dans le dossier privé du membre');
 
   // Le membre ne peut pas relire ses fichiers, ni écrire chez un autre
@@ -49,10 +49,11 @@ async function signup(b, name, email, next = '/espace') {
   }, uid);
   const front = await m.inputValue('input[name="front_path"]');
   const token = await m.evaluate(() => {
-    const c = document.cookie.split('; ').find((x) => x.includes('auth-token'));
-    if (!c) return null;
-    let v = decodeURIComponent(c.split('=').slice(1).join('='));
-    if (v.startsWith('base64-')) v = atob(v.slice(7));
+    // Le cookie de session peut être découpé en plusieurs morceaux (.0, .1…)
+    const parts = document.cookie.split('; ').filter((x) => /-auth-token(\.\d+)?=/.test(x)).sort();
+    if (!parts.length) return null;
+    let v = parts.map((c) => decodeURIComponent(c.split('=').slice(1).join('='))).join('');
+    if (v.startsWith('base64-')) { const b = v.slice(7).replace(/-/g, '+').replace(/_/g, '/'); v = atob(b + '='.repeat((4 - (b.length % 4)) % 4)); }
     try { return JSON.parse(v).access_token; } catch { return null; }
   });
   const env = Object.fromEntries(require('fs').readFileSync(path.join(__dirname, '..', '.env.local'), 'utf8').split('\n').filter(Boolean).map((l) => [l.split('=')[0], l.split('=').slice(1).join('=').replace(/^"|"$/g, '')]));
@@ -76,7 +77,7 @@ async function signup(b, name, email, next = '/espace') {
   log('chemin de fichier falsifié → refusé par le serveur');
   await m.evaluate((v) => { document.querySelector('input[name="front_path"]').value = v; }, realFront);
   await m.click('button:has-text("Envoyer pour vérification")');
-  await m.waitForSelector('text=/Votre demande est en cours|Vérification en cours/', { timeout: 15000 }).catch(async () => {
+  await m.waitForSelector('text=/Votre demande est en cours|Notre équipe examine vos documents/', { timeout: 15000 }).catch(async () => {
     await m.screenshot({ path: path.join(__dirname, 'screenshots', 'debug-verif.png'), fullPage: true });
     console.log('message affiché :', await m.locator('[role=alert]').allTextContents(), '| chemins :', await m.locator('input[type=hidden][name$="_path"]').evaluateAll((els) => els.map((e) => e.name + '=' + e.value)));
     throw new Error('demande non acceptée');
@@ -88,7 +89,8 @@ async function signup(b, name, email, next = '/espace') {
   const d = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
   await m.fill('#from_city', 'Paris'); await m.fill('#to_city', 'Dakar');
   await m.fill('#departure_date', d); await m.fill('#departure_time', '08:00');
-  await Promise.all([m.waitForURL('**/trajets/**'), m.click('button:has-text("Publier mon trajet")')]);
+  await m.selectOption('#mode', 'car');
+    await Promise.all([m.waitForURL('**/trajets/**'), m.click('button:has-text("Publier mon trajet")')]);
   const tripId = m.url().split('?')[0].split('/').pop();
   await m.locator('input[type=file]').setInputFiles(fx('fixtures-recto.png'));
   await m.waitForFunction(() => document.querySelector('input[name="file_path"]').value, null, { timeout: 20000 });
@@ -125,7 +127,43 @@ async function signup(b, name, email, next = '/espace') {
   await pub.waitForSelector('text=Trajet vérifié');
   log('badge « Trajet vérifié » visible publiquement');
   await m.goto(BASE + '/espace/profil');
-  await m.waitForSelector('text=Identité vérifiée');
-  log('le membre voit « Identité vérifiée » sur son profil');
+  await m.waitForSelector('li:has-text("Identité"):has-text("Vérifié")');
+  log('le membre voit son identité vérifiée sur son profil');
+
+  // Adresse : 2e étape → compte certifié
+  await m.fill('#phone', '+33 6 12 34 56 78');
+  await m.fill('#address_line', '12 rue des Lilas');
+  await m.fill('#postal_code', '75011');
+  await m.fill('#address_city', 'Paris');
+  await m.fill('#country_addr', 'France');
+  await m.locator('input[type=file]').last().setInputFiles(fx('fixtures-recto.png'));
+  await m.waitForFunction(() => document.querySelector('input[name="proof_path"]').value, null, { timeout: 20000 });
+  await m.click('button:has-text("Envoyer mon justificatif")');
+  await m.waitForSelector('text=/justificatif de domicile est en cours/');
+  log('justificatif de domicile envoyé →', sql(`select status from identity_verifications where user_id='${uid}' and kind='address'`));
+  await a.goto(BASE + '/admin');
+  const addrItem = a.locator('li', { hasText: NAME }).filter({ hasText: 'Justificatif de domicile' });
+  log('admin voit l\'adresse déclarée :', (await addrItem.textContent()).includes('12 rue des Lilas'));
+  await addrItem.locator('button:has-text("Valider")').click();
+  for (let i = 0; i < 30 && sql(`select certified from profiles where id='${uid}'`) !== 't'; i++) await a.waitForTimeout(500);
+  log('compte certifié →', sql(`select certified from profiles where id='${uid}'`));
+  await m.goto(BASE + '/espace/profil');
+  await m.waitForSelector('h2:has-text("Compte certifié")');
+  await pub.goto(`${BASE}/trajets/${tripId}`);
+  await pub.waitForSelector('text=Compte certifié');
+  log('badge « Compte certifié » visible publiquement sur le trajet');
+  await pub.screenshot({ path: path.join(__dirname, 'screenshots', 'trajet-certifie.png'), fullPage: true });
+
+  // Un autre membre ne voit pas les coordonnées privées
+  const other = await signup(b, 'Curieux Z.', `z${run}@test.fr`);
+  const leak = await other.evaluate(async ({ API, KEY }) => {
+    const parts = document.cookie.split('; ').filter((x) => /-auth-token(\.\d+)?=/.test(x)).sort();
+    let v = parts.map((c) => decodeURIComponent(c.split('=').slice(1).join('='))).join('');
+    if (v.startsWith('base64-')) { const b = v.slice(7).replace(/-/g, '+').replace(/_/g, '/'); v = atob(b + '='.repeat((4 - (b.length % 4)) % 4)); }
+    const token = JSON.parse(v).access_token;
+    const r = await fetch(`${API}/rest/v1/member_contacts?select=*`, { headers: { apikey: KEY, Authorization: `Bearer ${token}` } });
+    return (await r.json()).length;
+  }, { API, KEY });
+  log('coordonnées visibles par un autre membre (seulement les siennes attendues = 1) :', leak);
   await b.close();
 })().catch((e) => { console.error('ÉCHEC', e); process.exit(1); });

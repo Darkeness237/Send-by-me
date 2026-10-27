@@ -24,7 +24,7 @@ export function DeliveryCodeForm({ bookingId }: { bookingId: string }) {
   );
 }
 
-export function MessageForm({ bookingId }: { bookingId: string }) {
+export function MessageForm({ bookingId, inquiryId }: { bookingId?: string; inquiryId?: string }) {
   const [state, action, pending] = useActionState(sendMessage, null);
   const ref = useRef<HTMLFormElement>(null);
   useEffect(() => {
@@ -32,7 +32,8 @@ export function MessageForm({ bookingId }: { bookingId: string }) {
   }, [pending, state]);
   return (
     <form ref={ref} action={action} className="flex items-end gap-2">
-      <input type="hidden" name="booking_id" value={bookingId} />
+      {bookingId && <input type="hidden" name="booking_id" value={bookingId} />}
+      {inquiryId && <input type="hidden" name="inquiry_id" value={inquiryId} />}
       <label htmlFor="body" className="sr-only">
         Votre message
       </label>

@@ -2,15 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { CalendarDays, CheckCircle2, MapPin, Plane, Star } from "lucide-react";
+import { CalendarDays, CheckCircle2, House, MessageCircle, MapPin, Plane, ShieldCheck, Star, TicketCheck } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { BookingForm } from "@/components/booking-form";
 import { PageShell } from "@/components/page-shell";
-import { ButtonLink } from "@/components/ui/button";
+import { startInquiry } from "@/app/actions/messages";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { getTrip, getTripProof } from "@/lib/data";
 import { isSupabaseConfigured } from "@/lib/env";
 import { TripProofForm } from "@/components/verification-forms";
 import { isUpcoming, kg, longDate, memberSince, timeLabel } from "@/lib/format";
+import { airlineName, TRANSPORT_CHECK_LABEL } from "@/lib/flights";
 import { codeFor, tzFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
 import { getUserId } from "@/lib/supabase/server";
@@ -98,7 +100,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
           {traveler && (
             <section className="rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
               <div className="flex items-center gap-4">
-                <Avatar name={traveler.full_name || "Voyageur"} verified={traveler.id_verified} size={56} />
+                <Avatar name={traveler.full_name || "Voyageur"} verified={traveler.id_verified} certified={traveler.certified} size={56} />
                 <div>
                   <h2 className="text-lg font-bold">{traveler.full_name || "Voyageur"}</h2>
                   <p className="flex flex-wrap items-center gap-x-3 text-sm text-muted">
@@ -114,12 +116,78 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
                   </p>
                 </div>
               </div>
-              {traveler.id_verified && (
+              {traveler.certified ? (
+                <p className="mt-4 flex items-center gap-2 text-sm font-semibold text-ink">
+                  <ShieldCheck className="h-5 w-5 rounded-full bg-signal p-0.5" aria-hidden="true" /> Compte certifié : identité et adresse vérifiées
+                </p>
+              ) : traveler.id_verified ? (
                 <p className="mt-4 flex items-center gap-2 text-sm font-medium text-brand-deep">
                   <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Identité vérifiée par Send By Me
                 </p>
-              )}
+              ) : null}
               {traveler.bio && <p className="mt-4 leading-relaxed text-ink-soft">{traveler.bio}</p>}
+              {!isOwner && trip.status !== "cancelled" && (
+                <form action={startInquiry.bind(null, trip.id)} className="mt-5">
+                  <Button type="submit" variant="outline" size="sm">
+                    <MessageCircle className="h-4 w-4" aria-hidden="true" /> Poser une question à {traveler.full_name || "ce voyageur"}
+                  </Button>
+                </form>
+              )}
+            </section>
+          )}
+
+          {/* Transport */}
+          {trip.carrier && (
+            <section className="rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-lg font-bold">{trip.mode === "plane" ? "Le vol" : "Le transport"}</h2>
+                {trip.mode === "plane" && trip.transport_check && trip.transport_check !== "unchecked" && (
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${
+                      trip.transport_check === "mismatch" ? "bg-danger-pale text-danger" : "bg-ok-pale text-ok"
+                    }`}
+                  >
+                    <TicketCheck className="h-4 w-4" aria-hidden="true" />
+                    {TRANSPORT_CHECK_LABEL[trip.transport_check]}
+                  </span>
+                )}
+              </div>
+              <dl className="mt-4 grid grid-cols-2 gap-4 text-[15px] sm:grid-cols-4">
+                <div>
+                  <dt className="text-sm text-muted">Compagnie</dt>
+                  <dd className="font-semibold">{trip.mode === "plane" ? airlineName(trip.carrier) : trip.carrier}</dd>
+                </div>
+                {trip.transport_ref && (
+                  <div>
+                    <dt className="text-sm text-muted">{trip.mode === "plane" ? "Vol" : "Numéro"}</dt>
+                    <dd className="wide tabular font-semibold">{trip.transport_ref}</dd>
+                  </div>
+                )}
+                {trip.from_airport && trip.to_airport && (
+                  <div>
+                    <dt className="text-sm text-muted">Aéroports</dt>
+                    <dd className="wide tabular font-semibold">
+                      {trip.from_airport} → {trip.to_airport}
+                    </dd>
+                  </div>
+                )}
+                {trip.mode === "plane" && (
+                  <div>
+                    <dt className="text-sm text-muted">Escale</dt>
+                    <dd className="font-semibold">{trip.has_stopover ? "Oui" : "Vol direct"}</dd>
+                  </div>
+                )}
+              </dl>
+              {trip.transport_check_notes && trip.transport_check_notes.length > 0 && (
+                <ul className="mt-4 space-y-1 text-sm text-muted">
+                  {trip.transport_check_notes.map((n) => (
+                    <li key={n.label} className="flex items-center gap-2">
+                      <CheckCircle2 className={`h-4 w-4 shrink-0 ${n.ok ? "text-ok" : "text-danger"}`} aria-hidden="true" />
+                      {n.label}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
           )}
 
@@ -145,6 +213,15 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
                   </div>
                 </div>
               )}
+              {trip.home_delivery_cents ? (
+                <div className="flex gap-3">
+                  <House className="mt-0.5 h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+                  <div>
+                    <dt className="font-semibold">Livraison à domicile possible · +{euros(trip.home_delivery_cents)}</dt>
+                    <dd className="text-muted">{trip.home_delivery_area}</dd>
+                  </div>
+                </div>
+              ) : null}
             </dl>
             <h3 className="mt-6 font-semibold">Colis acceptés</h3>
             <ul className="mt-3 flex flex-wrap gap-2">
@@ -217,6 +294,8 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
                 pricePerKgCents={trip.price_per_kg_cents}
                 maxKg={Math.min(50, left)}
                 acceptedCategories={trip.accepted_categories}
+                homeDeliveryCents={trip.home_delivery_cents}
+                homeDeliveryArea={trip.home_delivery_area}
               />
             )}
           </div>

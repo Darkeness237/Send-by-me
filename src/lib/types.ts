@@ -1,3 +1,6 @@
+export type TransportCheck = "unchecked" | "consistent" | "confirmed" | "mismatch";
+export type TransportCheckNote = { ok: boolean; label: string };
+
 export type TripMode = "plane" | "car" | "bus" | "train";
 export type TripStatus = "published" | "full" | "departed" | "completed" | "cancelled";
 
@@ -30,6 +33,9 @@ export type Profile = {
   bio: string | null;
   city: string | null;
   id_verified: boolean;
+  address_verified?: boolean;
+  certified?: boolean;
+  intent?: "send" | "travel" | "both";
   created_at: string;
   rating_avg?: number | null;
   rating_count?: number | null;
@@ -54,6 +60,16 @@ export type Trip = {
   notes: string | null;
   status: TripStatus;
   ticket_verified?: boolean;
+  home_delivery_cents?: number | null;
+  home_delivery_area?: string | null;
+  carrier?: string | null;
+  transport_ref?: string | null;
+  from_airport?: string | null;
+  to_airport?: string | null;
+  has_stopover?: boolean;
+  baggage_allowance_kg?: number | null;
+  transport_check?: TransportCheck;
+  transport_check_notes?: TransportCheckNote[];
   created_at: string;
   traveler?: Profile | null;
 };
@@ -68,6 +84,8 @@ export type Booking = {
   recipient_name: string;
   recipient_phone: string;
   base_cents: number;
+  delivery_cents?: number;
+  delivery_address?: string | null;
   fee_cents: number;
   total_cents: number;
   status: BookingStatus;

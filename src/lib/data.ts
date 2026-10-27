@@ -8,7 +8,7 @@ import { createClient } from "./supabase/server";
 import type { Booking, Profile, Trip } from "./types";
 
 const TRIP_SELECT =
-  "*, traveler:profiles!trips_traveler_id_fkey(id, full_name, avatar_url, bio, city, id_verified, created_at)";
+  "*, traveler:profiles!trips_traveler_id_fkey(id, full_name, avatar_url, bio, city, id_verified, address_verified, certified, created_at)";
 
 async function withRatings<T extends { traveler?: Profile | null }>(rows: T[]): Promise<T[]> {
   const ids = [...new Set(rows.map((r) => r.traveler?.id).filter(Boolean))] as string[];
@@ -78,7 +78,7 @@ export async function getProfile(id: string): Promise<Profile | null> {
   return (data as Profile) ?? null;
 }
 
-const BOOKING_SELECT = `*, trip:trips(${TRIP_SELECT}), sender:profiles!bookings_sender_id_fkey(id, full_name, avatar_url, city, id_verified, created_at)`;
+const BOOKING_SELECT = `*, trip:trips(${TRIP_SELECT}), sender:profiles!bookings_sender_id_fkey(id, full_name, avatar_url, city, id_verified, certified, created_at)`;
 
 export async function getMyTrips(userId: string) {
   const supabase = await createClient();
@@ -158,4 +158,129 @@ export async function getTripProof(tripId: string) {
   const supabase = await createClient();
   const { data } = await supabase.from("trip_proofs").select("status, rejection_reason").eq("trip_id", tripId).maybeSingle();
   return data as { status: "pending" | "approved" | "rejected"; rejection_reason: string | null } | null;
+}
+
+// ── Messagerie ──────────────────────────────────────────────────
+export type Thread = {
+  id: string;
+  kind: "booking" | "inquiry";
+  href: string;
+  otherName: string;
+  otherVerified: boolean;
+  otherCertified: boolean;
+  route: string;
+  status?: string;
+  lastBody: string | null;
+  lastAt: string;
+  unread: number;
+};
+
+type Party = { id: string; full_name: string; id_verified: boolean; certified: boolean } | null;
+const first = <T,>(v: T | T[] | null | undefined): T | null => (Array.isArray(v) ? (v[0] ?? null) : (v ?? null));
+
+/** Toutes les discussions du membre (réservations et questions avant réservation), la plus récente d'abord. */
+export async function getInbox(userId: string): Promise<Thread[]> {
+  const supabase = await createClient();
+  const party = "id, full_name, id_verified, certified";
+  const [{ data: bookings }, { data: inquiries }, { data: messages }, { data: reads }] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select(`id, status, created_at, sender:profiles!bookings_sender_id_fkey(${party}), trip:trips(from_city, to_city, traveler:profiles!trips_traveler_id_fkey(${party}))`)
+      .order("created_at", { ascending: false })
+      .limit(200),
+    supabase
+      .from("inquiries")
+      .select(`id, created_at, sender_id, sender:profiles!inquiries_sender_id_fkey(${party}), traveler:profiles!inquiries_traveler_id_fkey(${party}), trip:trips(from_city, to_city)`)
+      .order("created_at", { ascending: false })
+      .limit(200),
+    supabase.from("messages").select("booking_id, inquiry_id, author_id, body, created_at").order("created_at", { ascending: false }).limit(1000),
+    supabase.from("thread_reads").select("thread_id, read_at").eq("user_id", userId),
+  ]);
+
+  const readAt = new Map((reads ?? []).map((r) => [r.thread_id as string, r.read_at as string]));
+  const byThread = new Map<string, { last: { body: string; created_at: string } | null; unread: number }>();
+  for (const m of messages ?? []) {
+    const key = (m.booking_id ?? m.inquiry_id) as string;
+    const t = byThread.get(key) ?? { last: null, unread: 0 };
+    t.last ??= { body: m.body as string, created_at: m.created_at as string };
+    const seen = readAt.get(key);
+    if (m.author_id !== userId && (!seen || (m.created_at as string) > seen)) t.unread++;
+    byThread.set(key, t);
+  }
+
+  const threads: Thread[] = [];
+  for (const b of bookings ?? []) {
+    const trip = first(b.trip as unknown) as { from_city: string; to_city: string; traveler: Party | Party[] } | null;
+    const traveler = first(trip?.traveler) as Party;
+    const sender = first(b.sender as unknown) as Party;
+    const other = sender?.id === userId ? traveler : sender;
+    const t = byThread.get(b.id as string);
+    threads.push({
+      id: b.id as string,
+      kind: "booking",
+      href: `/reservations/${b.id}`,
+      otherName: other?.full_name || "Membre",
+      otherVerified: !!other?.id_verified,
+      otherCertified: !!other?.certified,
+      route: trip ? `${trip.from_city} → ${trip.to_city}` : "",
+      status: b.status as string,
+      lastBody: t?.last?.body ?? null,
+      lastAt: t?.last?.created_at ?? (b.created_at as string),
+      unread: t?.unread ?? 0,
+    });
+  }
+  for (const i of inquiries ?? []) {
+    const trip = first(i.trip as unknown) as { from_city: string; to_city: string } | null;
+    const other = (i.sender_id === userId ? first(i.traveler as unknown) : first(i.sender as unknown)) as Party;
+    const t = byThread.get(i.id as string);
+    threads.push({
+      id: i.id as string,
+      kind: "inquiry",
+      href: `/messages/${i.id}`,
+      otherName: other?.full_name || "Membre",
+      otherVerified: !!other?.id_verified,
+      otherCertified: !!other?.certified,
+      route: trip ? `${trip.from_city} → ${trip.to_city}` : "",
+      lastBody: t?.last?.body ?? null,
+      lastAt: t?.last?.created_at ?? (i.created_at as string),
+      unread: t?.unread ?? 0,
+    });
+  }
+  return threads.sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1));
+}
+
+export async function getUnreadCount(userId: string) {
+  return (await getInbox(userId)).reduce((n, t) => n + t.unread, 0);
+}
+
+/** Marque une discussion comme lue (appelé à l'ouverture de la conversation). */
+export async function markThreadRead(userId: string, threadId: string) {
+  const supabase = await createClient();
+  await supabase.from("thread_reads").upsert({ user_id: userId, thread_id: threadId, read_at: new Date().toISOString() });
+}
+
+export async function getInquiry(id: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+  const supabase = await createClient();
+  const party = "id, full_name, avatar_url, id_verified, certified, created_at";
+  const { data } = await supabase
+    .from("inquiries")
+    .select(`id, trip_id, sender_id, traveler_id, sender:profiles!inquiries_sender_id_fkey(${party}), traveler:profiles!inquiries_traveler_id_fkey(${party}), trip:trips(id, from_city, to_city, departure_at, status, price_per_kg_cents)`)
+    .eq("id", id)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    ...data,
+    sender: first(data.sender as unknown) as Profile | null,
+    traveler: first(data.traveler as unknown) as Profile | null,
+    trip: first(data.trip as unknown) as Pick<Trip, "id" | "from_city" | "to_city" | "departure_at" | "status" | "price_per_kg_cents"> | null,
+  };
+}
+
+export async function getThreadMessages(thread: { bookingId?: string; inquiryId?: string }) {
+  const supabase = await createClient();
+  let q = supabase.from("messages").select("id, author_id, body, created_at");
+  q = thread.bookingId ? q.eq("booking_id", thread.bookingId) : q.eq("inquiry_id", thread.inquiryId!);
+  const { data } = await q.order("created_at", { ascending: true }).limit(500);
+  return data ?? [];
 }

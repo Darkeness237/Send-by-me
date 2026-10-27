@@ -45,6 +45,20 @@ export default function Security() {
         </p>
       </section>
       <section>
+        <h2>Compte certifié</h2>
+        <p>
+          Un membre certifié a fait vérifier son identité (pièce officielle et selfie, contrôlés par notre équipe ou automatiquement par
+          Stripe Identity) et son adresse (justificatif de domicile de moins de 3 mois). Il porte le badge doré « Compte certifié ».
+        </p>
+      </section>
+      <section>
+        <h2>Vols contrôlés automatiquement</h2>
+        <p>
+          À la publication, nous vérifions que la compagnie, le numéro de vol, les aéroports et la franchise bagage sont cohérents avec
+          le trajet annoncé. Quand c&apos;est possible, le vol est aussi recherché dans les horaires réels des compagnies.
+        </p>
+      </section>
+      <section>
         <h2>Les règles à suivre</h2>
         <ul>
           <li>Payez toujours sur Send By Me. Un paiement en espèces ou par transfert direct n&apos;est pas protégé.</li>

@@ -114,7 +114,7 @@ export default async function CorridorPage(props: PageProps<"/envoyer-un-colis/[
           <div>
             <h2 className="mb-2 text-lg font-bold text-ink">Le prix</h2>
             <p>
-              Chaque voyageur fixe son prix au kilo, affiché sur sa carte. S&apos;y ajoutent 12 % de frais de service. Le total est
+              Chaque voyageur fixe son prix au kilo, affiché sur sa carte. S&apos;y ajoutent des frais de service dégressifs selon le poids (15 % à 8 %). Le total est
               connu avant d&apos;envoyer votre demande.
             </p>
           </div>

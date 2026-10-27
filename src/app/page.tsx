@@ -148,8 +148,9 @@ export default function Home() {
           <div>
             <h2 className="display text-3xl sm:text-4xl">Le prix est affiché avant de réserver</h2>
             <p className="mt-4 max-w-md text-muted">
-              Chaque voyageur fixe son prix au kilo. Send By Me ajoute des frais de service de 12 %, qui financent la
-              vérification des membres, le paiement sécurisé et le support. Aucun autre frais.
+              Chaque voyageur fixe son prix au kilo, et la livraison à domicile s&apos;il la propose. Send By Me ajoute des frais de
+              service dégressifs (de 15 % jusqu&apos;à 5 kg à 8 % au-delà de 20 kg), frais bancaires compris : ils financent la vérification
+              des membres, le paiement sécurisé et le support. Aucun autre frais.
             </p>
           </div>
           <div className="tag-notch rounded-[var(--radius-tag)] bg-white p-6 shadow-[var(--shadow-tag)] ring-1 ring-line sm:p-8">

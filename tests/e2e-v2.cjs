@@ -12,7 +12,7 @@ async function signup(ctx, name, email, next = '/espace') {
   const p = await ctx.newPage();
   p.on('pageerror', (e) => console.log('PAGEERROR', e.message));
   await p.goto(`${BASE}/inscription?suite=${encodeURIComponent(next)}`);
-  await p.fill('#full_name', name); await p.fill('#email', email); await p.fill('#password', 'motdepasse-solide-1');
+  await p.fill('#first_name', String(name).split(' ')[0]); await p.fill('#last_name', (String(name).split(' ')[1] || 'Test').replace('.', '') + 'ndo'); await p.fill('#email', email); await p.fill('#password', 'motdepasse-solide-1');
   await p.check('input[name=terms]');
   await Promise.all([p.waitForURL('**' + next.split('?')[0] + '**'), p.click('form:has(#password) button[type=submit]')]);
   return p;
@@ -48,6 +48,7 @@ async function signup(ctx, name, email, next = '/espace') {
     await ta.fill('#from_city', 'Paris'); await ta.fill('#to_city', 'Dakar');
     await ta.fill('#departure_date', d); await ta.fill('#departure_time', '14:00');
     await ta.fill('#capacity_kg', String(cap)); await ta.fill('#price_per_kg', '8');
+    await ta.selectOption('#mode', 'car');
     await Promise.all([ta.waitForURL('**/trajets/**'), ta.click('button:has-text("Publier mon trajet")')]);
     return ta.url().split('?')[0];
   };

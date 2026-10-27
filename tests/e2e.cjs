@@ -6,6 +6,7 @@ const Stripe = require('stripe');
 const BASE = 'http://localhost:3000';
 const shot = (p, n) => p.screenshot({ path: require('path').join(__dirname, 'screenshots', 'e2e-' + n) + '.png', fullPage: true });
 const log = (...a) => console.log('✔', ...a);
+const sql = (q) => require('child_process').execSync(`psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -X -t -A -c ${JSON.stringify(q)}`).toString().trim();
 
 (async () => {
   const b = await chromium.launch();
@@ -17,7 +18,7 @@ const log = (...a) => console.log('✔', ...a);
 
   // 1. Voyageur : inscription + publication
   await ta.goto(BASE + '/inscription?suite=/publier');
-  await ta.fill('#full_name', 'Aïcha N.');
+  await ta.fill('#first_name', String('Aïcha N.').split(' ')[0]); await ta.fill('#last_name', (String('Aïcha N.').split(' ')[1] || 'Test').replace('.', '') + 'ndo');
   await ta.fill('#email', `traveler${run}@test.fr`);
   await ta.fill('#password', 'motdepasse-solide-1');
   await ta.check('input[name=terms]');
@@ -29,31 +30,69 @@ const log = (...a) => console.log('✔', ...a);
   await ta.fill('#capacity_kg', '20'); await ta.fill('#price_per_kg', '9');
   await ta.fill('#pickup_note', 'Gare de Lyon, la veille du départ');
   await ta.fill('#dropoff_note', 'Akwa, le lendemain de mon arrivée');
+  // Vol : compagnie, numéro, aéroports, franchise bagage (contrôles automatiques)
+  await ta.selectOption('#carrier', 'AF');
+  await ta.fill('#transport_ref', 'AF 999');
+  await ta.fill('#baggage_allowance_kg', '46');
+  await ta.check('input[name=ticket_name_matches]');
+  // Erreur volontaire : un vol Air France ne commence pas par SN
+  await ta.fill('#transport_ref', 'SN205');
+  await ta.click('button:has-text("Publier mon trajet")');
+  await ta.waitForSelector('text=ne correspond pas à la compagnie');
+  log('numéro de vol incohérent avec la compagnie → refusé');
+  await ta.fill('#transport_ref', 'AF 946');
+  // Livraison à domicile proposée
+  await ta.check('input[name=home_delivery]');
+  await ta.fill('#home_delivery_price', '10');
+  await ta.fill('#home_delivery_area', 'Douala : Akwa, Bonapriso');
   await shot(ta, '01-publier');
   await Promise.all([ta.waitForURL('**/trajets/**'), ta.click('button:has-text("Publier mon trajet")')]);
   const tripUrl = ta.url().split('?')[0];
   log('trajet publié', tripUrl);
+  const tripId0 = tripUrl.split('/').pop();
+  log('contrôle du vol →', sql(`select transport_check || ' ' || transport_ref || ' ' || from_airport || '>' || to_airport from trips where id='${tripId0}'`));
   await shot(ta, '02-trajet-publie');
 
   // 2. Expéditeur : inscription + demande
   await sb.goto(BASE + '/inscription?suite=' + encodeURIComponent(new URL(tripUrl).pathname));
-  await sb.fill('#full_name', 'Paul M.');
+  await sb.fill('#first_name', String('Paul M.').split(' ')[0]); await sb.fill('#last_name', (String('Paul M.').split(' ')[1] || 'Test').replace('.', '') + 'ndo');
   await sb.fill('#email', `sender${run}@test.fr`);
   await sb.fill('#password', 'motdepasse-solide-2');
   await sb.check('input[name=terms]');
   await Promise.all([sb.waitForURL('**/trajets/**'), sb.click('form:has(#password) button[type=submit]')]);
   log('expéditeur inscrit, revenu sur le trajet');
+  // Question avant réservation
+  await Promise.all([sb.waitForURL('**/messages/**'), sb.click('button:has-text("Poser une question")')]);
+  await sb.fill('#body', 'Bonjour, acceptez-vous des chaussures ?');
+  await sb.click('button:has-text("Envoyer")');
+  await sb.waitForSelector('text=acceptez-vous des chaussures');
+  log('question envoyée avant réservation');
+  await ta.goto(BASE + '/espace');
+  log('badge non lu chez le voyageur :', await ta.getAttribute('a[href="/messages"]', 'aria-label'));
+  await ta.goto(BASE + '/messages');
+  await ta.click('a:has-text("acceptez-vous des chaussures")');
+  await ta.waitForURL('**/messages/**');
+  await ta.fill('#body', 'Oui, sans problème.');
+  await ta.click('button:has-text("Envoyer")');
+  await sb.waitForSelector('text=Oui, sans problème', { timeout: 15000 });
+  log('réponse reçue en temps réel par l\'expéditeur');
+  await ta.goto(BASE + '/espace');
+  log('badge après lecture :', await ta.getAttribute('a[href="/messages"]', 'aria-label'));
+  await sb.goto(tripUrl);
   await sb.fill('#weight_kg', '6');
   await sb.selectOption('#category', 'clothing');
   await sb.fill('#description', 'Vêtements et fournitures scolaires');
   await sb.fill('#recipient_name', 'Marie Ngo');
   await sb.fill('#recipient_phone', '+237 699 00 00 00');
+  await sb.check('input[name=home_delivery]');
+  await sb.fill('#delivery_address', 'Bonapriso, rue des Cocotiers, face pharmacie');
   await sb.check('input[name=declaration]');
   await shot(sb, '03-reserver-mobile');
   await Promise.all([sb.waitForURL('**/reservations/**'), sb.click('button:has-text("Envoyer ma demande")')]);
   const bookingUrl = sb.url().split('?')[0];
   const bookingId = bookingUrl.split('/').pop();
   log('demande envoyée', bookingId);
+  log('prix enregistré (transport/livraison/frais/total, taux) →', sql(`select base_cents || '/' || delivery_cents || '/' || fee_cents || '/' || total_cents || ' ' || commission_rate from bookings where id='${bookingId}'`));
   await sb.fill('#body', 'Bonjour, je peux passer jeudi soir ?');
   await sb.click('button:has-text("Envoyer")');
   await sb.waitForSelector('text=je peux passer jeudi soir');
@@ -123,7 +162,7 @@ const log = (...a) => console.log('✔', ...a);
   // 7. Un tiers ne peut pas voir la réservation
   const C = await b.newContext(); const tc = await C.newPage();
   await tc.goto(BASE + '/inscription');
-  await tc.fill('#full_name', 'Intrus X.'); await tc.fill('#email', `x${run}@test.fr`); await tc.fill('#password', 'motdepasse-solide-3');
+  await tc.fill('#first_name', String('Intrus X.').split(' ')[0]); await tc.fill('#last_name', (String('Intrus X.').split(' ')[1] || 'Test').replace('.', '') + 'ndo'); await tc.fill('#email', `x${run}@test.fr`); await tc.fill('#password', 'motdepasse-solide-3');
   await tc.check('input[name=terms]');
   await Promise.all([tc.waitForURL('**/espace'), tc.click('form:has(#password) button[type=submit]')]);
   const r = await tc.goto(bookingUrl);

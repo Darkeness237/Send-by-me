@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/env";
+import { checkFlight, normalizeFlightNumber } from "@/lib/flights";
 import { zonedToUtc } from "@/lib/format";
 import { findPlace } from "@/lib/places";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -26,6 +27,16 @@ const tripSchema = z
     pickup_note: z.string().trim().max(300).optional(),
     dropoff_note: z.string().trim().max(300).optional(),
     notes: z.string().trim().max(1000).optional(),
+    carrier: z.string().trim().max(80).optional(),
+    transport_ref: z.string().trim().max(20).optional(),
+    from_airport: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(),
+    to_airport: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(),
+    has_stopover: z.literal("on").optional(),
+    baggage_allowance_kg: z.coerce.number().min(0).max(200).optional(),
+    ticket_name_matches: z.literal("on").optional(),
+    home_delivery: z.literal("on").optional(),
+    home_delivery_price: z.coerce.number().min(1, "Forfait de livraison : 1 € minimum").max(100, "Forfait de livraison : 100 € maximum").optional(),
+    home_delivery_area: z.string().trim().max(200).optional(),
   })
   .refine((d) => d.from_city.toLowerCase() !== d.to_city.toLowerCase(), {
     message: "Le départ et l'arrivée doivent être différents",
@@ -52,10 +63,54 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
     return { error: "Le départ doit être dans le futur (au moins dans une heure)." };
   }
 
+  // Informations de transport et contrôles automatiques.
+  let transport: Record<string, unknown> = {};
+  let transportCheck: Awaited<ReturnType<typeof checkFlight>> | null = null;
+  if (d.mode === "plane") {
+    if (!d.carrier || !d.transport_ref || !d.from_airport || !d.to_airport || d.baggage_allowance_kg == null) {
+      return { error: "Indiquez la compagnie, le numéro de vol, les aéroports et votre franchise bagage." };
+    }
+    if (d.ticket_name_matches !== "on") return { error: "Confirmez que le nom sur votre billet correspond à votre pièce d'identité." };
+    const flightNumber = normalizeFlightNumber(d.transport_ref);
+    const check = await checkFlight({
+      carrier: d.carrier,
+      flightNumber,
+      fromCity: from?.city ?? d.from_city,
+      toCity: to?.city ?? d.to_city,
+      fromAirport: d.from_airport,
+      toAirport: d.to_airport,
+      hasStopover: d.has_stopover === "on",
+      departureUtc: departure,
+      capacityKg: d.capacity_kg,
+      baggageAllowanceKg: d.baggage_allowance_kg,
+    });
+    if (check.inputError) return { error: `${check.inputError}. Vérifiez votre billet.` };
+    transport = {
+      carrier: d.carrier,
+      transport_ref: flightNumber,
+      from_airport: d.from_airport,
+      to_airport: d.to_airport,
+      has_stopover: d.has_stopover === "on",
+      baggage_allowance_kg: d.baggage_allowance_kg,
+    };
+    transportCheck = check;
+  } else if (d.mode !== "car") {
+    if (!d.carrier) return { error: "Indiquez la compagnie de transport." };
+    transport = { carrier: d.carrier, transport_ref: d.transport_ref || null };
+  }
+
+  const wantsDelivery = d.home_delivery === "on";
+  if (wantsDelivery && (!d.home_delivery_price || !d.home_delivery_area)) {
+    return { error: "Indiquez le forfait et la zone de livraison à domicile." };
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("trips")
     .insert({
+      ...transport,
+      home_delivery_cents: wantsDelivery ? Math.round(d.home_delivery_price! * 100) : null,
+      home_delivery_area: wantsDelivery ? d.home_delivery_area : null,
       traveler_id: userId,
       from_city: from?.city ?? d.from_city,
       from_country: from?.country ?? "—",
@@ -74,6 +129,13 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
     .single();
 
   if (error || !data) return { error: "Impossible de publier le trajet. Vérifiez les champs et réessayez." };
+  if (transportCheck) {
+    // Résultat écrit par le serveur : le membre n'a pas le droit de modifier ces colonnes.
+    await createAdminClient()
+      .from("trips")
+      .update({ transport_check: transportCheck.status, transport_check_notes: transportCheck.notes })
+      .eq("id", data.id);
+  }
   revalidatePath("/recherche");
   redirect(`/trajets/${data.id}?publie=1`);
 }

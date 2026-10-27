@@ -2,9 +2,9 @@
 
 import { Camera, CheckCircle2, FileUp, Loader2 } from "lucide-react";
 import { useActionState, useState, useSyncExternalStore } from "react";
-import { submitIdentityVerification, submitTripProof } from "@/app/actions/verification";
+import { submitAddressVerification, submitIdentityVerification, submitTripProof } from "@/app/actions/verification";
 import { Button } from "@/components/ui/button";
-import { Field, FormMessage, Select } from "@/components/ui/field";
+import { Field, FormMessage, Input, Select } from "@/components/ui/field";
 import { createClient } from "@/lib/supabase/client";
 
 const BUCKET = "verification-documents";
@@ -165,6 +165,47 @@ export function TripProofForm({ userId, tripId }: { userId: string; tripId: stri
       <FormMessage state={state} />
       <Button type="submit" variant="outline" size="sm" disabled={pending}>
         {pending ? "Envoi…" : "Envoyer le justificatif"}
+      </Button>
+    </form>
+  );
+}
+
+type Contact = { phone: string | null; address_line: string | null; postal_code: string | null; address_city: string | null; country: string | null };
+
+export function AddressVerificationForm({ userId, contact }: { userId: string; contact: Contact | null }) {
+  const [state, action, pending] = useActionState(submitAddressVerification, null);
+  if (state?.ok) {
+    clearUploads(userId);
+    return <FormMessage state={state} />;
+  }
+  return (
+    <form action={action} className="space-y-4">
+      <Field label="Téléphone" htmlFor="phone" hint="Jamais affiché aux autres membres.">
+        <Input id="phone" name="phone" type="tel" required autoComplete="tel" defaultValue={contact?.phone ?? ""} placeholder="+33 6 12 34 56 78" />
+      </Field>
+      <Field label="Adresse" htmlFor="address_line">
+        <Input id="address_line" name="address_line" required maxLength={200} autoComplete="street-address" defaultValue={contact?.address_line ?? ""} />
+      </Field>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Field label="Code postal" htmlFor="postal_code">
+          <Input id="postal_code" name="postal_code" maxLength={20} autoComplete="postal-code" defaultValue={contact?.postal_code ?? ""} />
+        </Field>
+        <Field label="Ville" htmlFor="address_city">
+          <Input id="address_city" name="address_city" required maxLength={80} autoComplete="address-level2" defaultValue={contact?.address_city ?? ""} />
+        </Field>
+        <Field label="Pays" htmlFor="country_addr">
+          <Input id="country_addr" name="country" required maxLength={60} autoComplete="country-name" defaultValue={contact?.country ?? ""} />
+        </Field>
+      </div>
+      <FilePicker
+        name="proof_path"
+        userId={userId}
+        label="Justificatif de domicile"
+        hint="Facture d'électricité, d'eau, d'internet ou avis d'imposition de moins de 3 mois"
+      />
+      <FormMessage state={state} />
+      <Button type="submit" disabled={pending}>
+        {pending ? "Envoi…" : "Envoyer mon justificatif"}
       </Button>
     </form>
   );

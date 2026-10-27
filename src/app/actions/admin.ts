@@ -97,14 +97,17 @@ export async function reviewIdentity(_: FormState, formData: FormData): Promise<
   const db = createAdminClient();
   const { data: v } = await db
     .from("identity_verifications")
-    .select("id, user_id, front_path, back_path, selfie_path")
+    .select("id, user_id, kind, front_path, back_path, selfie_path")
     .eq("id", id)
     .eq("status", "pending")
     .maybeSingle();
   if (!v) return { error: "Cette demande a déjà été traitée." };
 
   if (decision === "approved") {
-    await db.from("profiles").update({ id_verified: true }).eq("id", v.user_id);
+    await db
+      .from("profiles")
+      .update(v.kind === "address" ? { address_verified: true } : { id_verified: true })
+      .eq("id", v.user_id);
   }
   await db
     .from("identity_verifications")
@@ -121,7 +124,8 @@ export async function reviewIdentity(_: FormState, formData: FormData): Promise<
   const files = [v.front_path, v.back_path, v.selfie_path].filter(Boolean) as string[];
   if (files.length) await db.storage.from(VERIF_BUCKET).remove(files);
   revalidatePath("/admin");
-  return { ok: decision === "approved" ? "Identité vérifiée. Documents supprimés." : "Demande refusée. Documents supprimés." };
+  const what = v.kind === "address" ? "Adresse vérifiée" : "Identité vérifiée";
+  return { ok: decision === "approved" ? `${what}. Documents supprimés.` : "Demande refusée. Documents supprimés." };
 }
 
 export async function reviewTripProof(_: FormState, formData: FormData): Promise<FormState> {
