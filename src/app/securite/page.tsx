@@ -51,7 +51,7 @@ export default function Security() {
       <section>
         <h2>Signaler un problème</h2>
         <p>
-          Écrivez-nous à <a href="mailto:support@sendbyme.app" className="font-semibold text-brand">support@sendbyme.app</a> en
+          Écrivez-nous à <a href="mailto:support@send-by-me.com" className="font-semibold text-brand">support@send-by-me.com</a> en
           indiquant le lien de la réservation. Le paiement reste bloqué le temps de l&apos;examen.
         </p>
       </section>

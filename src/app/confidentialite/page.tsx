@@ -30,7 +30,7 @@ export default function Privacy() {
       <section>
         <h2>Vos droits</h2>
         <p>
-          Vous pouvez accéder à vos données, les corriger ou demander leur suppression en écrivant à privacy@sendbyme.app. Vous
+          Vous pouvez accéder à vos données, les corriger ou demander leur suppression en écrivant à privacy@send-by-me.com. Vous
           pouvez aussi saisir la CNIL.
         </p>
       </section>

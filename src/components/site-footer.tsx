@@ -38,7 +38,7 @@ export function SiteFooter() {
           <ul className="space-y-2 text-sm">
             <li><Link href="/cgu" className="hover:text-white">Conditions d&apos;utilisation</Link></li>
             <li><Link href="/confidentialite" className="hover:text-white">Confidentialité</Link></li>
-            <li><a href="mailto:contact@sendbyme.app" className="hover:text-white">contact@sendbyme.app</a></li>
+            <li><a href="mailto:contact@send-by-me.com" className="hover:text-white">contact@send-by-me.com</a></li>
           </ul>
         </div>
       </div>

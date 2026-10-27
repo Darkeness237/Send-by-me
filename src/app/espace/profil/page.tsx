@@ -34,8 +34,8 @@ async function Profile() {
             <p className="font-semibold">Identité non vérifiée</p>
             <p className="mt-1 text-sm text-muted">
               Les membres vérifiés reçoivent plus de demandes. Envoyez une photo de votre pièce d&apos;identité à{" "}
-              <a href="mailto:verification@sendbyme.app" className="font-semibold text-brand">
-                verification@sendbyme.app
+              <a href="mailto:verification@send-by-me.com" className="font-semibold text-brand">
+                verification@send-by-me.com
               </a>{" "}
               depuis l&apos;adresse de votre compte. Elle est supprimée après contrôle.
             </p>

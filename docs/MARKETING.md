@@ -120,5 +120,5 @@ Suivi chaque semaine avec une requête SQL sur Supabase. Un tableau de bord peut
 1. Créer le projet Supabase de production et le compte Stripe (voir `README.md`)
 2. Faire valider les CGU et la politique de confidentialité par un juriste
 3. Dresser la liste des 20 voyageurs fondateurs
-4. Choisir le domaine (`sendbyme.app` est utilisé dans le site, à vérifier) et créer les comptes sociaux
+4. Domaine : `send-by-me.com` (actif). Créer dans Google Workspace les adresses contact@, support@, verification@ et privacy@ (alias), puis les comptes sociaux
 5. Décider du budget réel pour recaler le tableau des canaux

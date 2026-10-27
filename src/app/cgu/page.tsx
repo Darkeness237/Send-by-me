@@ -55,7 +55,7 @@ export default function Terms() {
       </section>
       <section>
         <h2>8. Contact</h2>
-        <p>contact@sendbyme.app</p>
+        <p>contact@send-by-me.com</p>
       </section>
     </ProsePage>
   );
