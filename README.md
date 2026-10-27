@@ -69,6 +69,8 @@ npm run db:advisors
 
 ## Mise en production
 
+**Environnements actuels :** Supabase `send-by-me` (réf. `wkavdtthbxwddvpeyazt`, Paris `eu-west-3`, migrations appliquées) et Netlify `send-by-me-demo`.
+
 1. **Supabase** : créer un projet, puis `npx supabase link` et `npx supabase db push`. Dans Auth > URL Configuration, déclarer l'URL du site et `/auth/confirm`.
 2. **Stripe** : utiliser un *sandbox* pour les tests et une clé restreinte (`rk_…`). Créer un endpoint webhook vers `https://<domaine>/api/webhooks/stripe` avec les événements `checkout.session.completed`, `checkout.session.async_payment_succeeded` et `checkout.session.async_payment_failed`. **Le webhook est obligatoire** : sans lui, aucune réservation ne passe en « payée ».
 3. **Hébergement** : Netlify (`netlify.toml` fourni, Next.js détecté automatiquement). Renseigner les variables de `.env.example` dans Netlify > Project configuration > Environment variables, puis redéployer.
