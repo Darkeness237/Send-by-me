@@ -71,6 +71,21 @@ select set_config('request.jwt.claims','{"sub":"33333333-3333-3333-3333-33333333
 select count(*) as admin_voit_signalements from public.reports;
 reset role;
 
+-- Canal d'appel privé (migration 3) : Realtime évalue la RLS de realtime.messages avec le topic demandé
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}',true);
+select set_config('realtime.topic','call:bbbbbbbb-0000-0000-0000-000000000001',true);
+insert into realtime.messages (topic, extension, payload, event, private) values ('call:bbbbbbbb-0000-0000-0000-000000000001','broadcast','{}','signal',true); -- tiers : doit échouer
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}',true);
+select set_config('realtime.topic','call:bbbbbbbb-0000-0000-0000-000000000001',true);
+insert into realtime.messages (topic, extension, payload, event, private) values ('call:bbbbbbbb-0000-0000-0000-000000000001','broadcast','{}','signal',true);
+select count(*) as expediteur_peut_signaler from realtime.messages where topic = 'call:bbbbbbbb-0000-0000-0000-000000000001';
+select set_config('realtime.topic','call:pas-un-uuid',true);
+select count(*) as topic_invalide_visible from realtime.messages;
+reset role;
+
 -- Anonyme
 set local role anon;
 select count(*) as anon_voit_trajets from public.trips;

@@ -32,7 +32,7 @@ Sans variables Supabase, le site tourne en **mode démo** : trajets d'exemple, c
 5. Le voyageur confirme la prise en charge, puis saisit le code donné par le destinataire (5 essais maximum, comparaison en temps constant).
 6. Chacun laisse un avis. Le versement au voyageur passe alors « à verser » dans la console admin.
 
-Autres fonctions : profil modifiable, mot de passe oublié, lignes suivies (« prévenez-moi des nouveaux trajets », affichées dans l'espace perso), annulation de trajet, signalement d'un problème, messagerie et statut en temps réel.
+Autres fonctions : **appels audio et vidéo** dans la conversation (WebRTC, numéros jamais partagés), **application installable** (PWA, page hors ligne), profil modifiable, mot de passe oublié, lignes suivies (« prévenez-moi des nouveaux trajets », affichées dans l'espace perso), annulation de trajet, signalement d'un problème, messagerie et statut en temps réel.
 
 ## Administration (`/admin`)
 
@@ -47,6 +47,12 @@ where email = 'vous@exemple.fr';
 
 Le rôle est lu dans `app_metadata` (non modifiable par l'utilisateur). Il prend effet à la prochaine connexion.
 
+## Appels dans la messagerie
+
+Appels de navigateur à navigateur (WebRTC). La signalisation passe par un canal Supabase Realtime **privé** `call:<réservation>` : la RLS sur `realtime.messages` n'y admet que l'expéditeur et le voyageur. Dans Supabase > Realtime > Settings, désactivez « Allow public access » en production.
+
+Sans relais, la plupart des appels passent (STUN). Pour les réseaux mobiles stricts, ajoutez un serveur TURN : variables `TURN_URLS`, `TURN_USERNAME`, `TURN_CREDENTIAL` (Twilio Network Traversal, Cloudflare Calls TURN ou coturn). Les identifiants ne sont remis qu'aux participants.
+
 ## Sécurité
 
 - **RLS** activée sur toutes les tables. Les lectures passent par la session de l'utilisateur.
@@ -54,7 +60,7 @@ Le rôle est lu dans `app_metadata` (non modifiable par l'utilisateur). Il prend
 - Les **droits par colonne** empêchent un utilisateur de modifier `id_verified`, `reserved_kg` ou un statut.
 - Le **code de remise** est stocké dans `booking_secrets`, lisible uniquement par l'expéditeur.
 - Les **redirections** après connexion n'acceptent que des chemins internes.
-- **Tests :** `tests/rls.sql` (droits SQL), `tests/e2e.cjs` (parcours complet, webhook falsifié, mauvais code, accès d'un tiers) et `tests/e2e-v2.cjs` (temps réel, signalement, alertes, annulation, console admin).
+- **Tests :** `tests/rls.sql` (droits SQL), `tests/e2e.cjs` (parcours complet, webhook falsifié, mauvais code, accès d'un tiers) `tests/e2e-v2.cjs` (temps réel, signalement, alertes, annulation, console admin) et `tests/e2e-calls.cjs` (appel, refus, raccrochage).
 
 ```bash
 psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f tests/rls.sql

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import aeroport from "../../../../public/images/aeroport-depart.jpg";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { FAQ_ITEMS } from "@/components/faq";
@@ -76,8 +78,10 @@ export default async function CorridorPage(props: PageProps<"/envoyer-un-colis/[
   return (
     <PageShell>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <section className="bg-ink text-white">
-        <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 md:py-16">
+      <section className="relative overflow-hidden bg-ink text-white">
+        <Image src={aeroport} alt="" fill priority placeholder="blur" sizes="100vw" className="object-cover object-[50%_30%] opacity-35" />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/40" aria-hidden="true" />
+        <div className="relative mx-auto max-w-4xl px-4 py-12 sm:px-6 md:py-16">
           <p className="wide tabular text-lg font-bold text-signal">
             {from.code} › {to.code}
           </p>

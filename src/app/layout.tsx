@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo } from "next/font/google";
 import { SITE_URL } from "@/lib/env";
+import { PwaInstall } from "@/components/pwa";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -33,6 +34,9 @@ export const metadata: Metadata = {
     siteName: "Send By Me",
   },
   twitter: { card: "summary_large_image" },
+  appleWebApp: { capable: true, title: "Send By Me", statusBarStyle: "black-translucent" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
+  formatDetection: { telephone: false },
   alternates: { canonical: "/" },
 };
 
@@ -45,7 +49,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr" className={archivo.variable}>
-      <body className="min-h-dvh">{children}</body>
+      <body className="min-h-dvh">
+        {children}
+        <PwaInstall />
+      </body>
     </html>
   );
 }

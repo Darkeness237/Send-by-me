@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BadgeCheck, KeyRound, Lock, MessageCircle, PackageX, Star } from "lucide-react";
@@ -11,10 +12,14 @@ import { demoTrips } from "@/lib/demo";
 import { CORRIDORS, corridorSlug, findPlace } from "@/lib/places";
 import { euros, quote } from "@/lib/pricing";
 import { FAQ } from "@/components/faq";
+import voyageuse from "../../public/images/voyageuse-valise.jpg";
+import remise from "../../public/images/remise-colis.jpg";
+import valise from "../../public/images/preparer-valise.jpg";
+import famille from "../../public/images/cadeau-famille.jpg";
 
 async function LiveBoard() {
   const trips = await searchTrips({}, 6).catch(() => []);
-  return <DepartureBoard trips={trips.length >= 3 ? trips : demoTrips()} />;
+  return <DepartureBoard trips={trips.length >= 3 ? trips : demoTrips()} rows={4} />;
 }
 
 const example = quote(900, 5);
@@ -51,17 +56,34 @@ export default function Home() {
             <div className="lg:col-span-2 lg:row-start-2">
               <SearchForm />
             </div>
-            <div className="lg:col-start-2 lg:row-start-1">
-              <Suspense fallback={<div className="h-[300px] rounded-2xl bg-[#0b1630] ring-1 ring-white/10" />}>
-                <LiveBoard />
-              </Suspense>
+            <div className="relative lg:col-start-2 lg:row-start-1">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] bg-signal sm:aspect-[5/4] lg:aspect-[4/5]">
+                <Image
+                  src={voyageuse}
+                  alt="Une voyageuse souriante, billet en main, tire sa valise"
+                  fill
+                  priority
+                  placeholder="blur"
+                  sizes="(min-width: 1024px) 520px, 100vw"
+                  className="object-cover object-[50%_25%]"
+                />
+              </div>
+              <div className="relative -mt-14 px-3 sm:px-6 lg:absolute lg:bottom-8 lg:-left-20 lg:mt-0 lg:w-[400px] lg:px-0">
+                <Suspense fallback={<div className="h-[200px] rounded-2xl bg-[#0b1630] ring-1 ring-white/10" />}>
+                  <LiveBoard />
+                </Suspense>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Deux publics */}
         <section className="mx-auto grid max-w-6xl gap-5 px-4 py-16 sm:px-6 md:grid-cols-2 md:py-20">
-          <div className="rounded-3xl bg-white p-7 ring-1 ring-line sm:p-9">
+          <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-line">
+            <div className="relative aspect-[16/9]">
+              <Image src={remise} alt="Un colis passe de main en main" fill placeholder="blur" sizes="(min-width: 768px) 560px, 100vw" className="object-cover" />
+            </div>
+            <div className="p-7 sm:p-9">
             <h2 className="wide text-2xl font-extrabold">Vous envoyez un colis</h2>
             <p className="mt-3 text-muted">
               Des vêtements pour la famille, des documents, un téléphone pour un proche. Choisissez un voyageur selon sa
@@ -75,8 +97,13 @@ export default function Home() {
             <ButtonLink href="/recherche" className="mt-8">
               Trouver un voyageur
             </ButtonLink>
+            </div>
           </div>
-          <div className="rounded-3xl bg-signal p-7 sm:p-9">
+          <div className="overflow-hidden rounded-3xl bg-signal">
+            <div className="relative aspect-[16/9]">
+              <Image src={valise} alt="Un père et ses enfants préparent une valise jaune" fill placeholder="blur" sizes="(min-width: 768px) 560px, 100vw" className="object-cover object-[50%_40%]" />
+            </div>
+            <div className="p-7 sm:p-9">
             <h2 className="wide text-2xl font-extrabold">Vous avez des kilos libres</h2>
             <p className="mt-3 text-ink-soft">
               Vous partez à Douala, Dakar ou Abidjan avec de la place dans votre valise ? Proposez-la et fixez votre prix.
@@ -89,6 +116,7 @@ export default function Home() {
             <ButtonLink href="/publier" variant="primary" className="mt-8 bg-ink hover:bg-ink-soft">
               Proposer mes kilos
             </ButtonLink>
+            </div>
           </div>
         </section>
 
@@ -142,6 +170,25 @@ export default function Home() {
               </div>
             </dl>
             <p className="mt-4 text-sm text-muted">Le voyageur reçoit {euros(example.baseCents)} après la livraison.</p>
+          </div>
+        </section>
+
+        {/* L'arrivée */}
+        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-20">
+          <div className="grid overflow-hidden rounded-3xl bg-ink text-white md:grid-cols-2">
+            <div className="relative aspect-[4/3] md:aspect-auto md:min-h-[380px]">
+              <Image src={famille} alt="Une mère tend un cadeau à sa fille souriante" fill placeholder="blur" sizes="(min-width: 768px) 560px, 100vw" className="object-cover" />
+            </div>
+            <div className="flex flex-col justify-center p-8 sm:p-12">
+              <h2 className="display text-3xl sm:text-4xl">À l&apos;arrivée, c&apos;est votre famille qui valide</h2>
+              <p className="mt-4 max-w-md leading-relaxed text-white/75">
+                Le voyageur remet le colis en main propre à la personne que vous avez choisie. Elle lui donne son code de
+                remise : c&apos;est ce geste qui libère le paiement.
+              </p>
+              <ButtonLink href="/comment-ca-marche" variant="signal" className="mt-8 self-start">
+                Voir le parcours complet
+              </ButtonLink>
+            </div>
           </div>
         </section>
 

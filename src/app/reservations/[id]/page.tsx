@@ -8,6 +8,7 @@ import { startCheckout } from "@/app/actions/payments";
 import { Avatar } from "@/components/avatar";
 import { ReportForm } from "@/components/account-forms";
 import { DeliveryCodeForm, MessageForm, ReviewForm } from "@/components/booking-client-forms";
+import { CallPanel } from "@/components/call-panel";
 import { LiveRefresh } from "@/components/live-refresh";
 import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
@@ -196,12 +197,13 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
 
       {/* Messagerie */}
       <aside className="flex max-h-[80vh] flex-col rounded-3xl bg-white ring-1 ring-line lg:sticky lg:top-6">
-        <div className="flex items-center gap-3 border-b border-line p-5">
+        <div className="flex flex-wrap items-center gap-3 border-b border-line p-5">
           <Avatar name={other?.full_name || "Membre"} verified={other?.id_verified} size={40} />
           <div>
             <p className="font-semibold">{other?.full_name || "Membre"}</p>
             <p className="text-sm text-muted">{isSender ? "Voyageur" : "Expéditeur"}</p>
           </div>
+          {!closed && <CallPanel bookingId={booking.id} myId={userId} otherName={other?.full_name || "Membre"} />}
         </div>
         <ol className="flex-1 space-y-3 overflow-y-auto p-5" aria-label="Messages">
           {messages.length === 0 && <li className="text-center text-sm text-muted">Posez vos questions ici : lieu de remise, photos du colis…</li>}
@@ -223,7 +225,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
           </div>
         )}
         <p className="px-5 pb-4 text-xs text-muted">
-          Restez sur Send By Me pour payer : un paiement hors plateforme n&apos;est pas protégé.{" "}
+          Appelez et payez depuis Send By Me : votre numéro reste privé, et un paiement hors plateforme n&apos;est pas protégé.{" "}
           <Link href="/securite" className="underline">En savoir plus</Link>
         </p>
       </aside>

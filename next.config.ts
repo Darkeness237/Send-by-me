@@ -4,6 +4,28 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  async headers() {
+    return [
+      {
+        // Le service worker doit toujours être revérifié pour que les mises à jour arrivent.
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+        ],
+      },
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "DENY" },
+          // Caméra et micro autorisés uniquement pour ce site (appels dans la messagerie).
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=()" },
+        ],
+      },
+    ];
+  },
   turbopack: {
     rules: {
       "*.css": {

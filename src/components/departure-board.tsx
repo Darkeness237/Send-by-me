@@ -21,15 +21,15 @@ function Flaps({ text, width, delay = 0 }: { text: string; width: number; delay?
 }
 
 /** Tableau des départs façon aéroport : le moment fort de la page d'accueil. */
-export function DepartureBoard({ trips }: { trips: Trip[] }) {
-  const rows = trips.slice(0, 6);
+export function DepartureBoard({ trips, rows: count = 6 }: { trips: Trip[]; rows?: number }) {
+  const rows = trips.slice(0, count);
   return (
     <div className="overflow-hidden rounded-2xl bg-[#0b1630] p-4 shadow-[0_30px_80px_-30px_rgb(0_0_0/0.6)] ring-1 ring-white/10 sm:p-5">
       <div className="mb-3 flex items-center justify-between text-xs font-semibold text-white/50">
         <span className="wide text-white/80">Prochains départs</span>
         <span>Kilos libres · prix au kg</span>
       </div>
-      <table className="w-full max-w-xl border-separate border-spacing-y-1.5 text-[13px] sm:text-[15px]">
+      <table className="w-full border-separate border-spacing-y-1.5 text-[13px] sm:text-[15px]">
         <caption className="sr-only">Prochains trajets avec des kilos disponibles</caption>
         <thead className="sr-only">
           <tr>
