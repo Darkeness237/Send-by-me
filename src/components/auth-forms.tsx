@@ -14,7 +14,15 @@ export function SignInForm({ next }: { next?: string }) {
       <Field label="E-mail" htmlFor="email">
         <Input id="email" name="email" type="email" autoComplete="email" required />
       </Field>
-      <Field label="Mot de passe" htmlFor="password">
+      <Field
+        label="Mot de passe"
+        htmlFor="password"
+        hint={
+          <Link href="/mot-de-passe-oublie" className="font-semibold text-brand">
+            Mot de passe oublié ?
+          </Link>
+        }
+      >
         <Input id="password" name="password" type="password" autoComplete="current-password" required minLength={8} />
       </Field>
       <FormMessage state={state} />

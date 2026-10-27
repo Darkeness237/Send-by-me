@@ -8,6 +8,7 @@ const tone: Record<BookingStatus, string> = {
   delivered: "bg-ok-pale text-ok",
   declined: "bg-paper text-muted",
   cancelled: "bg-paper text-muted",
+  refunded: "bg-paper text-muted",
 };
 
 export function StatusBadge({ status }: { status: BookingStatus }) {

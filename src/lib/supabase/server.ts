@@ -32,3 +32,13 @@ export async function getUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getClaims();
   return (data?.claims?.sub as string | undefined) ?? null;
 }
+
+/** Identité et rôle. Le rôle admin vient de app_metadata, modifiable uniquement côté serveur. */
+export async function getSession(): Promise<{ userId: string | null; isAdmin: boolean }> {
+  await connection();
+  if (!isSupabaseConfigured) return { userId: null, isAdmin: false };
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims as { sub?: string; app_metadata?: { role?: string } } | undefined;
+  return { userId: claims?.sub ?? null, isAdmin: claims?.app_metadata?.role === "admin" };
+}

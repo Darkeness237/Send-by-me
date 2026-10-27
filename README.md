@@ -30,7 +30,22 @@ Sans variables Supabase, le site tourne en **mode démo** : trajets d'exemple, c
 3. Le voyageur accepte. La capacité est réservée de façon atomique (`accept_booking`).
 4. L'expéditeur paie via Stripe Checkout. **Seul le webhook** marque la réservation comme payée, après vérification de la signature et du montant, puis génère le code de remise.
 5. Le voyageur confirme la prise en charge, puis saisit le code donné par le destinataire (5 essais maximum, comparaison en temps constant).
-6. Chacun laisse un avis.
+6. Chacun laisse un avis. Le versement au voyageur passe alors « à verser » dans la console admin.
+
+Autres fonctions : profil modifiable, mot de passe oublié, lignes suivies (« prévenez-moi des nouveaux trajets », affichées dans l'espace perso), annulation de trajet, signalement d'un problème, messagerie et statut en temps réel.
+
+## Administration (`/admin`)
+
+Signalements à traiter, versements à effectuer (avec référence du virement), vérification d'identité des membres et remboursements Stripe (les kilos sont libérés automatiquement).
+
+Pour donner le rôle admin à un compte (via SQL, jamais depuis l'app) :
+
+```sql
+update auth.users set raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}'
+where email = 'vous@exemple.fr';
+```
+
+Le rôle est lu dans `app_metadata` (non modifiable par l'utilisateur). Il prend effet à la prochaine connexion.
 
 ## Sécurité
 
@@ -39,7 +54,7 @@ Sans variables Supabase, le site tourne en **mode démo** : trajets d'exemple, c
 - Les **droits par colonne** empêchent un utilisateur de modifier `id_verified`, `reserved_kg` ou un statut.
 - Le **code de remise** est stocké dans `booking_secrets`, lisible uniquement par l'expéditeur.
 - Les **redirections** après connexion n'acceptent que des chemins internes.
-- **Tests :** `tests/rls.sql` (droits SQL) et `tests/e2e.cjs` (parcours complet, webhook falsifié, mauvais code, accès d'un tiers).
+- **Tests :** `tests/rls.sql` (droits SQL), `tests/e2e.cjs` (parcours complet, webhook falsifié, mauvais code, accès d'un tiers) et `tests/e2e-v2.cjs` (temps réel, signalement, alertes, annulation, console admin).
 
 ```bash
 psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f tests/rls.sql
@@ -50,16 +65,15 @@ npm run db:advisors
 
 1. **Supabase** : créer un projet, puis `npx supabase link` et `npx supabase db push`. Dans Auth > URL Configuration, déclarer l'URL du site et `/auth/confirm`.
 2. **Stripe** : utiliser un *sandbox* pour les tests et une clé restreinte (`rk_…`). Créer un endpoint webhook vers `https://<domaine>/api/webhooks/stripe` avec les événements `checkout.session.completed`, `checkout.session.async_payment_succeeded` et `checkout.session.async_payment_failed`. **Le webhook est obligatoire** : sans lui, aucune réservation ne passe en « payée ».
-3. **Hébergement** : Vercel ou Netlify, avec les variables de `.env.example`.
+3. **Hébergement** : Netlify (`netlify.toml` fourni, Next.js détecté automatiquement). Renseigner les variables de `.env.example` dans Netlify > Project configuration > Environment variables, puis redéployer.
 4. Faire relire `/cgu` et `/confidentialite` par un juriste.
 
 ## Feuille de route
 
 - **Versement aux voyageurs** : Stripe Connect (Accounts v2, charges et transferts séparés). Aujourd'hui, l'argent est encaissé par la plateforme et le versement se fait à la main.
-- Remboursements et litiges depuis une console d'administration
-- Vérification d'identité (KYC) dans l'app. Aujourd'hui, `id_verified` est activé à la main par l'équipe.
+- Vérification d'identité automatisée (KYC). Aujourd'hui, l'équipe contrôle la pièce reçue par e-mail et coche « vérifié » dans `/admin`.
 - Mobile Money (Orange Money, MTN MoMo) pour les départs d'Afrique
-- E-mails transactionnels, alertes « nouveau trajet sur ma ligne », messagerie en temps réel
+- E-mails transactionnels (demande reçue, paiement, rappel du code, nouveaux trajets sur une ligne suivie)
 
 ## Marketing
 

@@ -6,7 +6,9 @@ import { KeyRound, Lock } from "lucide-react";
 import { acceptBooking, cancelBooking, confirmPickup, declineBooking } from "@/app/actions/bookings";
 import { startCheckout } from "@/app/actions/payments";
 import { Avatar } from "@/components/avatar";
+import { ReportForm } from "@/components/account-forms";
 import { DeliveryCodeForm, MessageForm, ReviewForm } from "@/components/booking-client-forms";
+import { LiveRefresh } from "@/components/live-refresh";
 import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
@@ -51,10 +53,12 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
 
   const other = isSender ? trip.traveler : booking.sender;
   const stepIndex = STEPS.findIndex(([s]) => s === booking.status);
-  const closed = booking.status === "declined" || booking.status === "cancelled";
+  const closed = booking.status === "declined" || booking.status === "cancelled" || booking.status === "refunded";
+  const reportable = ["paid", "picked_up", "delivered", "refunded"].includes(booking.status);
 
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.3fr_1fr] lg:items-start">
+      <LiveRefresh bookingId={booking.id} />
       <div className="space-y-6">
         {sp.paiement === "ok" && booking.status === "accepted" && (
           <p role="status" className="rounded-2xl bg-brand-pale px-4 py-3 text-brand-deep">
@@ -179,8 +183,14 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
               )}
             </div>
           )}
-          {closed && <p className="text-muted">Cette réservation est close.</p>}
+          {booking.status === "refunded" && <p className="text-muted">Cette réservation a été remboursée à l&apos;expéditeur.</p>}
+          {closed && booking.status !== "refunded" && <p className="text-muted">Cette réservation est close.</p>}
           {isSender && booking.status === "picked_up" && !code && <p className="text-muted">Votre colis est en route.</p>}
+          {reportable && (
+            <div className="mt-6 border-t border-line pt-5">
+              <ReportForm bookingId={booking.id} />
+            </div>
+          )}
         </section>
       </div>
 

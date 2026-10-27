@@ -49,6 +49,28 @@ insert into public.trips (traveler_id, from_city, from_country, to_city, to_coun
  values ('11111111-1111-1111-1111-111111111111','Paris','France','Dakar','Sénégal', now()+interval '3 days', 10, 900); -- usurpation, doit échouer
 reset role;
 
+-- Signalements et alertes (migration 2)
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}',true);
+insert into public.reports (booking_id, author_id, reason, details) values ('bbbbbbbb-0000-0000-0000-000000000001','33333333-3333-3333-3333-333333333333','other','Je ne participe pas à cette réservation'); -- doit échouer
+insert into public.route_alerts (user_id, from_city, to_city) values ('22222222-2222-2222-2222-222222222222','Paris','Dakar'); -- usurpation, doit échouer
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}',true);
+insert into public.reports (booking_id, author_id, reason, details) values ('bbbbbbbb-0000-0000-0000-000000000001','22222222-2222-2222-2222-222222222222','behaviour','Le voyageur ne répond plus.');
+update public.reports set status = 'resolved'; -- doit échouer
+update public.bookings set payout_status = 'paid'; -- doit échouer
+select count(*) as expediteur_voit_son_signalement from public.reports;
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated","user_metadata":{"role":"admin"}}',true);
+select count(*) as voyageur_voit_signalement_contre_lui from public.reports; -- 0 : user_metadata n'accorde rien
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated","app_metadata":{"role":"admin"}}',true);
+select count(*) as admin_voit_signalements from public.reports;
+reset role;
+
 -- Anonyme
 set local role anon;
 select count(*) as anon_voit_trajets from public.trips;

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/env";
 import { zonedToUtc } from "@/lib/format";
 import { findPlace } from "@/lib/places";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/types";
 import type { FormState } from "./auth";
@@ -88,6 +89,19 @@ export async function cancelTrip(tripId: string) {
     .eq("trip_id", tripId)
     .in("status", ["accepted", "paid", "picked_up"]);
   if (count) return;
-  await supabase.from("trips").update({ status: "cancelled" }).eq("id", tripId).eq("traveler_id", userId);
+  const { data: cancelled } = await supabase
+    .from("trips")
+    .update({ status: "cancelled" })
+    .eq("id", tripId)
+    .eq("traveler_id", userId)
+    .select("id");
+  if (cancelled?.length) {
+    // Les demandes encore en attente sont refusées automatiquement.
+    await createAdminClient()
+      .from("bookings")
+      .update({ status: "declined", updated_at: new Date().toISOString() })
+      .eq("trip_id", tripId)
+      .eq("status", "pending");
+  }
   revalidatePath("/espace");
 }

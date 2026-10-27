@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { PackageSearch } from "lucide-react";
+import { Bell, PackageSearch } from "lucide-react";
+import { createAlert } from "@/app/actions/account";
 import { PageShell } from "@/components/page-shell";
 import { SearchForm } from "@/components/search-form";
 import { TripTag } from "@/components/trip-tag";
-import { ButtonLink } from "@/components/ui/button";
+import { ButtonLink, buttonClass } from "@/components/ui/button";
 import { searchTrips } from "@/lib/data";
+import { isSupabaseConfigured } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Trouver un voyageur",
@@ -43,6 +45,13 @@ async function Results({ searchParams }: { searchParams: Promise<SP> }) {
           {trips.length} trajet{trips.length > 1 ? "s" : ""}
         </p>
       </div>
+      {trips.length > 0 && q.from && q.to && isSupabaseConfigured && (
+        <form action={createAlert.bind(null, q.from, q.to)} className="mt-2">
+          <button type="submit" className="flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
+            <Bell className="h-4 w-4" aria-hidden="true" /> Suivre cette ligne
+          </button>
+        </form>
+      )}
       {trips.length ? (
         <ul className="mt-5 space-y-4">
           {trips.map((t) => (
@@ -56,11 +65,21 @@ async function Results({ searchParams }: { searchParams: Promise<SP> }) {
           <PackageSearch className="mx-auto h-10 w-10 text-muted" aria-hidden="true" />
           <h2 className="mt-4 text-lg font-bold">Aucun voyageur sur ce trajet pour l&apos;instant</h2>
           <p className="mx-auto mt-2 max-w-md text-muted">
-            Essayez une date plus tardive ou une ville voisine. De nouveaux trajets sont publiés chaque jour.
+            Essayez une date plus tardive ou une ville voisine
+            {q.from && q.to ? ", ou suivez cette ligne pour voir les nouveaux trajets dans votre espace." : "."}
           </p>
-          <ButtonLink href="/recherche" variant="outline" className="mt-6">
-            Voir tous les trajets
-          </ButtonLink>
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {q.from && q.to && isSupabaseConfigured && (
+              <form action={createAlert.bind(null, q.from, q.to)}>
+                <button type="submit" className={buttonClass("primary")}>
+                  <Bell className="h-4 w-4" aria-hidden="true" /> Suivre cette ligne
+                </button>
+              </form>
+            )}
+            <ButtonLink href="/recherche" variant="outline">
+              Voir tous les trajets
+            </ButtonLink>
+          </div>
         </div>
       )}
     </>

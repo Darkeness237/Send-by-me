@@ -1,0 +1,8 @@
+# Next.js est détecté automatiquement (adaptateur OpenNext de Netlify).
+# Les secrets (Supabase, Stripe) se règlent dans l'interface Netlify, jamais ici.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"

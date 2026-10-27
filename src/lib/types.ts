@@ -8,7 +8,8 @@ export type BookingStatus =
   | "picked_up" // colis remis au voyageur
   | "delivered" // livré, code confirmé
   | "declined"
-  | "cancelled";
+  | "cancelled"
+  | "refunded";
 
 export const CATEGORIES = [
   { id: "documents", label: "Documents" },
@@ -69,7 +70,7 @@ export type Booking = {
   fee_cents: number;
   total_cents: number;
   status: BookingStatus;
-  delivery_code: string | null;
+  payout_status?: PayoutStatus;
   created_at: string;
   trip?: Trip | null;
   sender?: Profile | null;
@@ -83,4 +84,16 @@ export const STATUS_LABEL: Record<BookingStatus, string> = {
   delivered: "Livrée",
   declined: "Refusée",
   cancelled: "Annulée",
+  refunded: "Remboursée",
 };
+
+export type PayoutStatus = "not_due" | "due" | "paid";
+
+export const REPORT_REASONS = [
+  { id: "not_delivered", label: "Le colis n'a pas été livré" },
+  { id: "damaged", label: "Le colis est abîmé ou incomplet" },
+  { id: "forbidden_item", label: "Le colis contenait un objet interdit" },
+  { id: "behaviour", label: "Comportement inapproprié" },
+  { id: "payment", label: "Problème de paiement" },
+  { id: "other", label: "Autre" },
+] as const;

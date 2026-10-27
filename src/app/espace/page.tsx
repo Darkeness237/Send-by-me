@@ -2,17 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { Check, Package, Plane, X } from "lucide-react";
+import { Bell, Check, Package, Plane, Shield, Trash2, UserRound, X } from "lucide-react";
+import { deleteAlert } from "@/app/actions/account";
 import { acceptBooking, declineBooking } from "@/app/actions/bookings";
+import { cancelTrip } from "@/app/actions/trips";
 import { signOut } from "@/app/actions/auth";
 import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { getMySendings, getMyTrips, getProfile } from "@/lib/data";
+import { getMyAlerts, getMySendings, getMyTrips, getProfile } from "@/lib/data";
 import { dayLabel, kg } from "@/lib/format";
 import { codeFor, tzFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
-import { getUserId } from "@/lib/supabase/server";
+import { getSession } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Mon espace", robots: { index: false } };
@@ -20,11 +22,11 @@ export const metadata: Metadata = { title: "Mon espace", robots: { index: false 
 const catLabel = (id: string) => CATEGORIES.find((c) => c.id === id)?.label ?? id;
 
 async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: string }> }) {
-  const userId = await getUserId();
+  const { userId, isAdmin } = await getSession();
   if (!userId) redirect("/connexion?suite=/espace");
   const { onglet } = await searchParams;
   const tab = onglet === "trajets" ? "trajets" : "envois";
-  const [profile, sendings, trips] = await Promise.all([getProfile(userId), getMySendings(userId), getMyTrips(userId)]);
+  const [profile, sendings, trips, alerts] = await Promise.all([getProfile(userId), getMySendings(userId), getMyTrips(userId), getMyAlerts(userId)]);
   const pendingRequests = trips.flatMap((t) => t.bookings).filter((b) => b.status === "pending").length;
 
   return (
@@ -38,11 +40,21 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
               : "Suivez ici vos envois et vos trajets."}
           </p>
         </div>
-        <form action={signOut}>
-          <Button variant="ghost" size="sm" type="submit">
-            Se déconnecter
-          </Button>
-        </form>
+        <div className="flex flex-wrap items-center gap-2">
+          {isAdmin && (
+            <ButtonLink href="/admin" variant="outline" size="sm">
+              <Shield className="h-4 w-4" aria-hidden="true" /> Administration
+            </ButtonLink>
+          )}
+          <ButtonLink href="/espace/profil" variant="outline" size="sm">
+            <UserRound className="h-4 w-4" aria-hidden="true" /> Mon profil
+          </ButtonLink>
+          <form action={signOut}>
+            <Button variant="ghost" size="sm" type="submit">
+              Se déconnecter
+            </Button>
+          </form>
+        </div>
       </div>
 
       <nav className="mt-8 flex gap-1 rounded-full bg-white p-1 ring-1 ring-line sm:inline-flex" aria-label="Sections">
@@ -60,6 +72,33 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
           </Link>
         ))}
       </nav>
+
+      {alerts.length > 0 && (
+        <section className="mt-6 rounded-2xl bg-white p-4 ring-1 ring-line sm:p-5" aria-labelledby="alertes">
+          <h2 id="alertes" className="flex items-center gap-2 text-sm font-bold">
+            <Bell className="h-4 w-4 text-brand" aria-hidden="true" /> Mes lignes suivies
+          </h2>
+          <ul className="mt-3 divide-y divide-line">
+            {alerts.map((a) => (
+              <li key={a.id} className="flex items-center gap-3 py-2.5">
+                <Link href={`/recherche?from=${encodeURIComponent(a.from_city)}&to=${encodeURIComponent(a.to_city)}`} className="min-w-0 flex-1">
+                  <span className="font-semibold">
+                    {a.from_city} → {a.to_city}
+                  </span>
+                  <span className={`ml-2 text-sm ${a.upcoming ? "font-semibold text-ok" : "text-muted"}`}>
+                    {a.upcoming ? `${a.upcoming} trajet${a.upcoming > 1 ? "s" : ""} à venir` : "Aucun trajet pour l'instant"}
+                  </span>
+                </Link>
+                <form action={deleteAlert.bind(null, a.id)}>
+                  <button type="submit" className="rounded-full p-2 text-muted hover:bg-paper hover:text-danger" aria-label={`Ne plus suivre ${a.from_city} → ${a.to_city}`}>
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {tab === "envois" ? (
         <section className="mt-6 space-y-3">
@@ -116,6 +155,18 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
                   {kg(t.reserved_kg)} / {kg(t.capacity_kg)}
                 </p>
               </Link>
+              {t.status === "cancelled" ? (
+                <p className="border-t border-line px-4 py-2.5 text-sm text-muted sm:px-5">Trajet annulé</p>
+              ) : (
+                t.status === "published" &&
+                !t.bookings.some((b) => ["accepted", "paid", "picked_up"].includes(b.status)) && (
+                  <form action={cancelTrip.bind(null, t.id)} className="border-t border-line px-4 py-2 sm:px-5">
+                    <button type="submit" className="text-sm font-semibold text-muted hover:text-danger">
+                      Annuler ce trajet
+                    </button>
+                  </form>
+                )
+              )}
               {t.bookings.length > 0 && (
                 <ul className="divide-y divide-line border-t border-line">
                   {t.bookings.map((b) => (

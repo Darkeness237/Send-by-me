@@ -127,3 +127,28 @@ export async function getMessages(bookingId: string) {
     .limit(500);
   return data ?? [];
 }
+
+/** Alertes de ligne de l'utilisateur, avec le nombre de trajets à venir sur chaque ligne. */
+export async function getMyAlerts(userId: string) {
+  const supabase = await createClient();
+  const { data: alerts } = await supabase
+    .from("route_alerts")
+    .select("id, from_city, to_city, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (!alerts?.length) return [];
+  const now = new Date().toISOString();
+  return Promise.all(
+    alerts.map(async (a) => {
+      const { count } = await supabase
+        .from("trips")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "published")
+        .ilike("from_city", escapeLike(a.from_city))
+        .ilike("to_city", escapeLike(a.to_city))
+        .gte("departure_at", now)
+        .neq("traveler_id", userId);
+      return { ...a, upcoming: count ?? 0 };
+    }),
+  );
+}
