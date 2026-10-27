@@ -32,7 +32,7 @@ export default function Security() {
       <section>
         <h2>Identité vérifiée</h2>
         <p>
-          Le badge bleu signifie que notre équipe a contrôlé une pièce d&apos;identité du membre et un selfie. Nous vous conseillons de
+          Le badge bleu veut dire que la pièce d&apos;identité du membre et son selfie ont été contrôlés. Nous vous conseillons de
           privilégier les voyageurs vérifiés et ayant déjà des avis.
         </p>
       </section>
@@ -47,8 +47,7 @@ export default function Security() {
       <section>
         <h2>Compte certifié</h2>
         <p>
-          Un membre certifié a fait vérifier son identité (pièce officielle et selfie, contrôlés par notre équipe ou automatiquement par
-          Stripe Identity) et son adresse (justificatif de domicile de moins de 3 mois). Il porte le badge doré « Compte certifié ».
+          Un membre certifié a fait vérifier son identité (pièce officielle et selfie) et son adresse (justificatif de domicile de moins de 3 mois). Il porte le badge doré « Compte certifié ».
         </p>
       </section>
       <section>

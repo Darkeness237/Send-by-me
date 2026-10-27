@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { CalendarDays, CheckCircle2, House, MessageCircle, MapPin, Plane, ShieldCheck, Star, TicketCheck } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { BookingForm } from "@/components/booking-form";
+import { TakeoffBanner } from "@/components/journey";
 import { PageShell } from "@/components/page-shell";
 import { startInquiry } from "@/app/actions/messages";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -48,11 +49,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-12">
-      {sp.publie && (
-        <p role="status" className="mb-6 flex items-center gap-2 rounded-2xl bg-ok-pale px-4 py-3 font-medium text-ok">
-          <CheckCircle2 className="h-5 w-5" aria-hidden="true" /> Trajet publié. Partagez-le pour recevoir vos premières demandes.
-        </p>
-      )}
+      {sp.publie && <TakeoffBanner title="C'est en ligne !" text="Votre trajet est publié. Partagez-le pour recevoir vos premières demandes." />}
       <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-start">
         <div className="space-y-6">
           {/* Carte d'embarquement */}

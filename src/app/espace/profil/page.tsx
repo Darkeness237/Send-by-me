@@ -92,8 +92,8 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
               Faites certifier votre compte
             </h2>
             <p className="mt-1 text-muted">
-              Deux étapes : votre identité (badge bleu), puis votre adresse (badge doré « Compte certifié »). Les membres certifiés reçoivent
-              plus de demandes. Vos documents restent privés et sont supprimés après contrôle.
+              Votre identité vous donne le badge bleu, votre adresse le badge doré. Les membres certifiés reçoivent plus de demandes. Vos
+              documents restent privés et sont effacés après contrôle.
             </p>
           </>
         )}
@@ -106,26 +106,32 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
             ) : (
               <>
                 <Rejected request={idReq} />
-                {isStripeConfigured && (
-                  <div className="mb-5 rounded-2xl bg-brand-pale/50 p-4">
-                    <p className="font-semibold">Vérification instantanée</p>
-                    <p className="mt-1 mb-3 text-sm text-ink-soft">
-                      Photographiez votre pièce et faites un selfie : le contrôle est automatique (KYC par Stripe Identity), en 2 minutes.
-                    </p>
-                    {sp.kyc === "retour" && (
-                      <p role="status" className="mb-3 text-sm font-medium text-ok">
-                        Merci ! Le résultat s&apos;affichera ici dans quelques instants.
-                      </p>
-                    )}
-                    <form action={startIdentityCheck}>
-                      <Button type="submit" size="sm">
-                        <BadgeCheck className="h-4 w-4" aria-hidden="true" /> Vérifier mon identité maintenant
-                      </Button>
-                    </form>
-                  </div>
+                {isStripeConfigured ? (
+                  <>
+                    <div className="rounded-2xl bg-brand-pale/50 p-4">
+                      <p className="font-semibold">Vérification en 2 minutes</p>
+                      <p className="mt-1 mb-3 text-sm text-ink-soft">Une photo de votre pièce, un selfie, et c&apos;est fait. Le résultat arrive tout seul.</p>
+                      {sp.kyc === "retour" && (
+                        <p role="status" className="mb-3 text-sm font-medium text-ok">
+                          Merci ! Le résultat s&apos;affichera ici dans quelques instants.
+                        </p>
+                      )}
+                      <form action={startIdentityCheck}>
+                        <Button type="submit" size="sm">
+                          <BadgeCheck className="h-4 w-4" aria-hidden="true" /> Vérifier mon identité
+                        </Button>
+                      </form>
+                    </div>
+                    <details className="mt-3 text-sm">
+                      <summary className="cursor-pointer text-muted hover:text-ink">Ça ne marche pas ? Envoyez vos documents</summary>
+                      <div className="mt-3">
+                        <IdentityVerificationForm userId={userId} />
+                      </div>
+                    </details>
+                  </>
+                ) : (
+                  <IdentityVerificationForm userId={userId} />
                 )}
-                <p className="mb-3 text-sm font-semibold">{isStripeConfigured ? "Ou envoyez vos documents à notre équipe" : "Envoyez vos documents à notre équipe"}</p>
-                <IdentityVerificationForm userId={userId} />
               </>
             )}
           </Step>

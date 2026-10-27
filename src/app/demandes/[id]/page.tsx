@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { CalendarDays, CheckCircle2, House, Ruler, Scale, Tag } from "lucide-react";
+import { CalendarDays, House, Ruler, Scale, Tag } from "lucide-react";
 import { closeRequest, proposeTrip } from "@/app/actions/requests";
 import { Avatar } from "@/components/avatar";
+import { TakeoffBanner } from "@/components/journey";
 import { PageShell } from "@/components/page-shell";
 import { photoUrl, shortDate } from "@/components/request-card";
 import { TripTag } from "@/components/trip-tag";
@@ -42,11 +43,7 @@ async function RequestView({ params, searchParams }: { params: Promise<{ id: str
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.2fr_1fr] lg:items-start">
       <div className="space-y-6">
-        {sp.publiee && (
-          <p role="status" className="flex items-center gap-2 rounded-2xl bg-ok-pale px-4 py-3 font-medium text-ok">
-            <CheckCircle2 className="h-5 w-5" aria-hidden="true" /> Demande publiée. Les voyageurs concernés sont prévenus.
-          </p>
-        )}
+        {sp.publiee && <TakeoffBanner title="Demande publiée !" text="Les voyageurs qui partent sur votre ligne sont prévenus." />}
         <section className="overflow-hidden rounded-3xl bg-white ring-1 ring-line">
           <div className="bg-ink p-6 text-white">
             <p className="display text-4xl text-signal">

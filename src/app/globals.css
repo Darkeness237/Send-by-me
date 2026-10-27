@@ -216,7 +216,56 @@ html:not(.no-intro) .reveal {
   to { opacity: 1; transform: none; }
 }
 
+.reveal-delay-4 { --reveal-delay: 0.4s; }
+.reveal-delay-5 { --reveal-delay: 0.5s; }
+
+/* Publication : photo qui s'approche lentement, pointillés de la route, éléments qui apparaissent */
+.ken-burns {
+  animation: ken-burns 16s ease-out both;
+}
+@keyframes ken-burns {
+  from { transform: scale(1.14) translateX(2%); }
+  to { transform: scale(1); }
+}
+.route-dash {
+  stroke-dasharray: 5 9;
+  animation: route-dash 1.4s linear infinite;
+}
+@keyframes route-dash {
+  to { stroke-dashoffset: -28; }
+}
+.float-y {
+  animation: float-y 5s ease-in-out infinite;
+}
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.pop-in {
+  animation: pop-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.35) both;
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+.stamp-in {
+  animation: stamp-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes stamp-in {
+  from { opacity: 0; transform: rotate(-12deg) scale(1.8); }
+  to { opacity: 1; transform: rotate(-8deg) scale(1); }
+}
+.confetti {
+  animation: confetti 1.6s ease-out both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes confetti {
+  from { opacity: 1; transform: translate(0, 0) rotate(0); }
+  to { opacity: 0; transform: translate(var(--x, 0), var(--y, 60px)) rotate(240deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .intro-splash { display: none; }
-  .reveal { animation: none; }
+  .reveal, .ken-burns, .route-dash, .float-y, .pop-in, .stamp-in { animation: none; }
+  .confetti, .motion-only { display: none; }
 }

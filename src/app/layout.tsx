@@ -15,7 +15,7 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Send By Me — Envoyez vos colis avec des voyageurs",
+    default: "Send By Me | Envoyez vos colis avec des voyageurs",
     template: "%s · Send By Me",
   },
   description:

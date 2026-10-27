@@ -62,8 +62,7 @@ async function Welcome({ searchParams }: { searchParams: Promise<Record<string, 
             ) : isStripeConfigured ? (
               <>
                 <p className="mb-4 text-sm text-muted">
-                  Photographiez votre pièce puis faites un selfie : la vérification est automatique (KYC), en deux minutes, sans
-                  intervention de notre équipe.
+                  Une photo de votre pièce, un selfie, et c&apos;est fait en deux minutes.
                 </p>
                 <form action={startIdentityCheck}>
                   <Button type="submit">

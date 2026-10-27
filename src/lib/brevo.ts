@@ -4,10 +4,10 @@ import "server-only";
 // Sans BREVO_API_KEY, rien n'est envoyé et les fonctions renvoient false.
 
 const API = "https://api.brevo.com/v3";
-const key = () => process.env.BREVO_API_KEY;
+const key = () => process.env.BREVO_API_KEY ?? process.env.BREVO_KEY;
 
 export const isBrevoConfigured = () => Boolean(key());
-export const isSmsConfigured = () => Boolean(key() && process.env.BREVO_SMS_SENDER);
+export const isSmsConfigured = () => Boolean(key());
 
 async function call(path: string, body: unknown) {
   if (!key()) return false;

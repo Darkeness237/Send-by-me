@@ -34,6 +34,8 @@ async function signup(b, name, email, next = '/espace') {
   const m = await signup(b, NAME, `v${run}@test.fr`, '/espace/profil');
   const uid = sql(`select id from auth.users where email='v${run}@test.fr'`);
   await m.waitForSelector('text=Faites certifier votre compte');
+  // Avec Stripe configuré, l'envoi manuel des documents est replié sous le bouton de vérification automatique.
+  if (await m.locator('summary:has-text("Envoyez vos documents")').count()) await m.click('summary:has-text("Envoyez vos documents")');
   await m.selectOption('#document_type', 'cni');
   const inputs = m.locator('form:has(#document_type) input[type=file]');
   await inputs.nth(0).setInputFiles(fx('fixtures-recto.png'));

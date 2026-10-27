@@ -180,9 +180,8 @@ export default function Home() {
           <div>
             <h2 className="display text-3xl sm:text-4xl">Le prix est affiché avant de réserver</h2>
             <p className="mt-4 max-w-md text-muted">
-              Chaque voyageur fixe son prix au kilo, et la livraison à domicile s&apos;il la propose. Send By Me ajoute des frais de
-              service dégressifs (de 15 % jusqu&apos;à 5 kg à 8 % au-delà de 20 kg), frais bancaires compris : ils financent la vérification
-              des membres, le paiement sécurisé et le support. Aucun autre frais.
+              Le voyageur fixe son prix au kilo. On ajoute nos frais de service, de 15 % pour un petit colis à 8 % au-delà de 20 kg.
+              Pas de mauvaise surprise au moment de payer.
             </p>
           </div>
           <div className="tag-notch rounded-[var(--radius-tag)] bg-white p-6 shadow-[var(--shadow-tag)] ring-1 ring-line sm:p-8">
@@ -231,7 +230,7 @@ export default function Home() {
             <h2 className="display max-w-2xl text-3xl sm:text-4xl">Confier un colis à un inconnu, oui, mais pas à n&apos;importe qui</h2>
             <div className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
               {[
-                [BadgeCheck, "Identité vérifiée", "Le badge bleu indique qu'une pièce d'identité a été contrôlée par notre équipe."],
+                [BadgeCheck, "Identité vérifiée", "Pièce d'identité et selfie contrôlés avant d'obtenir le badge bleu."],
                 [Lock, "Argent bloqué", "Le voyageur est payé seulement après la remise. En cas de problème, vous êtes remboursé."],
                 [KeyRound, "Code de remise", "Seul votre destinataire connaît le code. Sans lui, la livraison ne peut pas être validée."],
                 [Star, "Avis après chaque envoi", "Expéditeurs et voyageurs se notent mutuellement. Les avis ne peuvent pas être supprimés."],

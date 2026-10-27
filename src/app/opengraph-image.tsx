@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-export const alt = "Send By Me — vos colis voyagent dans la valise de quelqu'un";
+export const alt = "Send By Me, vos colis voyagent dans la valise de quelqu'un";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
