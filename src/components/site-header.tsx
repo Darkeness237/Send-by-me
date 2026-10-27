@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Bell, MessageCircle, Plus } from "lucide-react";
+import { Bell, MessageCircle, PackagePlus, Plus } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { buttonClass } from "@/components/ui/button";
 import { getUnreadCount, getUnreadNotificationCount } from "@/lib/data";
@@ -62,22 +62,21 @@ export function SiteHeader({ tone = "light" }: { tone?: "light" | "dark" }) {
         <Link href="/" aria-label="Send By Me, accueil" className="shrink-0">
           <Logo tone={dark ? "light" : "dark"} />
         </Link>
-        <nav className={`ml-4 hidden items-center gap-1 text-sm font-medium lg:flex ${dark ? "text-white/80" : "text-ink-soft"}`}>
-          <Link href="/recherche" className={`rounded-full px-3 py-2 ${dark ? "hover:bg-white/10" : "hover:bg-ink/5"}`}>
+        <nav className={`ml-2 hidden items-center gap-0.5 text-sm font-medium lg:flex ${dark ? "text-white/80" : "text-ink-soft"}`}>
+          <Link href="/recherche" className={`rounded-full px-3 py-2 whitespace-nowrap ${dark ? "hover:bg-white/10" : "hover:bg-ink/5"}`}>
             Trouver un voyageur
           </Link>
-          <Link href="/demandes" className={`rounded-full px-3 py-2 ${dark ? "hover:bg-white/10" : "hover:bg-ink/5"}`}>
+          <Link href="/demandes" className={`rounded-full px-3 py-2 whitespace-nowrap ${dark ? "hover:bg-white/10" : "hover:bg-ink/5"}`}>
             Demandes d&apos;envoi
-          </Link>
-          <Link href="/comment-ca-marche" className={`rounded-full px-3 py-2 ${dark ? "hover:bg-white/10" : "hover:bg-ink/5"}`}>
-            Comment ça marche
-          </Link>
-          <Link href="/securite" className={`rounded-full px-3 py-2 ${dark ? "hover:bg-white/10" : "hover:bg-ink/5"}`}>
-            Sécurité
           </Link>
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          <span className="hidden sm:block">
+          {/* Les deux actions principales, au même niveau : envoyer (demande) et transporter (trajet). */}
+          <span className="hidden items-center gap-2 md:flex">
+            <Link href="/demandes/nouvelle" className={buttonClass("primary", "sm")}>
+              <PackagePlus className="h-4 w-4" aria-hidden="true" />
+              Envoyer un colis
+            </Link>
             <Link href="/publier" className={buttonClass("signal", "sm")}>
               <Plus className="h-4 w-4" aria-hidden="true" />
               Proposer mes kilos

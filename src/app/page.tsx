@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { BadgeCheck, KeyRound, Lock, MessageCircle, PackageX, Star } from "lucide-react";
+import { ArrowRight, BadgeCheck, KeyRound, Lock, MessageCircle, PackagePlus, PackageX, Plane, Star } from "lucide-react";
 import { DepartureBoard } from "@/components/departure-board";
 import { SearchForm } from "@/components/search-form";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ButtonLink } from "@/components/ui/button";
@@ -60,8 +61,32 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-            <div className="reveal reveal-delay-2 lg:col-span-2 lg:row-start-2">
+            <div className="reveal reveal-delay-2 space-y-4 lg:col-span-2 lg:row-start-2">
               <SearchForm />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Link
+                  href="/demandes/nouvelle"
+                  className="group flex items-center gap-4 rounded-2xl bg-brand p-5 text-white shadow-[0_16px_40px_-24px_rgb(14_48_76/0.6)] transition hover:bg-brand-deep"
+                >
+                  <PackagePlus className="h-10 w-10 shrink-0 rounded-xl bg-white/15 p-2" aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className="block text-lg font-extrabold">Envoyer un colis</span>
+                    <span className="block text-sm text-white/80">Publiez votre demande : les voyageurs qui partent vous la proposent.</span>
+                  </span>
+                  <ArrowRight className="ml-auto h-5 w-5 shrink-0 transition group-hover:translate-x-1" aria-hidden="true" />
+                </Link>
+                <Link
+                  href="/publier"
+                  className="group flex items-center gap-4 rounded-2xl bg-signal p-5 text-ink shadow-[0_16px_40px_-24px_rgb(14_48_76/0.6)] transition hover:brightness-95"
+                >
+                  <Plane className="h-10 w-10 shrink-0 rounded-xl bg-white/30 p-2" aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className="block text-lg font-extrabold">Proposer mes kilos</span>
+                    <span className="block text-sm text-ink/75">Vous voyagez ? Rentabilisez la place libre dans votre valise.</span>
+                  </span>
+                  <ArrowRight className="ml-auto h-5 w-5 shrink-0 transition group-hover:translate-x-1" aria-hidden="true" />
+                </Link>
+              </div>
             </div>
             <div className="reveal reveal-delay-3 relative lg:col-start-2 lg:row-start-1">
               <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] bg-signal sm:aspect-[5/4] lg:aspect-[4/5]">
@@ -280,6 +305,7 @@ export default function Home() {
         </section>
       </main>
       <SiteFooter />
+      <MobileTabBar />
     </>
   );
 }

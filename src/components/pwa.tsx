@@ -58,7 +58,7 @@ export function PwaInstall() {
 
   if (hidden) return null;
   return (
-    <div role="dialog" aria-label="Installer l'application" className="fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl bg-ink p-4 text-white shadow-2xl ring-1 ring-white/10 sm:bottom-5">
+    <div role="dialog" aria-label="Installer l'application" className="fixed inset-x-3 bottom-20 z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl bg-ink p-4 text-white shadow-2xl ring-1 ring-white/10 md:bottom-5">
       <Image src="/icons/icon-192.png" alt="" width={44} height={44} className="rounded-xl" />
       <div className="min-w-0 flex-1 text-sm">
         <p className="font-bold">Installer Send By Me</p>

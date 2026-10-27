@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { isSupabaseConfigured } from "@/lib/env";
@@ -14,6 +15,7 @@ export function PageShell({ children, footer = true }: { children: ReactNode; fo
       <SiteHeader />
       <main className="min-h-[60vh]">{children}</main>
       {footer && <SiteFooter />}
+      <MobileTabBar />
     </>
   );
 }
