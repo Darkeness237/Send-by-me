@@ -4,6 +4,7 @@ import { Bell, BellOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { removePushSubscription, savePushSubscription } from "@/app/actions/notifications";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/i18n/client";
 
 const KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
@@ -17,6 +18,7 @@ type State = "unsupported" | "denied" | "off" | "on" | "busy";
 
 /** Active ou coupe les notifications push sur cet appareil (téléphone, ordinateur, application installée). */
 export function PushToggle() {
+  const t = useT();
   const [state, setState] = useState<State>("busy");
 
   useEffect(() => {
@@ -34,10 +36,10 @@ export function PushToggle() {
     };
   }, []);
 
-  if (!KEY) return <p className="text-sm text-muted">Les notifications sur l&apos;appareil arrivent bientôt. Vous les recevez déjà ici et par e-mail.</p>;
+  if (!KEY) return <p className="text-sm text-muted">{t("Les notifications sur l'appareil arrivent bientôt. Vous les recevez déjà ici et par e-mail.")}</p>;
   if (state === "unsupported")
-    return <p className="text-sm text-muted">Sur iPhone, installez d&apos;abord l&apos;application (Partager › Sur l&apos;écran d&apos;accueil) pour recevoir les notifications.</p>;
-  if (state === "denied") return <p className="text-sm text-muted">Les notifications sont bloquées pour ce site dans les réglages de votre navigateur.</p>;
+    return <p className="text-sm text-muted">{t("Sur iPhone, installez d'abord l'application (Partager › Sur l'écran d'accueil) pour recevoir les notifications.")}</p>;
+  if (state === "denied") return <p className="text-sm text-muted">{t("Les notifications sont bloquées pour ce site dans les réglages de votre navigateur.")}</p>;
 
   return state === "on" ? (
     <Button
@@ -54,7 +56,7 @@ export function PushToggle() {
         setState("off");
       }}
     >
-      <BellOff className="h-4 w-4" aria-hidden="true" /> Couper sur cet appareil
+      <BellOff className="h-4 w-4" aria-hidden="true" />{" "}{t("Couper sur cet appareil")}
     </Button>
   ) : (
     <Button
@@ -73,7 +75,7 @@ export function PushToggle() {
         }
       }}
     >
-      <Bell className="h-4 w-4" aria-hidden="true" /> Activer les notifications sur cet appareil
+      <Bell className="h-4 w-4" aria-hidden="true" />{" "}{t("Activer les notifications sur cet appareil")}
     </Button>
   );
 }

@@ -7,9 +7,12 @@ import { Input, Select } from "@/components/ui/field";
 import { priceGuide, type MarketPrice } from "@/lib/price-guide";
 import { PLACES } from "@/lib/places";
 import { euros, quote } from "@/lib/pricing";
+import { useLocale, useT } from "@/i18n/client";
 
 /** Estimation instantanée : fourchette tout compris (prix conseillé au kilo + frais de service). */
 export function PriceCalculator({ market }: { market: MarketPrice[] }) {
+  const t = useT();
+  const lang = useLocale();
   const [from, setFrom] = useState("Paris");
   const [to, setTo] = useState("Douala");
   const [weight, setWeight] = useState(5);
@@ -22,11 +25,11 @@ export function PriceCalculator({ market }: { market: MarketPrice[] }) {
   return (
     <div className="rounded-3xl bg-white p-6 shadow-[var(--shadow-tag)] ring-1 ring-line sm:p-8">
       <h2 className="flex items-center gap-2 text-xl font-bold">
-        <Calculator className="h-5 w-5 text-brand" aria-hidden="true" /> Combien coûte mon envoi ?
+        <Calculator className="h-5 w-5 text-brand" aria-hidden="true" /> {t("Combien coûte mon envoi ?")}
       </h2>
       <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_120px]">
         <label className="text-sm font-semibold">
-          Départ
+          {t("Départ")}
           <Select value={from} onChange={(e) => setFrom(e.target.value)} className="mt-1">
             {PLACES.map((p) => (
               <option key={p.slug} value={p.city}>
@@ -36,7 +39,7 @@ export function PriceCalculator({ market }: { market: MarketPrice[] }) {
           </Select>
         </label>
         <label className="text-sm font-semibold">
-          Arrivée
+          {t("Arrivée")}
           <Select value={to} onChange={(e) => setTo(e.target.value)} className="mt-1">
             {PLACES.map((p) => (
               <option key={p.slug} value={p.city}>
@@ -46,22 +49,22 @@ export function PriceCalculator({ market }: { market: MarketPrice[] }) {
           </Select>
         </label>
         <label className="text-sm font-semibold">
-          Poids (kg)
+          {t("Poids (kg)")}
           <Input type="number" min={0.5} max={30} step={0.5} value={weight} onChange={(e) => setWeight(Number(e.target.value))} className="mt-1" />
         </label>
       </div>
       <div className="mt-6 flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-paper p-5" aria-live="polite">
         <div>
-          <p className="text-sm text-muted">Estimation tout compris pour {kg.toLocaleString("fr-FR")} kg</p>
+          <p className="text-sm text-muted">{t("Estimation tout compris pour {kg} kg", { kg: kg.toLocaleString(lang === "en" ? "en-GB" : "fr-FR") })}</p>
           <p className="wide tabular mt-1 text-3xl font-extrabold text-ink">
-            {euros(low.totalCents)} à {euros(high.totalCents)}
+            {t("{low} à {high}", { low: euros(low.totalCents), high: euros(high.totalCents) })}
           </p>
           <p className="mt-1 text-xs text-muted">
-            Prix des voyageurs {guide.source === "market" ? "observé sur cette ligne" : "conseillé"} ({euros(guide.lowCents)} à {euros(guide.highCents)} le kilo), frais de service inclus.
+            {t(guide.source === "market" ? "Prix des voyageurs observé sur cette ligne ({low} à {high} le kilo), frais de service inclus." : "Prix des voyageurs conseillé ({low} à {high} le kilo), frais de service inclus.", { low: euros(guide.lowCents), high: euros(guide.highCents) })}
           </p>
         </div>
         <ButtonLink href={href} size="lg">
-          Voir les trajets <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          {t("Voir les trajets")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </ButtonLink>
       </div>
     </div>

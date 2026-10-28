@@ -14,6 +14,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/types";
 import type { FormState } from "./auth";
+import { getActionT } from "@/i18n/server";
 
 const uuid = z.uuid();
 const categoryIds = CATEGORIES.map((c) => c.id) as [string, ...string[]];
@@ -230,7 +231,8 @@ export async function confirmDelivery(_: FormState, formData: FormData): Promise
   if (!ok) {
     await admin.from("booking_secrets").update({ attempts: secret.attempts + 1 }).eq("booking_id", bookingId);
     const left = MAX_ATTEMPTS - secret.attempts - 1;
-    return { error: `Code incorrect. ${left} essai${left > 1 ? "s" : ""} restant${left > 1 ? "s" : ""}.` };
+    const t = await getActionT();
+    return { error: left > 1 ? t("Code incorrect. {n} essais restants.", { n: left }) : t("Code incorrect. {n} essai restant.", { n: left }) };
   }
 
   const now = new Date().toISOString();

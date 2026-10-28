@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { submitKeepingValues } from "@/components/ui/keep-form";
 import { COMMISSION_TIERS, euros, percent, quote, SECURITY_FEE_CENTS } from "@/lib/pricing";
 import { CATEGORIES, groupedCategories } from "@/lib/types";
+import { useT } from "@/i18n/client";
 
 type Props = {
   tripId: string;
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories, homeDeliveryCents, creditCents = 0 }: Props) {
+  const t = useT();
   const [state, action, pending] = useActionState(requestBooking, null);
   const [weight, setWeight] = useState(Math.min(5, maxKg));
   const [delivery, setDelivery] = useState(false);
@@ -28,7 +30,7 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
   return (
     <form action={action} onSubmit={submitKeepingValues(action)} className="space-y-5">
       <input type="hidden" name="trip_id" value={tripId} />
-      <Field label="Poids du colis" htmlFor="weight_kg" hint={`Jusqu'à ${maxKg} kg sur ce trajet`}>
+      <Field label={t("Poids du colis")} htmlFor="weight_kg" hint={t("Jusqu'à {maxKg} kg sur ce trajet", { maxKg })}>
         <div className="flex items-center gap-3">
           <Input
             id="weight_kg"
@@ -42,50 +44,49 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
             onChange={(e) => setWeight(Number(e.target.value))}
             className="w-28"
           />
-          <span className="text-muted">kg</span>
+          <span className="text-muted">{t("kg")}</span>
         </div>
       </Field>
-      <Field label="Type de colis" htmlFor="category">
+      <Field label={t("Type de colis")} htmlFor="category">
         <Select id="category" name="category" required defaultValue="">
           <option value="" disabled>
-            Choisir
+            {t("Choisir")}
           </option>
           {groupedCategories(categories).map((g) => (
-            <optgroup key={g.group} label={g.group}>
+            <optgroup key={g.group} label={t(g.group)}>
               {g.items.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.label}
+                  {t(c.label)}
                 </option>
               ))}
             </optgroup>
           ))}
         </Select>
       </Field>
-      <Field label="Contenu" htmlFor="description" hint="Soyez précis : le voyageur vérifiera le colis avant de le fermer.">
-        <Textarea id="description" name="description" required minLength={3} maxLength={500} placeholder="2 robes, 1 paire de chaussures, des livres scolaires" />
+      <Field label={t("Contenu")} htmlFor="description" hint={t("Soyez précis : le voyageur vérifiera le colis avant de le fermer.")}>
+        <Textarea id="description" name="description" required minLength={3} maxLength={500} placeholder={t("2 robes, 1 paire de chaussures, des livres scolaires")} />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Destinataire" htmlFor="recipient_name">
-          <Input id="recipient_name" name="recipient_name" required maxLength={80} autoComplete="off" placeholder="Prénom Nom" />
+        <Field label={t("Destinataire")} htmlFor="recipient_name">
+          <Input id="recipient_name" name="recipient_name" required maxLength={80} autoComplete="off" placeholder={t("Prénom Nom")} />
         </Field>
-        <Field label="Téléphone du destinataire" htmlFor="recipient_phone">
+        <Field label={t("Téléphone du destinataire")} htmlFor="recipient_phone">
           <Input id="recipient_phone" name="recipient_phone" type="tel" required placeholder="+237 6 99 00 00 00" autoComplete="off" />
         </Field>
         <div className="sm:col-span-2">
-          <Field label="E-mail du destinataire" htmlFor="recipient_email" hint="Il y recevra son code de réception après votre paiement.">
-            <Input id="recipient_email" name="recipient_email" type="email" required maxLength={120} placeholder="destinataire@exemple.com" autoComplete="off" />
+          <Field label={t("E-mail du destinataire")} htmlFor="recipient_email" hint={t("Il y recevra son code de réception après votre paiement.")}>
+            <Input id="recipient_email" name="recipient_email" type="email" required maxLength={120} placeholder={t("destinataire@exemple.com")} autoComplete="off" />
           </Field>
         </div>
       </div>
 
       <details className="rounded-2xl border border-line p-4 open:border-brand open:bg-brand-pale/30">
-        <summary className="cursor-pointer font-semibold">Proposer un autre prix au voyageur</summary>
+        <summary className="cursor-pointer font-semibold">{t("Proposer un autre prix au voyageur")}</summary>
         <p className="mt-2 text-sm text-muted">
-          Prix annoncé : {euros(pricePerKgCents)} le kilo. Le voyageur peut accepter votre proposition, la refuser ou vous en faire une autre. Le
-          prix final s&apos;applique avant le paiement.
+          {t("Prix annoncé : {euros} le kilo. Le voyageur peut accepter votre proposition, la refuser ou vous en faire une autre. Le prix final s'applique avant le paiement.", { euros: euros(pricePerKgCents) })}
         </p>
         <div className="mt-3">
-          <Field label="Votre proposition (€ par kg)" htmlFor="offer_price">
+          <Field label={t("Votre proposition (€ par kg)")} htmlFor="offer_price">
             <Input id="offer_price" name="offer_price" type="number" min={1} max={100} step={0.5} placeholder={String(Math.max(1, Math.round(pricePerKgCents * 0.85) / 100))} />
           </Field>
         </div>
@@ -102,16 +103,15 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
               className="mt-1 h-4 w-4 accent-brand"
             />
             <span>
-              <span className="block font-semibold">Livraison à domicile · +{euros(homeDeliveryCents)}</span>
+              <span className="block font-semibold">{t("Livraison à domicile · +{euros}", { euros: euros(homeDeliveryCents) })}</span>
               <span className="block text-sm text-muted">
-                Le destinataire ne peut pas aller au point de rendez-vous ? Notre partenaire de livraison récupère le colis auprès
-                du voyageur à l&apos;arrivée et l&apos;apporte chez lui.
+                {t("Le destinataire ne peut pas aller au point de rendez-vous ? Notre partenaire de livraison récupère le colis auprès du voyageur à l'arrivée et l'apporte chez lui.")}
               </span>
             </span>
           </label>
           {delivery && (
-            <Field label="Adresse de livraison" htmlFor="delivery_address" hint="Transmise uniquement à notre partenaire de livraison, jamais au voyageur.">
-              <Textarea id="delivery_address" name="delivery_address" required minLength={5} maxLength={300} rows={2} placeholder="Quartier, rue, point de repère" />
+            <Field label={t("Adresse de livraison")} htmlFor="delivery_address" hint={t("Transmise uniquement à notre partenaire de livraison, jamais au voyageur.")}>
+              <Textarea id="delivery_address" name="delivery_address" required minLength={5} maxLength={300} rows={2} placeholder={t("Quartier, rue, point de repère")} />
             </Field>
           )}
         </div>
@@ -120,56 +120,52 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
       <label className="flex items-start gap-3 text-sm text-ink-soft">
         <input type="checkbox" name="declaration" required className="mt-0.5 h-4 w-4 accent-brand" />
         <span>
-          Je certifie que mon colis ne contient aucun{" "}
+          {t("Je certifie que mon colis ne contient aucun")}{" "}
           <a href="/objets-interdits" target="_blank" className="font-semibold text-brand underline-offset-2 hover:underline">
-            objet interdit
+            {t("objet interdit")}
           </a>{" "}
-          et que je le montrerai ouvert au voyageur.
+          {t("et que je le montrerai ouvert au voyageur.")}
         </span>
       </label>
 
       <dl className="tabular space-y-2 rounded-2xl bg-paper p-4 text-[15px]">
         <div className="flex justify-between">
           <dt>
-            {weight || 0} kg × {euros(pricePerKgCents)}
+            {t("{v} kg × {euros}", { v: weight || 0, euros: euros(pricePerKgCents) })}
           </dt>
           <dd>{euros(q.baseCents)}</dd>
         </div>
         {q.deliveryCents > 0 && (
           <div className="flex justify-between">
-            <dt>Livraison à domicile</dt>
+            <dt>{t("Livraison à domicile")}</dt>
             <dd>{euros(q.deliveryCents)}</dd>
           </div>
         )}
         <div className="flex justify-between text-muted">
-          <dt>Frais de service</dt>
+          <dt>{t("Frais de service")}</dt>
           <dd>{euros(q.feeCents)}</dd>
         </div>
         {discount > 0 && (
           <div className="flex justify-between font-semibold text-ok">
-            <dt>Crédit parrainage</dt>
+            <dt>{t("Crédit parrainage")}</dt>
             <dd>−{euros(discount)}</dd>
           </div>
         )}
         <div className="flex justify-between border-t border-line pt-2 text-lg font-bold">
-          <dt>Total</dt>
+          <dt>{t("Total")}</dt>
           <dd>{euros(q.totalCents - discount)}</dd>
         </div>
       </dl>
 
       <details className="text-sm text-muted">
-        <summary className="cursor-pointer font-semibold text-ink-soft">Comment sont calculés les frais ?</summary>
+        <summary className="cursor-pointer font-semibold text-ink-soft">{t("Comment sont calculés les frais ?")}</summary>
         <p className="mt-2">
-          Le voyageur reçoit {euros(q.payoutCents)}. Les frais de service comprennent notre commission (
-          {percent(q.commissionRate)} pour ce poids), un forfait de {euros(SECURITY_FEE_CENTS)} par envoi pour la sécurité et le suivi, et les
-          frais bancaires du paiement sécurisé. Le forfait couvre la vérification des profils, le code de réception envoyé à votre
-          destinataire, le suivi en temps réel, les photos de traçabilité et l&apos;assistance en cas de litige. Plus le colis est lourd, plus le
-          taux de commission baisse :
+          {t("Le voyageur reçoit {euros}. Les frais de service comprennent notre commission ({percent} pour ce poids), un forfait de {euros2} par envoi pour la sécurité et le suivi, et les frais bancaires du paiement sécurisé. Le forfait couvre la vérification des profils, le code de réception envoyé à votre destinataire, le suivi en temps réel, les photos de traçabilité et l'assistance en cas de litige. Plus le colis est lourd, plus le taux de commission baisse :", { euros: euros(q.payoutCents), percent: percent(q.commissionRate), euros2: euros(SECURITY_FEE_CENTS) })}
         </p>
         <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 tabular">
-          {COMMISSION_TIERS.map((t, i) => (
-            <li key={t.upToKg} className={t.rate === q.commissionRate ? "font-semibold text-ink" : ""}>
-              {t.upToKg === Infinity ? `Plus de ${COMMISSION_TIERS[i - 1].upToKg} kg` : `Jusqu'à ${t.upToKg} kg`} : {percent(t.rate)}
+          {COMMISSION_TIERS.map((tier, i) => (
+            <li key={tier.upToKg} className={tier.rate === q.commissionRate ? "font-semibold text-ink" : ""}>
+              {tier.upToKg === Infinity ? t("Plus de {n} kg", { n: COMMISSION_TIERS[i - 1].upToKg }) : t("Jusqu'à {n} kg", { n: tier.upToKg })} : {percent(tier.rate)}
             </li>
           ))}
         </ul>
@@ -177,9 +173,9 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
 
       <FormMessage state={state} />
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
-        {pending ? "Envoi…" : "Envoyer ma demande"}
+        {pending ? t("Envoi…") : t("Envoyer ma demande")}
       </Button>
-      <p className="text-center text-sm text-muted">Vous ne payez qu&apos;après l&apos;accord du voyageur.</p>
+      <p className="text-center text-sm text-muted">{t("Vous ne payez qu'après l'accord du voyageur.")}</p>
     </form>
   );
 }

@@ -6,6 +6,8 @@ import { addBookingPhoto } from "@/app/actions/photos";
 import { MAX_PHOTOS_PER_STEP, PHOTO_STEPS, type PhotoKind } from "@/lib/parcel-photos";
 import { createClient } from "@/lib/supabase/client";
 import type { BookingStatus } from "@/lib/types";
+import { useLocale, useT } from "@/i18n/client";
+import { intlLocale } from "@/i18n/config";
 
 export type BookingPhoto = { id: string; kind: string; url: string | null; at: string };
 
@@ -31,6 +33,7 @@ async function shrink(file: File): Promise<Blob> {
 const noop = () => () => {};
 
 function StepUpload({ bookingId, kind }: { bookingId: string; kind: PhotoKind }) {
+  const t = useT();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,23 +46,23 @@ function StepUpload({ bookingId, kind }: { bookingId: string; kind: PhotoKind })
     setError(null);
     for (const file of Array.from(files)) {
       if (!EXT[file.type]) {
-        setError("Format accepté : photo JPEG, PNG, WebP ou HEIC.");
+        setError(t("Format accepté : photo JPEG, PNG, WebP ou HEIC."));
         continue;
       }
       const blob = await shrink(file);
       const type = blob.type || file.type;
       if (blob.size > 8 * 1024 * 1024) {
-        setError("Photo trop lourde (8 Mo maximum).");
+        setError(t("Photo trop lourde (8 Mo maximum)."));
         continue;
       }
       const path = `${bookingId}/${kind}-${crypto.randomUUID()}.${EXT[type] ?? "jpg"}`;
       const { error: upErr } = await createClient().storage.from("parcel-photos").upload(path, blob, { contentType: type });
       if (upErr) {
-        setError("Envoi impossible. Vérifiez votre connexion et réessayez.");
+        setError(t("Envoi impossible. Vérifiez votre connexion et réessayez."));
         continue;
       }
       const res = await addBookingPhoto(bookingId, kind, path);
-      if (res.error) setError(res.error);
+      if (res.error) setError(t(res.error));
     }
     setBusy(false);
     if (input.current) input.current.value = "";
@@ -69,7 +72,7 @@ function StepUpload({ bookingId, kind }: { bookingId: string; kind: PhotoKind })
     <div>
       <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-deep has-[:disabled]:opacity-60">
         {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Camera className="h-4 w-4" aria-hidden="true" />}
-        {busy ? "Envoi…" : "Ajouter une photo"}
+        {busy ? t("Envoi…") : t("Ajouter une photo")}
         <input
           ref={input}
           type="file"
@@ -109,15 +112,17 @@ export function ParcelPhotos({
   senderName: string;
   travelerName: string;
 }) {
+  const t = useT();
+  const lang = useLocale();
   const open = ["accepted", "paid", "picked_up", "delivered"].includes(status);
   if (!open && !photos.length) return null;
   return (
     <section id="photos" className="scroll-mt-20 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8" aria-labelledby="photos-title">
       <h2 id="photos-title" className="text-lg font-bold">
-        Photos du colis
+        {t("Photos du colis")}
       </h2>
       <p className="mt-1 text-sm text-muted">
-        Le même colis, photographié au départ, à la prise en charge et à l&apos;arrivée. Les photos restent privées entre vous deux et l&apos;équipe Send By Me.
+        {t("Le même colis, photographié au départ, à la prise en charge et à l'arrivée. Les photos restent privées entre vous deux et l'équipe Send By Me.")}
       </p>
       <ol className="mt-5 space-y-5">
         {PHOTO_STEPS.map((step, i) => {
@@ -131,13 +136,13 @@ export function ParcelPhotos({
                 <div>
                   <p className="flex items-center gap-2 font-semibold">
                     {list.length ? (
-                      <CheckCircle2 className="h-4 w-4 text-ok" aria-label="Fait" />
+                      <CheckCircle2 className="h-4 w-4 text-ok" aria-label={t("Fait")} />
                     ) : (
                       <span className="grid h-5 w-5 place-items-center rounded-full bg-white text-xs ring-1 ring-line">{i + 1}</span>
                     )}
-                    {step.label}
+                    {t(step.label)}
                   </p>
-                  <p className="mt-0.5 text-sm text-muted">{mine ? step.hint : `Par ${who}`}</p>
+                  <p className="mt-0.5 text-sm text-muted">{mine ? t(step.hint) : t("Par {who}", { who })}</p>
                 </div>
                 {canAdd && <StepUpload bookingId={bookingId} kind={step.kind} />}
               </div>
@@ -148,7 +153,7 @@ export function ParcelPhotos({
                       <li key={p.id}>
                         <a href={p.url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl ring-1 ring-line hover:ring-brand">
                           {/* eslint-disable-next-line @next/next/no-img-element -- URL signée temporaire du stockage privé */}
-                          <img src={p.url} alt={`${step.label}, photo du ${new Date(p.at).toLocaleString("fr-FR")}`} className="h-24 w-24 object-cover" />
+                          <img src={p.url} alt={t("{label}, photo du {date}", { label: t(step.label), date: new Date(p.at).toLocaleString(intlLocale(lang)) })} className="h-24 w-24 object-cover" />
                         </a>
                       </li>
                     ) : null,

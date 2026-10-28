@@ -89,6 +89,7 @@ async function signup(b, first, last, email, path) {
   const aid = sql(`select id from auth.users where email='ref${run}@test.fr'`);
   log('parrainage →', sql(`select status from referrals where referee_id='${fid}'`), '| crédit parrain →', sql(`select coalesce(sum(amount_cents),0) from credit_entries where user_id='${aid}'`), '(500 attendu, une seule fois)');
   await a.goto(BASE + '/espace/parrainage');
+  await a.waitForSelector('text=Vos filleuls').catch(() => {});
   log('page parrainage :', (await a.textContent('main')).includes('gagnés') ? 'filleul affiché comme récompensé' : 'KO');
   await a.screenshot({ path: require('path').join(__dirname, 'screenshots', 'parrainage.png'), fullPage: true });
 

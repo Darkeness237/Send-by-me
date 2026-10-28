@@ -43,19 +43,4 @@ export function Select(props: ComponentProps<"select">) {
   return <select {...props} className={`${inputClass} appearance-none pr-9 ${props.className ?? ""}`} />;
 }
 
-export function FormMessage({ state }: { state?: { error?: string; ok?: string } | null }) {
-  if (!state) return null;
-  if (state.error)
-    return (
-      <p role="alert" className="rounded-xl bg-danger-pale px-4 py-3 text-sm text-danger">
-        {state.error}
-      </p>
-    );
-  if (state.ok)
-    return (
-      <p role="status" className="rounded-xl bg-ok-pale px-4 py-3 text-sm text-ok">
-        {state.ok}
-      </p>
-    );
-  return null;
-}
+export { FormMessage } from "./form-message";

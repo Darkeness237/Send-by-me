@@ -1,4 +1,5 @@
 import { STATUS_LABEL, type BookingStatus } from "@/lib/types";
+import { getT } from "@/i18n/server";
 
 const tone: Record<BookingStatus, string> = {
   pending: "bg-warn-pale text-warn",
@@ -11,6 +12,7 @@ const tone: Record<BookingStatus, string> = {
   refunded: "bg-paper text-muted",
 };
 
-export function StatusBadge({ status, label }: { status: BookingStatus; label?: string }) {
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${tone[status]}`}>{label ?? STATUS_LABEL[status]}</span>;
+export async function StatusBadge({ status, label }: { status: BookingStatus; label?: string }) {
+  const t = await getT();
+  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${tone[status]}`}>{t(label ?? STATUS_LABEL[status])}</span>;
 }

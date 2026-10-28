@@ -8,6 +8,7 @@ import { isSmsConfigured, sendSms } from "@/lib/brevo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import type { FormState } from "./auth";
+import { getActionT } from "@/i18n/server";
 
 const CODE_TTL_MS = 10 * 60_000;
 const MAX_SENDS = 5;
@@ -47,7 +48,7 @@ export async function sendPhoneCode(_: FormState, formData: FormData): Promise<F
   });
   const sent = await sendSms(phone, `Send By Me : votre code de vérification est ${code}. Il expire dans 10 minutes.`);
   if (!sent) return { error: "Le SMS n'a pas pu être envoyé. Vérifiez le numéro et réessayez." };
-  return { ok: `Code envoyé au ${phone}.` };
+  return { ok: (await getActionT())("Code envoyé au {phone}.", { phone }) };
 }
 
 export async function verifyPhoneCode(_: FormState, formData: FormData): Promise<FormState> {

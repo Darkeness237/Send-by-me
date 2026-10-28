@@ -16,6 +16,7 @@ import { submitKeepingValues } from "@/components/ui/keep-form";
 import { useCitySearch } from "@/components/use-city-search";
 import { createClient } from "@/lib/supabase/client";
 import { CATEGORIES, groupedCategories } from "@/lib/types";
+import { useT } from "@/i18n/client";
 
 const TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -31,6 +32,7 @@ export function RequestForm({
   userId: string;
   defaults?: { from?: string; to?: string };
 }) {
+  const t = useT();
   const [state, action, pending] = useActionState(createRequest, null);
   const [fromCity, setFromCity] = useState(defaults?.from ?? "");
   const [toCity, setToCity] = useState(defaults?.to ?? "");
@@ -51,14 +53,14 @@ export function RequestForm({
     for (const file of Array.from(files).slice(0, 6 - photos.length)) {
       const ext = TYPES[file.type];
       if (!ext || file.size > 5 * 1024 * 1024) {
-        setPhotoError("Photos JPG, PNG ou WEBP de 5 Mo maximum.");
+        setPhotoError(t("Photos JPG, PNG ou WEBP de 5 Mo maximum."));
         continue;
       }
       const path = `${userId}/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage
         .from(BUCKET)
         .upload(path, file, { contentType: file.type });
-      if (error) setPhotoError("Une photo n'a pas pu être envoyée.");
+      if (error) setPhotoError(t("Une photo n'a pas pu être envoyée."));
       else
         setPhotos((p) => [
           ...p,
@@ -100,11 +102,11 @@ export function RequestForm({
         action={action}
         onSubmit={submitKeepingValues(action)}
         onChange={(e) => {
-          const t = e.target as unknown as HTMLInputElement;
-          if (!t.name || t.type === "file") return;
+          const el = e.target as unknown as HTMLInputElement;
+          if (!el.name || el.type === "file") return;
           const value =
-            t.type === "checkbox" ? (t.checked ? "on" : "") : t.value;
-          setValues((v) => ({ ...v, [t.name]: value }));
+            el.type === "checkbox" ? (el.checked ? "on" : "") : el.value;
+          setValues((v) => ({ ...v, [el.name]: value }));
         }}
         className="space-y-6"
       >
@@ -126,37 +128,37 @@ export function RequestForm({
         ))}
 
         <fieldset className={section}>
-          <legend className="sr-only">Trajet souhaité</legend>
+          <legend className="sr-only">{t("Trajet souhaité")}</legend>
           <h2 className="flex items-center gap-3 text-lg font-bold">
             <Step n={1} />
-            Où et quand ?
+            {t("Où et quand ?")}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Ville de départ" htmlFor="from_city">
+            <Field label={t("Ville de départ")} htmlFor="from_city">
               <Input
                 id="from_city"
                 name="from_city"
                 list="req-from"
                 required
                 autoComplete="off"
-                placeholder="Paris, France"
+                placeholder={t("Paris, France")}
                 value={fromCity}
                 onChange={(e) => setFromCity(e.target.value)}
               />
             </Field>
-            <Field label="Ville d'arrivée" htmlFor="to_city">
+            <Field label={t("Ville d'arrivée")} htmlFor="to_city">
               <Input
                 id="to_city"
                 name="to_city"
                 list="req-to"
                 required
                 autoComplete="off"
-                placeholder="Douala, Cameroun"
+                placeholder={t("Douala, Cameroun")}
                 value={toCity}
                 onChange={(e) => setToCity(e.target.value)}
               />
             </Field>
-            <Field label="À partir du" htmlFor="earliest_date">
+            <Field label={t("À partir du")} htmlFor="earliest_date">
               <Input
                 id="earliest_date"
                 name="earliest_date"
@@ -166,7 +168,7 @@ export function RequestForm({
                 defaultValue={today}
               />
             </Field>
-            <Field label="Au plus tard le" htmlFor="latest_date">
+            <Field label={t("Au plus tard le")} htmlFor="latest_date">
               <Input
                 id="latest_date"
                 name="latest_date"
@@ -179,29 +181,29 @@ export function RequestForm({
         </fieldset>
 
         <fieldset className={`${section} reveal-delay-1`}>
-          <legend className="sr-only">Votre colis</legend>
+          <legend className="sr-only">{t("Votre colis")}</legend>
           <h2 className="flex items-center gap-3 text-lg font-bold">
             <Step n={2} />
-            Votre colis
+            {t("Votre colis")}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Type de colis" htmlFor="category">
+            <Field label={t("Type de colis")} htmlFor="category">
               <Select id="category" name="category" required defaultValue="">
                 <option value="" disabled>
-                  Choisir
+                  {t("Choisir")}
                 </option>
                 {groupedCategories(CATEGORIES).map((g) => (
-                  <optgroup key={g.group} label={g.group}>
+                  <optgroup key={g.group} label={t(g.group)}>
                     {g.items.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.label}
+                        {t(c.label)}
                       </option>
                     ))}
                   </optgroup>
                 ))}
               </Select>
             </Field>
-            <Field label="Poids (kg)" htmlFor="weight_kg">
+            <Field label={t("Poids (kg)")} htmlFor="weight_kg">
               <Input
                 id="weight_kg"
                 name="weight_kg"
@@ -216,7 +218,7 @@ export function RequestForm({
           </div>
           <div>
             <p className="text-sm font-semibold">
-              Dimensions (cm) · facultatif
+              {t("Dimensions (cm) · facultatif")}
             </p>
             <div className="mt-2 grid grid-cols-3 gap-2">
               {[
@@ -231,15 +233,15 @@ export function RequestForm({
                   min={1}
                   max={300}
                   placeholder={l}
-                  aria-label={`${l} en centimètres`}
+                  aria-label={t("{l} en centimètres", { l })}
                 />
               ))}
             </div>
           </div>
           <Field
-            label="Contenu"
+            label={t("Contenu")}
             htmlFor="description"
-            hint="Soyez précis : le voyageur vérifiera le colis avant de le prendre."
+            hint={t("Soyez précis : le voyageur vérifiera le colis avant de le prendre.")}
           >
             <Textarea
               id="description"
@@ -247,14 +249,14 @@ export function RequestForm({
               required
               minLength={3}
               maxLength={1000}
-              placeholder="Un carton de vêtements pour enfants et deux paires de chaussures, bien emballés"
+              placeholder={t("Un carton de vêtements pour enfants et deux paires de chaussures, bien emballés")}
             />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field
-              label="Valeur déclarée (€)"
+              label={t("Valeur déclarée (€)")}
               htmlFor="declared_value"
-              hint="Facultatif"
+              hint={t("Facultatif")}
             >
               <Input
                 id="declared_value"
@@ -266,9 +268,9 @@ export function RequestForm({
               />
             </Field>
             <Field
-              label="Budget maximum (€ par kg)"
+              label={t("Budget maximum (€ par kg)")}
               htmlFor="max_price_per_kg"
-              hint="Facultatif. On ne vous propose que les trajets moins chers."
+              hint={t("Facultatif. On ne vous propose que les trajets moins chers.")}
             >
               <Input
                 id="max_price_per_kg"
@@ -288,21 +290,20 @@ export function RequestForm({
             />
             <span>
               <span className="block font-semibold">
-                Livraison à domicile souhaitée
+                {t("Livraison à domicile souhaitée")}
               </span>
               <span className="block text-sm text-muted">
-                Un livreur apporte le colis chez votre destinataire. Vous
-                confirmez au moment de réserver.
+                {t("Un livreur apporte le colis chez votre destinataire. Vous confirmez au moment de réserver.")}
               </span>
             </span>
           </label>
 
           <div>
             <p className="text-sm font-semibold">
-              Photos du colis · jusqu&apos;à 6
+              {t("Photos du colis · jusqu'à 6")}
             </p>
             <p className="text-sm text-muted">
-              Les voyageurs répondent plus vite quand ils voient le colis.
+              {t("Les voyageurs répondent plus vite quand ils voient le colis.")}
             </p>
             <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
               {photos.map((p) => (
@@ -313,7 +314,7 @@ export function RequestForm({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={p.url}
-                    alt="Photo du colis"
+                    alt={t("Photo du colis")}
                     className="h-full w-full object-cover"
                   />
                   <button
@@ -322,7 +323,7 @@ export function RequestForm({
                       setPhotos((all) => all.filter((x) => x.path !== p.path))
                     }
                     className="absolute top-1 right-1 rounded-full bg-ink/70 p-1 text-white"
-                    aria-label="Retirer la photo"
+                    aria-label={t("Retirer la photo")}
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -341,7 +342,7 @@ export function RequestForm({
                       aria-hidden="true"
                     />
                   )}
-                  Ajouter
+                  {t("Ajouter")}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
@@ -369,16 +370,16 @@ export function RequestForm({
           disabled={pending || uploading}
         >
           <PackageCheck className="h-5 w-5" aria-hidden="true" />
-          {pending ? "Publication…" : "Publier ma demande"}
+          {pending ? t("Publication…") : t("Publier ma demande")}
         </Button>
       </form>
       <aside
         className="reveal reveal-delay-2 hidden lg:sticky lg:top-6 lg:block"
-        aria-label="Aperçu de votre demande"
+        aria-label={t("Aperçu de votre demande")}
       >
         {preview}
         <p className="mt-4 text-center text-sm text-muted">
-          Voici ce que verront les voyageurs.
+          {t("Voici ce que verront les voyageurs.")}
         </p>
       </aside>
     </div>

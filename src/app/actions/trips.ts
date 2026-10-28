@@ -17,6 +17,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/types";
 import type { FormState } from "./auth";
+import { getActionLocale, getActionT } from "@/i18n/server";
+import { translateNote } from "@/i18n/patterns";
 
 const categoryIds = CATEGORIES.map((c) => c.id) as [string, ...string[]];
 
@@ -111,7 +113,7 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
       hasStopover: d.has_stopover === "on",
       departureUtc: departure,
     });
-    if (check.inputError) return { error: `${check.inputError}. Vérifiez votre billet.` };
+    if (check.inputError) return { error: (await getActionT())("{e}. Vérifiez votre billet.", { e: translateNote(check.inputError, await getActionLocale()) }) };
     transport = {
       carrier: d.carrier,
       transport_ref: flightNumber,
@@ -129,7 +131,7 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
   // Plafond de prix de la ligne : le total payé par l'expéditeur doit rester raisonnable.
   const guide = priceGuide(from.city, to.city, d.mode, await getMarketPrices(), { from: from.country, to: to.country });
   if (Math.round(d.price_per_kg * 100) > guide.maxCents) {
-    return { error: `Prix trop élevé pour cette ligne : ${euros(guide.maxCents)} le kilo maximum (prix conseillé ${euros(guide.lowCents)} à ${euros(guide.highCents)}).` };
+    return { error: (await getActionT())("Prix trop élevé pour cette ligne : {max} le kilo maximum (prix conseillé {low} à {high}).", { max: euros(guide.maxCents), low: euros(guide.lowCents), high: euros(guide.highCents) }) };
   }
 
   const supabase = await createClient();

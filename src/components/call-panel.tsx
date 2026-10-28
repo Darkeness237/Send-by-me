@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { getIceServers } from "@/app/actions/calls";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/i18n/client";
 
 type Kind = "audio" | "video";
 type Phase = "idle" | "calling" | "incoming" | "connecting" | "live";
@@ -27,6 +28,7 @@ function duration(sec: number) {
 
 /** Appels audio et vidéo entre l'expéditeur et le voyageur, de navigateur à navigateur (WebRTC). */
 export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; myId: string; otherName: string }) {
+  const t = useT();
   const [phase, setPhase] = useState<Phase>("idle");
   const [kind, setKind] = useState<Kind>("audio");
   const [notice, setNotice] = useState<string | null>(null);
@@ -87,11 +89,13 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
       setNotice(reason);
       // L'appelant garde une trace dans la conversation (RLS : seuls les participants écrivent).
       if (log && wasCaller) {
-        const body = wasLive ? `Appel ${kind === "video" ? "vidéo" : "audio"} terminé · ${duration(secs)}` : `Appel ${kind === "video" ? "vidéo" : "audio"} sans réponse`;
+        const body = wasLive
+          ? kind === "video" ? t("Appel vidéo terminé · {d}", { d: duration(secs) }) : t("Appel audio terminé · {d}", { d: duration(secs) })
+          : kind === "video" ? t("Appel vidéo sans réponse") : t("Appel audio sans réponse");
         await supabase.current.from("messages").insert({ booking_id: bookingId, author_id: myId, body });
       }
     },
-    [bookingId, kind, myId],
+    [bookingId, kind, myId, t],
   );
 
   const getMedia = async (k: Kind) => {
@@ -101,8 +105,10 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
       const name = (e as DOMException)?.name;
       setNotice(
         name === "NotAllowedError"
-          ? "Autorisez l'accès au micro" + (k === "video" ? " et à la caméra" : "") + " dans votre navigateur pour appeler."
-          : "Micro ou caméra introuvable sur cet appareil.",
+          ? k === "video"
+            ? t("Autorisez l'accès au micro et à la caméra dans votre navigateur pour appeler.")
+            : t("Autorisez l'accès au micro dans votre navigateur pour appeler.")
+          : t("Micro ou caméra introuvable sur cet appareil."),
       );
       return null;
     }
@@ -127,7 +133,7 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
       }
       if (peer.connectionState === "failed") {
         if (callId.current) send({ type: "hangup", callId: callId.current });
-        void cleanup("La connexion a échoué. Réessayez, ou passez par le Wi-Fi.", true);
+        void cleanup(t("La connexion a échoué. Réessayez, ou passez par le Wi-Fi."), true);
       }
     };
     pc.current = peer;
@@ -151,7 +157,7 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
         setNotice(null);
         go("incoming");
         ringtone.current = playRing();
-        ringTimer.current = window.setTimeout(() => void cleanup(`Appel manqué de ${otherName}.`), RING_TIMEOUT_MS);
+        ringTimer.current = window.setTimeout(() => void cleanup(t("Appel manqué de {otherName}.", { otherName })), RING_TIMEOUT_MS);
         return;
       }
       if (s.callId !== callId.current) return;
@@ -186,17 +192,17 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
           else pendingIce.current.push(s.candidate);
           break;
         case "decline":
-          void cleanup(`${otherName} a refusé l'appel.`, true);
+          void cleanup(t("{otherName} a refusé l'appel.", { otherName }), true);
           break;
         case "busy":
-          void cleanup(`${otherName} est déjà en appel.`);
+          void cleanup(t("{otherName} est déjà en appel.", { otherName }));
           break;
         case "hangup":
-          void cleanup(phaseRef.current === "incoming" ? `Appel manqué de ${otherName}.` : "Appel terminé.");
+          void cleanup(phaseRef.current === "incoming" ? t("Appel manqué de {otherName}.", { otherName }) : t("Appel terminé."));
           break;
       }
     },
-    [myId, otherName, send, cleanup],
+    [myId, otherName, send, cleanup, t],
   );
 
   // Canal privé : la RLS sur realtime.messages n'admet que les participants de la réservation.
@@ -224,8 +230,8 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
   // Durée de l'appel
   useEffect(() => {
     if (phase !== "live") return;
-    const t = window.setInterval(() => setSeconds(Math.round((Date.now() - (startedAt.current ?? Date.now())) / 1000)), 1000);
-    return () => window.clearInterval(t);
+    const timer = window.setInterval(() => setSeconds(Math.round((Date.now() - (startedAt.current ?? Date.now())) / 1000)), 1000);
+    return () => window.clearInterval(timer);
   }, [phase]);
 
   // Aperçu local
@@ -246,7 +252,7 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
     send({ type: "ring", callId: callId.current, kind: k });
     ringTimer.current = window.setTimeout(() => {
       if (callId.current) send({ type: "hangup", callId: callId.current });
-      void cleanup(`${otherName} n'a pas répondu.`, true);
+      void cleanup(t("{otherName} n'a pas répondu.", { otherName }), true);
     }, RING_TIMEOUT_MS);
   }
 
@@ -270,7 +276,7 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
 
   function hangup() {
     if (callId.current) send({ type: "hangup", callId: callId.current });
-    void cleanup("Appel terminé.", true);
+    void cleanup(t("Appel terminé."), true);
   }
 
   function toggleMute() {
@@ -289,10 +295,10 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
   return (
     <>
       <div className="ml-auto flex items-center gap-2">
-        <button type="button" className={btn} onClick={() => startCall("audio")} disabled={!ready || inCall} aria-label={`Appeler ${otherName}`} title="Appel audio">
+        <button type="button" className={btn} onClick={() => startCall("audio")} disabled={!ready || inCall} aria-label={t("Appeler {otherName}", { otherName })} title={t("Appel audio")}>
           <Phone className="h-4 w-4" aria-hidden="true" />
         </button>
-        <button type="button" className={btn} onClick={() => startCall("video")} disabled={!ready || inCall} aria-label={`Appel vidéo avec ${otherName}`} title="Appel vidéo">
+        <button type="button" className={btn} onClick={() => startCall("video")} disabled={!ready || inCall} aria-label={t("Appel vidéo avec {otherName}", { otherName })} title={t("Appel vidéo")}>
           <Video className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
@@ -305,7 +311,7 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
       <audio ref={remoteAudio} autoPlay className="hidden" />
 
       {inCall && (
-        <div role="dialog" aria-modal="true" aria-label={`Appel avec ${otherName}`} className="fixed inset-0 z-[60] flex flex-col bg-ink text-white">
+        <div role="dialog" aria-modal="true" aria-label={t("Appel avec {otherName}", { otherName })} className="fixed inset-0 z-[60] flex flex-col bg-ink text-white">
           {kind === "video" && (
             <>
               <video ref={remoteVideo} autoPlay playsInline className="absolute inset-0 h-full w-full object-cover" />
@@ -322,33 +328,33 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
               </>
             )}
             <p className="tabular text-white/70" aria-live="polite">
-              {phase === "calling" && "Appel en cours…"}
-              {phase === "incoming" && `Appel ${kind === "video" ? "vidéo" : "audio"} entrant`}
-              {phase === "connecting" && "Connexion…"}
+              {phase === "calling" && t("Appel en cours…")}
+              {phase === "incoming" && (kind === "video" ? t("Appel vidéo entrant") : t("Appel audio entrant"))}
+              {phase === "connecting" && t("Connexion…")}
               {phase === "live" && duration(seconds)}
             </p>
           </div>
           <div className="relative flex items-center justify-center gap-5 pb-[max(2rem,env(safe-area-inset-bottom))]">
             {phase === "incoming" ? (
               <>
-                <button type="button" onClick={decline} className="flex h-16 w-16 items-center justify-center rounded-full bg-danger" aria-label="Refuser l'appel">
+                <button type="button" onClick={decline} className="flex h-16 w-16 items-center justify-center rounded-full bg-danger" aria-label={t("Refuser l'appel")}>
                   <PhoneOff className="h-7 w-7" aria-hidden="true" />
                 </button>
-                <button type="button" onClick={accept} className="flex h-16 w-16 items-center justify-center rounded-full bg-ok" aria-label="Décrocher">
+                <button type="button" onClick={accept} className="flex h-16 w-16 items-center justify-center rounded-full bg-ok" aria-label={t("Décrocher")}>
                   {kind === "video" ? <Video className="h-7 w-7" aria-hidden="true" /> : <Phone className="h-7 w-7" aria-hidden="true" />}
                 </button>
               </>
             ) : (
               <>
-                <button type="button" onClick={toggleMute} className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15" aria-pressed={muted} aria-label={muted ? "Réactiver le micro" : "Couper le micro"}>
+                <button type="button" onClick={toggleMute} className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15" aria-pressed={muted} aria-label={muted ? t("Réactiver le micro") : t("Couper le micro")}>
                   {muted ? <MicOff className="h-6 w-6" aria-hidden="true" /> : <Mic className="h-6 w-6" aria-hidden="true" />}
                 </button>
                 {kind === "video" && (
-                  <button type="button" onClick={toggleCam} className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15" aria-pressed={camOff} aria-label={camOff ? "Réactiver la caméra" : "Couper la caméra"}>
+                  <button type="button" onClick={toggleCam} className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15" aria-pressed={camOff} aria-label={camOff ? t("Réactiver la caméra") : t("Couper la caméra")}>
                     {camOff ? <VideoOff className="h-6 w-6" aria-hidden="true" /> : <Video className="h-6 w-6" aria-hidden="true" />}
                   </button>
                 )}
-                <button type="button" onClick={hangup} className="flex h-16 w-16 items-center justify-center rounded-full bg-danger" aria-label="Raccrocher">
+                <button type="button" onClick={hangup} className="flex h-16 w-16 items-center justify-center rounded-full bg-danger" aria-label={t("Raccrocher")}>
                   <PhoneOff className="h-7 w-7" aria-hidden="true" />
                 </button>
               </>

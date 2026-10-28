@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react";
+import { getT } from "@/i18n/server";
 
 export const FAQ_ITEMS: Array<[string, string]> = [
   [
@@ -23,16 +24,17 @@ export const FAQ_ITEMS: Array<[string, string]> = [
   ],
 ];
 
-export function FAQ() {
+export async function FAQ() {
+  const t = await getT();
   return (
     <div className="divide-y divide-line border-y border-line">
       {FAQ_ITEMS.map(([q, a]) => (
         <details key={q} className="group py-5">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[17px] font-semibold [&::-webkit-details-marker]:hidden">
-            {q}
+            {t(q)}
             <ChevronDown className="h-5 w-5 shrink-0 text-muted transition-transform group-open:rotate-180" aria-hidden="true" />
           </summary>
-          <p className="mt-3 max-w-[62ch] leading-relaxed text-muted">{a}</p>
+          <p className="mt-3 max-w-[62ch] leading-relaxed text-muted">{t(a)}</p>
         </details>
       ))}
     </div>

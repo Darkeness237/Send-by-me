@@ -22,6 +22,7 @@ import {
 import { priceGuide, priceLevel, type MarketPrice } from "@/lib/price-guide";
 import { euros } from "@/lib/pricing";
 import { CATEGORIES, groupedCategories, type TripMode } from "@/lib/types";
+import { useT } from "@/i18n/client";
 
 const LEVEL = {
   attractive: {
@@ -48,6 +49,7 @@ const LEVEL = {
 } as const;
 
 export function PublishForm({ market }: { market: MarketPrice[] }) {
+  const t = useT();
   const [state, action, pending] = useActionState(publishTrip, null);
   const [mode, setMode] = useState<TripMode>("plane");
   const [fromCity, setFromCity] = useState("");
@@ -73,9 +75,9 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const STAGE_LABELS = [
-    "Votre trajet",
-    "Vos kilos et votre prix",
-    "Remise du colis",
+    t("Votre trajet"),
+    t("Vos kilos et votre prix"),
+    t("Remise du colis"),
   ];
   const [values, setValues] = useState<Record<string, string>>({
     capacity_kg: "10",
@@ -101,10 +103,10 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
   const flightNorm = normalizeFlightNumber(flight);
   const flightHint =
     flight && !FLIGHT_NUMBER_RE.test(flightNorm)
-      ? "Format attendu : 2 caractères de la compagnie puis des chiffres, par exemple AF946."
+      ? t("Format attendu : 2 caractères de la compagnie puis des chiffres, par exemple AF946.")
       : flight && carrier && !flightNorm.startsWith(carrier)
-        ? `Un vol ${AIRLINES.find((a) => a.code === carrier)?.name} commence par ${carrier}.`
-        : "Tel qu'il figure sur votre billet ou carte d'embarquement.";
+        ? t("Un vol {airline} commence par {carrier}.", { airline: AIRLINES.find((a) => a.code === carrier)?.name ?? "", carrier })
+        : t("Tel qu'il figure sur votre billet ou carte d'embarquement.");
 
   const preview = (
     <TripPreview
@@ -137,8 +139,8 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
         action={action}
         onSubmit={submitKeepingValues(action)}
         onChange={(e) => {
-          const t = e.target as unknown as HTMLInputElement;
-          if (t.name) setValues((v) => ({ ...v, [t.name]: t.value }));
+          const el = e.target as unknown as HTMLInputElement;
+          if (el.name) setValues((v) => ({ ...v, [el.name]: el.value }));
         }}
         className="space-y-6"
       >
@@ -158,7 +160,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
           </datalist>
         ))}
 
-        <ol className="flex gap-2" aria-label="Étapes de la publication">
+        <ol className="flex gap-2" aria-label={t("Étapes de la publication")}>
           {STAGE_LABELS.map((label, i) => (
             <li key={label} className="flex-1">
               <span
@@ -183,37 +185,37 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
           className="space-y-6"
         >
           <fieldset className={section}>
-            <legend className="sr-only">Trajet</legend>
+            <legend className="sr-only">{t("Trajet")}</legend>
             <h2 className="flex items-center gap-3 text-lg font-bold">
               <Step n={1} />
-              Votre trajet
+              {t("Votre trajet")}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Ville de départ" htmlFor="from_city">
+              <Field label={t("Ville de départ")} htmlFor="from_city">
                 <Input
                   id="from_city"
                   name="from_city"
                   list="cities-from"
                   required
                   autoComplete="off"
-                  placeholder="Paris, France"
+                  placeholder={t("Paris, France")}
                   value={fromCity}
                   onChange={(e) => setFromCity(e.target.value)}
                 />
               </Field>
-              <Field label="Ville d'arrivée" htmlFor="to_city">
+              <Field label={t("Ville d'arrivée")} htmlFor="to_city">
                 <Input
                   id="to_city"
                   name="to_city"
                   list="cities-to"
                   required
                   autoComplete="off"
-                  placeholder="Douala, Cameroun"
+                  placeholder={t("Douala, Cameroun")}
                   value={toCity}
                   onChange={(e) => setToCity(e.target.value)}
                 />
               </Field>
-              <Field label="Date de départ" htmlFor="departure_date">
+              <Field label={t("Date de départ")} htmlFor="departure_date">
                 <Input
                   id="departure_date"
                   name="departure_date"
@@ -222,9 +224,9 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                 />
               </Field>
               <Field
-                label="Heure de départ"
+                label={t("Heure de départ")}
                 htmlFor="departure_time"
-                hint="Heure locale de la ville de départ"
+                hint={t("Heure locale de la ville de départ")}
               >
                 <Input
                   id="departure_time"
@@ -235,36 +237,36 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                 />
               </Field>
               <Field
-                label="Arrivée prévue"
+                label={t("Arrivée prévue")}
                 htmlFor="arrival_date"
-                hint="Heure locale de la ville d'arrivée. Le suivi des colis passe seul à « Arrivé » à cette heure."
+                hint={t("Heure locale de la ville d'arrivée. Le suivi des colis passe seul à « Arrivé » à cette heure.")}
               >
                 <div className="grid grid-cols-[1fr_auto] gap-2">
                   <Input
                     id="arrival_date"
                     name="arrival_date"
                     type="date"
-                    aria-label="Date d'arrivée"
+                    aria-label={t("Date d'arrivée")}
                   />
                   <Input
                     id="arrival_time"
                     name="arrival_time"
                     type="time"
-                    aria-label="Heure d'arrivée"
+                    aria-label={t("Heure d'arrivée")}
                   />
                 </div>
               </Field>
-              <Field label="Moyen de transport" htmlFor="mode">
+              <Field label={t("Moyen de transport")} htmlFor="mode">
                 <Select
                   id="mode"
                   name="mode"
                   value={mode}
                   onChange={(e) => setMode(e.target.value as TripMode)}
                 >
-                  <option value="plane">Avion</option>
-                  <option value="car">Voiture</option>
-                  <option value="bus">Car</option>
-                  <option value="train">Train</option>
+                  <option value="plane">{t("Avion")}</option>
+                  <option value="car">{t("Voiture")}</option>
+                  <option value="bus">{t("Car")}</option>
+                  <option value="train">{t("Train")}</option>
                 </Select>
               </Field>
             </div>
@@ -272,19 +274,18 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
 
           {mode === "plane" ? (
             <fieldset className={`${section} reveal-delay-1`}>
-              <legend className="sr-only">Votre vol</legend>
+              <legend className="sr-only">{t("Votre vol")}</legend>
               <div>
                 <h2 className="flex items-center gap-3 text-lg font-bold">
                   <Step n={2} />
-                  Votre vol
+                  {t("Votre vol")}
                 </h2>
                 <p className="mt-1 text-sm text-muted">
-                  Les expéditeurs réservent plus volontiers quand le vol est
-                  renseigné.
+                  {t("Les expéditeurs réservent plus volontiers quand le vol est renseigné.")}
                 </p>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Compagnie aérienne" htmlFor="carrier">
+                <Field label={t("Compagnie aérienne")} htmlFor="carrier">
                   <Select
                     id="carrier"
                     name="carrier"
@@ -293,7 +294,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                     onChange={(e) => setCarrier(e.target.value)}
                   >
                     <option value="" disabled>
-                      Choisir
+                      {t("Choisir")}
                     </option>
                     {AIRLINES.map((a) => (
                       <option key={a.code} value={a.code}>
@@ -303,7 +304,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                   </Select>
                 </Field>
                 <Field
-                  label="Numéro de vol"
+                  label={t("Numéro de vol")}
                   htmlFor="transport_ref"
                   hint={flightHint}
                 >
@@ -313,13 +314,13 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                     required
                     maxLength={10}
                     autoComplete="off"
-                    placeholder={carrier ? `${carrier}946` : "AF946"}
+                    placeholder={carrier ? `${carrier}946` : t("AF946")}
                     value={flight}
                     onChange={(e) => setFlight(e.target.value.toUpperCase())}
                     className="uppercase"
                   />
                 </Field>
-                <Field label="Aéroport de départ" htmlFor="from_airport">
+                <Field label={t("Aéroport de départ")} htmlFor="from_airport">
                   <Select
                     id="from_airport"
                     name="from_airport"
@@ -329,7 +330,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                   >
                     {fromAirports.length === 0 && (
                       <option value="">
-                        Choisissez d&apos;abord la ville de départ
+                        {t("Choisissez d'abord la ville de départ")}
                       </option>
                     )}
                     {fromAirports.map((a) => (
@@ -339,7 +340,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                     ))}
                   </Select>
                 </Field>
-                <Field label="Aéroport d'arrivée finale" htmlFor="to_airport">
+                <Field label={t("Aéroport d'arrivée finale")} htmlFor="to_airport">
                   <Select
                     id="to_airport"
                     name="to_airport"
@@ -349,7 +350,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                   >
                     {toAirports.length === 0 && (
                       <option value="">
-                        Choisissez d&apos;abord la ville d&apos;arrivée
+                        {t("Choisissez d'abord la ville d'arrivée")}
                       </option>
                     )}
                     {toAirports.map((a) => (
@@ -360,9 +361,9 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                   </Select>
                 </Field>
                 <Field
-                  label="Bagages inclus dans le billet (kg)"
+                  label={t("Bagages inclus dans le billet (kg)")}
                   htmlFor="baggage_allowance_kg"
-                  hint="Facultatif. Vous pouvez proposer plus si vous ajoutez des valises."
+                  hint={t("Facultatif. Vous pouvez proposer plus si vous ajoutez des valises.")}
                 >
                   <Input
                     id="baggage_allowance_kg"
@@ -379,7 +380,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                     name="has_stopover"
                     className="h-4 w-4 accent-brand"
                   />
-                  Mon vol fait une escale
+                  {t("Mon vol fait une escale")}
                 </label>
               </div>
               <label className="flex items-start gap-3 text-sm text-ink-soft">
@@ -390,20 +391,19 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                   className="mt-0.5 h-4 w-4 accent-brand"
                 />
                 <span>
-                  Le nom sur mon billet est le même que sur la pièce
-                  d&apos;identité de mon compte.
+                  {t("Le nom sur mon billet est le même que sur la pièce d'identité de mon compte.")}
                 </span>
               </label>
             </fieldset>
           ) : mode !== "car" ? (
             <fieldset className={section}>
-              <legend className="sr-only">Votre transport</legend>
+              <legend className="sr-only">{t("Votre transport")}</legend>
               <h2 className="flex items-center gap-3 text-lg font-bold">
                 <Step n={2} />
-                {mode === "train" ? "Votre train" : "Votre car"}
+                {mode === "train" ? t("Votre train") : t("Votre car")}
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Compagnie" htmlFor="carrier">
+                <Field label={t("Compagnie")} htmlFor="carrier">
                   <Input
                     id="carrier"
                     name="carrier"
@@ -411,17 +411,17 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                     maxLength={80}
                     placeholder={
                       mode === "train"
-                        ? "SNCF, Eurostar…"
-                        : "FlixBus, BlaBlaCar Bus…"
+                        ? t("SNCF, Eurostar…")
+                        : t("FlixBus, BlaBlaCar Bus…")
                     }
                   />
                 </Field>
                 <Field
                   label={
-                    mode === "train" ? "Numéro du train" : "Numéro de la ligne"
+                    mode === "train" ? t("Numéro du train") : t("Numéro de la ligne")
                   }
                   htmlFor="transport_ref"
-                  hint="Facultatif"
+                  hint={t("Facultatif")}
                 >
                   <Input
                     id="transport_ref"
@@ -443,16 +443,16 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
           className="space-y-6"
         >
           <fieldset className={`${section} reveal-delay-2`}>
-            <legend className="sr-only">Kilos et prix</legend>
+            <legend className="sr-only">{t("Kilos et prix")}</legend>
             <h2 className="flex items-center gap-3 text-lg font-bold">
               <Step n={mode === "car" ? 2 : 3} />
-              Vos kilos
+              {t("Vos kilos")}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field
-                label="Kilos disponibles"
+                label={t("Kilos disponibles")}
                 htmlFor="capacity_kg"
-                hint="Toutes vos valises comprises, jusqu'à 300 kg."
+                hint={t("Toutes vos valises comprises, jusqu'à 300 kg.")}
               >
                 <Input
                   id="capacity_kg"
@@ -466,9 +466,9 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                 />
               </Field>
               <Field
-                label="Prix au kilo (€)"
+                label={t("Prix au kilo (€)")}
                 htmlFor="price_per_kg"
-                hint="C'est ce que vous recevez par kilo."
+                hint={t("C'est ce que vous recevez par kilo.")}
               >
                 <Input
                   id="price_per_kg"
@@ -487,13 +487,13 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
             <div className="rounded-2xl bg-paper p-4" aria-live="polite">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="font-semibold">
-                  Prix conseillé : {euros(guide.lowCents)} à{" "}
-                  {euros(guide.highCents)} le kilo
+                  {t("Prix conseillé : {euros} à", { euros: euros(guide.lowCents) })}{" "}
+                  {t("{euros} le kilo", { euros: euros(guide.highCents) })}
                 </p>
                 <p className="text-sm text-muted">
                   {guide.source === "market"
-                    ? `D'après ${guide.sample} annonces sur cette ligne`
-                    : "Estimation pour ce type de trajet"}
+                    ? t("D'après {n} annonces sur cette ligne", { n: guide.sample })
+                    : t("Estimation pour ce type de trajet")}
                 </p>
               </div>
               {/* Jauge : zone conseillée au centre, plafond à droite */}
@@ -516,24 +516,22 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                 />
               </div>
               <p className={`mt-3 text-sm font-semibold ${LEVEL[level].text}`}>
-                {LEVEL[level].label}
+                {t(LEVEL[level].label)}
               </p>
               <p className="mt-1 text-sm text-ink-soft">
-                Pour 5 kg, vous recevez{" "}
-                <span className="font-semibold">{euros(priceCents * 5)}</span>.
-                Maximum autorisé : {euros(guide.maxCents)} le kilo.
+                {t("Pour 5 kg, vous recevez")}{" "}
+                <span className="font-semibold">{euros(priceCents * 5)}</span>{t(". Maximum autorisé : {euros} le kilo.", { euros: euros(guide.maxCents) })}
               </p>
             </div>
             <div>
-              <p className="text-sm font-semibold">Colis que vous acceptez</p>
+              <p className="text-sm font-semibold">{t("Colis que vous acceptez")}</p>
               <p className="mt-1 text-sm text-muted">
-                Tout est coché sauf les médicaments : décochez ce que vous ne
-                voulez pas transporter.
+                {t("Tout est coché sauf les médicaments : décochez ce que vous ne voulez pas transporter.")}
               </p>
               {groupedCategories(CATEGORIES).map((g) => (
                 <div key={g.group} className="mt-4">
                   <p className="text-xs font-semibold tracking-wide text-muted uppercase">
-                    {g.group}
+                    {t(g.group)}
                   </p>
                   <div className="mt-2 grid gap-2 sm:grid-cols-2">
                     {g.items.map((c) => (
@@ -548,7 +546,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                           defaultChecked={c.id !== "medication"}
                           className="h-4 w-4 accent-brand"
                         />
-                        {c.label}
+                        {t(c.label)}
                       </label>
                     ))}
                   </div>
@@ -566,38 +564,38 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
           className="space-y-6"
         >
           <fieldset className={`${section} reveal-delay-3`}>
-            <legend className="sr-only">Remise</legend>
+            <legend className="sr-only">{t("Remise")}</legend>
             <h2 className="flex items-center gap-3 text-lg font-bold">
               <Step n={mode === "car" ? 3 : 4} />
-              Remise et récupération
+              {t("Remise et récupération")}
             </h2>
             <Field
-              label="Où les expéditeurs vous remettent le colis"
+              label={t("Où les expéditeurs vous remettent le colis")}
               htmlFor="pickup_note"
             >
               <Input
                 id="pickup_note"
                 name="pickup_note"
                 maxLength={300}
-                placeholder="Près de la gare de Lyon, la veille du départ"
+                placeholder={t("Près de la gare de Lyon, la veille du départ")}
               />
             </Field>
             <Field
-              label="Où le destinataire le récupère"
+              label={t("Où le destinataire le récupère")}
               htmlFor="dropoff_note"
             >
               <Input
                 id="dropoff_note"
                 name="dropoff_note"
                 maxLength={300}
-                placeholder="À Akwa, le lendemain de mon arrivée"
+                placeholder={t("À Akwa, le lendemain de mon arrivée")}
               />
             </Field>
 
             <Field
-              label="Un mot pour les expéditeurs"
+              label={t("Un mot pour les expéditeurs")}
               htmlFor="notes"
-              hint="Facultatif. Par exemple : colis ouverts uniquement, pas de liquides."
+              hint={t("Facultatif. Par exemple : colis ouverts uniquement, pas de liquides.")}
             >
               <Textarea id="notes" name="notes" maxLength={1000} />
             </Field>
@@ -615,12 +613,12 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
               size="lg"
               onClick={() => setStage((n) => n - 1)}
             >
-              Retour
+              {t("Retour")}
             </Button>
           )}
           {stage < 2 ? (
             <Button key="next" type="button" size="lg" onClick={next}>
-              Suivant
+              {t("Suivant")}
             </Button>
           ) : (
             <Button
@@ -630,18 +628,18 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
               disabled={pending}
             >
               <PlaneTakeoff className="h-5 w-5" aria-hidden="true" />
-              {pending ? "Publication…" : "Publier mon trajet"}
+              {pending ? t("Publication…") : t("Publier mon trajet")}
             </Button>
           )}
         </div>
       </form>
       <aside
         className="reveal reveal-delay-2 hidden lg:sticky lg:top-6 lg:block"
-        aria-label="Aperçu de votre annonce"
+        aria-label={t("Aperçu de votre annonce")}
       >
         {preview}
         <p className="mt-4 text-center text-sm text-muted">
-          Voici ce que verront les expéditeurs.
+          {t("Voici ce que verront les expéditeurs.")}
         </p>
       </aside>
     </div>

@@ -7,6 +7,7 @@ import { MAX_PHOTOS_PER_STEP, PHOTO_STEPS, type PhotoKind } from "@/lib/parcel-p
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUserId } from "@/lib/supabase/server";
 import type { BookingStatus } from "@/lib/types";
+import { getActionT } from "@/i18n/server";
 
 const uuid = z.uuid();
 
@@ -30,7 +31,7 @@ export async function addBookingPhoto(bookingId: string, kind: PhotoKind, path: 
   if (!step.when.includes(b.status as BookingStatus)) return { error: "Cette étape n'est pas encore ouverte (ou est déjà passée)." };
 
   const { count } = await db.from("booking_photos").select("id", { count: "exact", head: true }).eq("booking_id", bookingId).eq("kind", kind);
-  if ((count ?? 0) >= MAX_PHOTOS_PER_STEP) return { error: `${MAX_PHOTOS_PER_STEP} photos maximum pour cette étape.` };
+  if ((count ?? 0) >= MAX_PHOTOS_PER_STEP) return { error: (await getActionT())("{n} photos maximum pour cette étape.", { n: MAX_PHOTOS_PER_STEP }) };
 
   // Le fichier doit vraiment exister dans le stockage.
   const { data: file } = await db.storage.from("parcel-photos").download(path);

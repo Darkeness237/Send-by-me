@@ -1,9 +1,10 @@
 import { BadgeCheck, ShieldCheck } from "lucide-react";
 import { initials } from "@/lib/format";
+import { getT } from "@/i18n/server";
 
 const tones = ["bg-brand-pale text-brand-deep", "bg-signal/30 text-ink", "bg-ok-pale text-ok", "bg-ink/10 text-ink"];
 
-export function Avatar({
+export async function Avatar({
   name,
   verified,
   certified,
@@ -17,6 +18,7 @@ export function Avatar({
   size?: number;
 }) {
   const tone = tones[(name.charCodeAt(0) || 0) % tones.length];
+  const t = await getT();
   return (
     <span className="relative inline-flex shrink-0" style={{ width: size, height: size }}>
       {src ? (
@@ -35,13 +37,13 @@ export function Avatar({
         <ShieldCheck
           className="absolute -right-1 -bottom-1 rounded-full bg-signal p-[2px] text-ink"
           style={{ width: size * 0.48, height: size * 0.48 }}
-          aria-label="Compte certifié"
+          aria-label={t("Compte certifié")}
         />
       ) : verified && (
         <BadgeCheck
           className="absolute -right-1 -bottom-1 rounded-full bg-white text-brand"
           style={{ width: size * 0.45, height: size * 0.45 }}
-          aria-label="Identité vérifiée"
+          aria-label={t("Identité vérifiée")}
         />
       )}
     </span>

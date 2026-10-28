@@ -6,6 +6,7 @@ import { submitAddressVerification, submitIdentityVerification, submitTripProof 
 import { Button } from "@/components/ui/button";
 import { Field, FormMessage, Input, Select } from "@/components/ui/field";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/i18n/client";
 
 const BUCKET = "verification-documents";
 const MAX = 10 * 1024 * 1024;
@@ -34,13 +35,14 @@ function clearUploads(userId: string) {
 
 /** Dépose un fichier dans le dossier privé du membre ; renvoie son chemin. */
 function useUpload(userId: string) {
+  const t = useT();
   return async (file: File): Promise<{ path?: string; error?: string }> => {
-    if (!TYPES.includes(file.type)) return { error: "Format accepté : photo (JPG, PNG, WEBP, HEIC) ou PDF." };
-    if (file.size > MAX) return { error: "Fichier trop lourd (10 Mo maximum)." };
+    if (!TYPES.includes(file.type)) return { error: t("Format accepté : photo (JPG, PNG, WEBP, HEIC) ou PDF.") };
+    if (file.size > MAX) return { error: t("Fichier trop lourd (10 Mo maximum).") };
     const ext = file.type === "application/pdf" ? "pdf" : file.type.split("/")[1].replace("jpeg", "jpg");
     const path = `${userId}/${crypto.randomUUID()}.${ext}`;
     const { error } = await createClient().storage.from(BUCKET).upload(path, file, { contentType: file.type, upsert: false });
-    return error ? { error: "Envoi impossible. Vérifiez votre connexion et réessayez." } : { path };
+    return error ? { error: t("Envoi impossible. Vérifiez votre connexion et réessayez.") } : { path };
   };
 }
 
@@ -59,6 +61,7 @@ function FilePicker({
   capture?: "user" | "environment";
   accept?: string;
 }) {
+  const t = useT();
   const upload = useUpload(userId);
   // Mémorisé pour la session : un fichier déjà déposé n'est pas perdu si la page se rafraîchit après une erreur.
   const key = `sbm-upload-${userId}-${name}`;
@@ -100,7 +103,7 @@ function FilePicker({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block font-semibold">{label}</span>
-          <span className="block truncate text-sm text-muted">{state.path ? state.file : hint ?? "Photo nette ou PDF, 10 Mo maximum"}</span>
+          <span className="block truncate text-sm text-muted">{state.path ? state.file : hint ?? t("Photo nette ou PDF, 10 Mo maximum")}</span>
         </span>
         <input
           type="file"
@@ -116,12 +119,13 @@ function FilePicker({
           }}
         />
       </label>
-      {state.error && <p className="mt-1.5 text-sm text-danger">{state.error}</p>}
+      {state.error && <p className="mt-1.5 text-sm text-danger">{t(state.error)}</p>}
     </div>
   );
 }
 
 export function IdentityVerificationForm({ userId }: { userId: string }) {
+  const t = useT();
   const [state, action, pending] = useActionState(submitIdentityVerification, null);
   const [docType, setDocType] = useState("cni");
   if (state?.ok) {
@@ -130,29 +134,30 @@ export function IdentityVerificationForm({ userId }: { userId: string }) {
   }
   return (
     <form action={action} className="space-y-4">
-      <Field label="Pièce d'identité" htmlFor="document_type">
+      <Field label={t("Pièce d'identité")} htmlFor="document_type">
         <Select id="document_type" name="document_type" value={docType} onChange={(e) => setDocType(e.target.value)}>
-          <option value="cni">Carte nationale d&apos;identité</option>
-          <option value="passport">Passeport</option>
-          <option value="residence_permit">Titre de séjour</option>
-          <option value="driving_license">Permis de conduire</option>
+          <option value="cni">{t("Carte nationale d'identité")}</option>
+          <option value="passport">{t("Passeport")}</option>
+          <option value="residence_permit">{t("Titre de séjour")}</option>
+          <option value="driving_license">{t("Permis de conduire")}</option>
         </Select>
       </Field>
-      <FilePicker name="front_path" userId={userId} label={docType === "passport" ? "Page photo du passeport" : "Recto de la pièce"} capture="environment" />
-      {docType !== "passport" && <FilePicker name="back_path" userId={userId} label="Verso de la pièce" capture="environment" />}
-      <FilePicker name="selfie_path" userId={userId} label="Selfie en tenant votre pièce" hint="Visage et pièce bien visibles" capture="user" accept="image/*" />
+      <FilePicker name="front_path" userId={userId} label={docType === "passport" ? t("Page photo du passeport") : t("Recto de la pièce")} capture="environment" />
+      {docType !== "passport" && <FilePicker name="back_path" userId={userId} label={t("Verso de la pièce")} capture="environment" />}
+      <FilePicker name="selfie_path" userId={userId} label={t("Selfie en tenant votre pièce")} hint={t("Visage et pièce bien visibles")} capture="user" accept="image/*" />
       <p className="text-sm text-muted">
-        Vos documents sont stockés dans un espace privé, consultés uniquement par l&apos;équipe Send By Me, puis supprimés dès la fin du contrôle.
+        {t("Vos documents sont stockés dans un espace privé, consultés uniquement par l'équipe Send By Me, puis supprimés dès la fin du contrôle.")}
       </p>
       <FormMessage state={state} />
       <Button type="submit" disabled={pending}>
-        {pending ? "Envoi…" : "Envoyer pour vérification"}
+        {pending ? t("Envoi…") : t("Envoyer pour vérification")}
       </Button>
     </form>
   );
 }
 
 export function TripProofForm({ userId, tripId }: { userId: string; tripId: string }) {
+  const t = useT();
   const [state, action, pending] = useActionState(submitTripProof, null);
   if (state?.ok) {
     clearUploads(userId);
@@ -161,10 +166,10 @@ export function TripProofForm({ userId, tripId }: { userId: string; tripId: stri
   return (
     <form action={action} className="space-y-3">
       <input type="hidden" name="trip_id" value={tripId} />
-      <FilePicker name="file_path" userId={userId} label="Billet ou carte d'embarquement" hint="Votre nom et la date doivent être lisibles" />
+      <FilePicker name="file_path" userId={userId} label={t("Billet ou carte d'embarquement")} hint={t("Votre nom et la date doivent être lisibles")} />
       <FormMessage state={state} />
       <Button type="submit" variant="outline" size="sm" disabled={pending}>
-        {pending ? "Envoi…" : "Envoyer le justificatif"}
+        {pending ? t("Envoi…") : t("Envoyer le justificatif")}
       </Button>
     </form>
   );
@@ -173,6 +178,7 @@ export function TripProofForm({ userId, tripId }: { userId: string; tripId: stri
 type Contact = { phone: string | null; address_line: string | null; postal_code: string | null; address_city: string | null; country: string | null };
 
 export function AddressVerificationForm({ userId, contact }: { userId: string; contact: Contact | null }) {
+  const t = useT();
   const [state, action, pending] = useActionState(submitAddressVerification, null);
   if (state?.ok) {
     clearUploads(userId);
@@ -180,32 +186,32 @@ export function AddressVerificationForm({ userId, contact }: { userId: string; c
   }
   return (
     <form action={action} className="space-y-4">
-      <Field label="Téléphone" htmlFor="addr_phone" hint="Jamais affiché aux autres membres.">
+      <Field label={t("Téléphone")} htmlFor="addr_phone" hint={t("Jamais affiché aux autres membres.")}>
         <Input id="addr_phone" name="phone" type="tel" required autoComplete="tel" defaultValue={contact?.phone ?? ""} placeholder="+33 6 12 34 56 78" />
       </Field>
-      <Field label="Adresse" htmlFor="address_line">
+      <Field label={t("Adresse")} htmlFor="address_line">
         <Input id="address_line" name="address_line" required maxLength={200} autoComplete="street-address" defaultValue={contact?.address_line ?? ""} />
       </Field>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Code postal" htmlFor="postal_code">
+        <Field label={t("Code postal")} htmlFor="postal_code">
           <Input id="postal_code" name="postal_code" maxLength={20} autoComplete="postal-code" defaultValue={contact?.postal_code ?? ""} />
         </Field>
-        <Field label="Ville" htmlFor="address_city">
+        <Field label={t("Ville")} htmlFor="address_city">
           <Input id="address_city" name="address_city" required maxLength={80} autoComplete="address-level2" defaultValue={contact?.address_city ?? ""} />
         </Field>
-        <Field label="Pays" htmlFor="country_addr">
+        <Field label={t("Pays")} htmlFor="country_addr">
           <Input id="country_addr" name="country" required maxLength={60} autoComplete="country-name" defaultValue={contact?.country ?? ""} />
         </Field>
       </div>
       <FilePicker
         name="proof_path"
         userId={userId}
-        label="Justificatif de domicile"
-        hint="Facture d'électricité, d'eau, d'internet ou avis d'imposition de moins de 3 mois"
+        label={t("Justificatif de domicile")}
+        hint={t("Facture d'électricité, d'eau, d'internet ou avis d'imposition de moins de 3 mois")}
       />
       <FormMessage state={state} />
       <Button type="submit" disabled={pending}>
-        {pending ? "Envoi…" : "Envoyer mon justificatif"}
+        {pending ? t("Envoi…") : t("Envoyer mon justificatif")}
       </Button>
     </form>
   );

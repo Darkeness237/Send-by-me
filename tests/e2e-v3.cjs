@@ -50,6 +50,7 @@ async function signup(b, first, last, email, next) {
   await t.fill('#from_city', 'Lyon'); await t.fill('#to_city', 'Abidjan');
   await t.fill('#departure_date', day(10)); await t.fill('#departure_time', '09:00');
   await t.selectOption('#mode', 'car');
+  await pubForm.openAll(t);
   await t.fill('#capacity_kg', '20'); await t.fill('#price_per_kg', '7');
   await pubForm.next(t);
   await Promise.all([t.waitForURL('**/trajets/**'), t.click('button:has-text("Publier mon trajet")')]);

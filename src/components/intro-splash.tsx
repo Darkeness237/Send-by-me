@@ -1,13 +1,15 @@
 import Image from "next/image";
 import base from "../../public/brand/logo-symbol-base.png";
 import plane from "../../public/brand/logo-plane.png";
+import { getT } from "@/i18n/server";
 
 /**
  * Animation d'ouverture : les mains et le colis apparaissent, l'avion décolle de l'anneau,
  * puis le nom glisse dessous et l'écran s'efface. CSS uniquement, une fois par visite
  * (script de <head>), désactivée si l'appareil demande moins d'animations.
  */
-export function IntroSplash() {
+export async function IntroSplash() {
+  const t = await getT();
   return (
     <div className="intro-splash" aria-hidden="true">
       <div className="intro-splash__inner">
@@ -15,7 +17,7 @@ export function IntroSplash() {
           <Image src={base} alt="" priority sizes="128px" className="intro-splash__base absolute inset-0 h-full w-full" />
           <Image src={plane} alt="" priority sizes="128px" className="intro-splash__plane absolute inset-0 h-full w-full" />
         </span>
-        <p className="intro-splash__word display text-3xl text-ink">Send By Me</p>
+        <p className="intro-splash__word display text-3xl text-ink">{t("Send By Me")}</p>
         <span className="intro-splash__trail" />
       </div>
     </div>

@@ -1,0 +1,53 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { AuthLayout } from "@/components/auth-layout";
+import { OrDivider, SocialButtons } from "@/components/google-button";
+import { Gift } from "lucide-react";
+import { SignUpForm } from "@/components/auth-forms";
+import { getReferrer } from "@/lib/data";
+import { euros } from "@/lib/pricing";
+import { cleanReferralCode, REFERRAL_REWARD_CENTS } from "@/lib/referral";
+import { getT } from "@/i18n/server";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
+    title: t("Créer un compte"),
+    description: t("Inscrivez-vous gratuitement pour envoyer un colis ou proposer vos kilos libres."),
+  };
+}
+
+async function Form({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const t = await getT();
+  const sp = await searchParams;
+  const code = cleanReferralCode(sp.parrain);
+  const referrer = code ? await getReferrer(code) : null;
+  const referral = referrer ? code! : undefined;
+  return (
+    <>
+      {referrer && (
+        <p role="status" className="mb-5 flex items-center gap-3 rounded-2xl bg-signal/25 px-4 py-3 text-[15px]">
+          <Gift className="h-6 w-6 shrink-0 text-ink" aria-hidden="true" />
+          <span>
+            <span className="font-semibold">{t("{v} vous invite.", { v: referrer.full_name || t("Un membre") })}</span>{" "}{t("Inscrivez-vous et recevez")}{" "}
+            {t("{euros} de réduction sur les frais de votre premier envoi.", { euros: euros(REFERRAL_REWARD_CENTS) })}
+          </span>
+        </p>
+      )}
+      <SocialButtons next={sp.suite} referral={referral} />
+      <OrDivider />
+      <SignUpForm next={sp.suite} referral={referral} />
+    </>
+  );
+}
+
+export default async function SignUpPage(props: PageProps<"/[lang]/inscription">) {
+  const t = await getT();
+  return (
+    <AuthLayout title={t("Créer un compte")} intro={t("Gratuit. Le même compte sert pour envoyer des colis et proposer vos kilos.")}>
+      <Suspense>
+        <Form searchParams={props.searchParams as Promise<Record<string, string | undefined>>} />
+      </Suspense>
+    </AuthLayout>
+  );
+}

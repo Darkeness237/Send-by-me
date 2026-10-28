@@ -1,29 +1,31 @@
 import { ArrowRight, CheckCircle2, Clock, Sparkles } from "lucide-react";
 import type { NextStep } from "@/lib/next-step";
+import { getT } from "@/i18n/server";
 
 /** Bandeau en haut de la réservation : la seule chose à faire maintenant. */
-export function NextStepBanner({ step }: { step: NextStep }) {
+export async function NextStepBanner({ step }: { step: NextStep }) {
+  const t = await getT();
   const tone = {
     action: {
       box: "bg-ink text-white",
       sub: "text-white/75",
       Icon: Sparkles,
       icon: "text-signal",
-      label: "Prochaine étape",
+      label: t("Prochaine étape"),
     },
     wait: {
       box: "bg-brand-pale text-ink",
       sub: "text-ink-soft",
       Icon: Clock,
       icon: "text-brand",
-      label: "En attente",
+      label: t("En attente"),
     },
     done: {
       box: "bg-ok-pale text-ink",
       sub: "text-ink-soft",
       Icon: CheckCircle2,
       icon: "text-ok",
-      label: "Terminé",
+      label: t("Terminé"),
     },
   }[step.tone];
   return (

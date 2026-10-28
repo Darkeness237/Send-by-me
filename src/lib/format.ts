@@ -1,25 +1,29 @@
 const TZ = "Europe/Paris";
 
+// Dernier paramètre facultatif : la langue d'affichage (« fr » par défaut, « en » pour la version anglaise).
+type Lang = "fr" | "en";
+const loc = (l: Lang) => (l === "en" ? "en-GB" : "fr-FR");
+
 // Les heures de départ s'affichent dans le fuseau de la ville de départ.
 
-export function dayLabel(iso: string, tz = TZ) {
-  return new Intl.DateTimeFormat("fr-FR", { weekday: "short", day: "numeric", month: "short", timeZone: tz }).format(
+export function dayLabel(iso: string, tz = TZ, l: Lang = "fr") {
+  return new Intl.DateTimeFormat(loc(l), { weekday: "short", day: "numeric", month: "short", timeZone: tz }).format(
     new Date(iso),
   );
 }
 
-export function longDate(iso: string, tz = TZ) {
-  return new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: tz }).format(
+export function longDate(iso: string, tz = TZ, l: Lang = "fr") {
+  return new Intl.DateTimeFormat(loc(l), { weekday: "long", day: "numeric", month: "long", timeZone: tz }).format(
     new Date(iso),
   );
 }
 
-export function timeLabel(iso: string, tz = TZ) {
-  return new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: tz }).format(new Date(iso));
+export function timeLabel(iso: string, tz = TZ, l: Lang = "fr") {
+  return new Intl.DateTimeFormat(loc(l), { hour: "2-digit", minute: "2-digit", timeZone: tz }).format(new Date(iso));
 }
 
-export function kg(n: number) {
-  return `${Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} kg`;
+export function kg(n: number, l: Lang = "fr") {
+  return `${Number(n).toLocaleString(loc(l), { maximumFractionDigits: 1 })} kg`;
 }
 
 export function initials(name: string) {
@@ -33,8 +37,8 @@ export function initials(name: string) {
   );
 }
 
-export function memberSince(iso: string) {
-  return new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(new Date(iso));
+export function memberSince(iso: string, l: Lang = "fr") {
+  return new Intl.DateTimeFormat(loc(l), { month: "long", year: "numeric" }).format(new Date(iso));
 }
 
 export function isUpcoming(iso: string) {

@@ -1,4 +1,5 @@
 import { signInWithFacebook, signInWithGoogle } from "@/app/actions/auth";
+import { getT } from "@/i18n/server";
 
 function GoogleLogo() {
   return (
@@ -12,7 +13,8 @@ function GoogleLogo() {
 }
 
 /** Bouton « Continuer avec Google » (formulaire serveur, fonctionne sans JavaScript). */
-export function GoogleButton({ next, referral }: { next?: string; referral?: string }) {
+export async function GoogleButton({ next, referral }: { next?: string; referral?: string }) {
+  const t = await getT();
   return (
     <form action={signInWithGoogle}>
       <input type="hidden" name="suite" value={next ?? ""} />
@@ -22,7 +24,7 @@ export function GoogleButton({ next, referral }: { next?: string; referral?: str
         className="flex h-13 w-full items-center justify-center gap-3 rounded-full border border-line bg-white text-[15px] font-semibold text-ink hover:border-ink/30"
       >
         <GoogleLogo />
-        Continuer avec Google
+        {t("Continuer avec Google")}
       </button>
     </form>
   );
@@ -39,7 +41,8 @@ function FacebookLogo() {
   );
 }
 
-export function FacebookButton({ next, referral }: { next?: string; referral?: string }) {
+export async function FacebookButton({ next, referral }: { next?: string; referral?: string }) {
+  const t = await getT();
   return (
     <form action={signInWithFacebook}>
       <input type="hidden" name="suite" value={next ?? ""} />
@@ -49,7 +52,7 @@ export function FacebookButton({ next, referral }: { next?: string; referral?: s
         className="flex h-13 w-full items-center justify-center gap-3 rounded-full border border-line bg-white text-[15px] font-semibold text-ink hover:border-ink/30"
       >
         <FacebookLogo />
-        Continuer avec Facebook
+        {t("Continuer avec Facebook")}
       </button>
     </form>
   );
@@ -65,11 +68,12 @@ export function SocialButtons({ next, referral }: { next?: string; referral?: st
   );
 }
 
-export function OrDivider() {
+export async function OrDivider() {
+  const t = await getT();
   return (
     <div className="my-6 flex items-center gap-3 text-sm text-muted" aria-hidden="true">
       <span className="h-px flex-1 bg-line" />
-      ou avec votre e-mail
+      {t("ou avec votre e-mail")}
       <span className="h-px flex-1 bg-line" />
     </div>
   );

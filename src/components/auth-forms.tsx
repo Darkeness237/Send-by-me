@@ -7,21 +7,23 @@ import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 import { submitKeepingValues } from "@/components/ui/keep-form";
 import { Field, FormMessage, Input, Select } from "@/components/ui/field";
+import { useT } from "@/i18n/client";
 
 export function SignInForm({ next }: { next?: string }) {
+  const t = useT();
   const [state, action, pending] = useActionState(signIn, null);
   return (
     <form action={action} className="space-y-5">
       <input type="hidden" name="suite" value={next ?? ""} />
-      <Field label="E-mail" htmlFor="email">
+      <Field label={t("E-mail")} htmlFor="email">
         <Input id="email" name="email" type="email" autoComplete="email" required />
       </Field>
       <Field
-        label="Mot de passe"
+        label={t("Mot de passe")}
         htmlFor="password"
         hint={
           <Link href="/mot-de-passe-oublie" className="font-semibold text-brand">
-            Mot de passe oublié ?
+            {t("Mot de passe oublié ?")}
           </Link>
         }
       >
@@ -29,12 +31,12 @@ export function SignInForm({ next }: { next?: string }) {
       </Field>
       <FormMessage state={state} />
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
-        {pending ? "Connexion…" : "Se connecter"}
+        {pending ? t("Connexion…") : t("Se connecter")}
       </Button>
       <p className="text-center text-sm text-muted">
-        Pas encore de compte ?{" "}
+        {t("Pas encore de compte ?")}{" "}
         <Link href={`/inscription${next ? `?suite=${encodeURIComponent(next)}` : ""}`} className="font-semibold text-brand">
-          Créer un compte
+          {t("Créer un compte")}
         </Link>
       </p>
     </form>
@@ -59,6 +61,7 @@ function passwordStrength(pw: string) {
 }
 
 export function SignUpForm({ next, referral }: { next?: string; referral?: string }) {
+  const t = useT();
   const [state, action, pending] = useActionState(signUp, null);
   const [password, setPassword] = useState("");
   const strength = passwordStrength(password);
@@ -69,50 +72,50 @@ export function SignUpForm({ next, referral }: { next?: string; referral?: strin
       {referral && <input type="hidden" name="parrain" value={referral} />}
 
       <fieldset>
-        <legend className="text-sm font-semibold">Vous souhaitez</legend>
+        <legend className="text-sm font-semibold">{t("Vous souhaitez")}</legend>
         <div className="mt-2 grid grid-cols-3 gap-2">
           {[
-            { v: "send", label: "Envoyer des colis" },
-            { v: "travel", label: "Proposer mes kilos" },
-            { v: "both", label: "Les deux" },
+            { v: "send", label: t("Envoyer des colis") },
+            { v: "travel", label: t("Proposer mes kilos") },
+            { v: "both", label: t("Les deux") },
           ].map((o) => (
             <label
               key={o.v}
               className="flex cursor-pointer items-center justify-center rounded-xl border border-line px-2 py-3 text-center text-sm font-semibold has-checked:border-brand has-checked:bg-brand-pale has-checked:text-brand-deep"
             >
               <input type="radio" name="intent" value={o.v} defaultChecked={o.v === "both"} className="sr-only" />
-              {o.label}
+              {t(o.label)}
             </label>
           ))}
         </div>
       </fieldset>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Prénom" htmlFor="first_name">
+        <Field label={t("Prénom")} htmlFor="first_name">
           <Input id="first_name" name="first_name" required maxLength={40} autoComplete="given-name" />
         </Field>
-        <Field label="Nom" htmlFor="last_name" hint="Seule l'initiale est visible : « Aïcha N. »">
+        <Field label={t("Nom")} htmlFor="last_name" hint={t("Seule l'initiale est visible : « Aïcha N. »")}>
           <Input id="last_name" name="last_name" required maxLength={60} autoComplete="family-name" />
         </Field>
       </div>
-      <Field label="E-mail" htmlFor="email">
+      <Field label={t("E-mail")} htmlFor="email">
         <Input id="email" name="email" type="email" autoComplete="email" required />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Téléphone" htmlFor="phone" hint="Facultatif. Jamais affiché ; utile pour la certification du compte.">
+        <Field label={t("Téléphone")} htmlFor="phone" hint={t("Facultatif. Jamais affiché ; utile pour la certification du compte.")}>
           <Input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="+33 6 12 34 56 78" />
         </Field>
-        <Field label="Pays de résidence" htmlFor="country">
+        <Field label={t("Pays de résidence")} htmlFor="country">
           <Select id="country" name="country" defaultValue="France" autoComplete="country-name">
             {COUNTRIES.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {t(c)}
               </option>
             ))}
           </Select>
         </Field>
       </div>
-      <Field label="Mot de passe" htmlFor="password" hint={strength?.label ?? "8 caractères minimum"}>
+      <Field label={t("Mot de passe")} htmlFor="password" hint={strength ? t(strength.label) : t("8 caractères minimum")}>
         <PasswordInput
           id="password"
           name="password"
@@ -138,25 +141,25 @@ export function SignUpForm({ next, referral }: { next?: string; referral?: strin
       <label className="flex items-start gap-3 text-sm text-ink-soft">
         <input type="checkbox" name="terms" required className="mt-0.5 h-4 w-4 accent-brand" />
         <span>
-          J&apos;accepte les{" "}
+          {t("J'accepte les")}{" "}
           <Link href="/cgu" target="_blank" className="font-semibold text-brand">
-            conditions d&apos;utilisation
+            {t("conditions d'utilisation")}
           </Link>{" "}
-          et la{" "}
+          {t("et la")}{" "}
           <Link href="/confidentialite" target="_blank" className="font-semibold text-brand">
-            politique de confidentialité
+            {t("politique de confidentialité")}
           </Link>
           .
         </span>
       </label>
       <FormMessage state={state} />
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
-        {pending ? "Création…" : "Créer mon compte"}
+        {pending ? t("Création…") : t("Créer mon compte")}
       </Button>
       <p className="text-center text-sm text-muted">
-        Déjà inscrit ?{" "}
+        {t("Déjà inscrit ?")}{" "}
         <Link href={`/connexion${next ? `?suite=${encodeURIComponent(next)}` : ""}`} className="font-semibold text-brand">
-          Se connecter
+          {t("Se connecter")}
         </Link>
       </p>
     </form>

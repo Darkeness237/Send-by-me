@@ -4,6 +4,8 @@ import { Bus, Car, Home, Plane, TrainFront } from "lucide-react";
 import { RouteArc } from "@/components/journey";
 import { euros } from "@/lib/pricing";
 import { CATEGORIES, type TripMode } from "@/lib/types";
+import { useLocale, useT } from "@/i18n/client";
+import { intlLocale, type Locale, type T } from "@/i18n/config";
 
 const MODE_ICON = {
   plane: Plane,
@@ -26,12 +28,12 @@ function code(city: string, iata?: string) {
     : "···";
 }
 
-function dateLabel(value?: string) {
-  if (!value) return "Date à choisir";
+function dateLabel(t: T, lang: Locale, value?: string) {
+  if (!value) return t("Date à choisir");
   const d = new Date(`${value}T12:00:00`);
   return Number.isNaN(d.getTime())
     ? value
-    : d.toLocaleDateString("fr-FR", {
+    : d.toLocaleDateString(intlLocale(lang), {
         weekday: "short",
         day: "numeric",
         month: "long",
@@ -51,6 +53,7 @@ function Codes({
   toCode: string;
   dark?: boolean;
 }) {
+  const t = useT();
   const ready = Boolean(from && to);
   const muted = dark ? "text-white/70" : "text-ink-soft";
   return (
@@ -63,7 +66,7 @@ function Codes({
           {fromCode}
         </p>
         <p className={`truncate text-sm ${muted}`}>
-          {from.split(",")[0] || "Départ"}
+          {from.split(",")[0] || t("Départ")}
         </p>
       </div>
       <RouteArc
@@ -79,7 +82,7 @@ function Codes({
           {toCode}
         </p>
         <p className={`truncate text-sm ${muted}`}>
-          {to.split(",")[0] || "Arrivée"}
+          {to.split(",")[0] || t("Arrivée")}
         </p>
       </div>
     </div>
@@ -110,6 +113,8 @@ export function TripPreview({
   kg: number;
   priceCents: number;
 }) {
+  const t = useT();
+  const lang = useLocale();
   const Icon = MODE_ICON[mode];
   const total = Math.max(0, Math.round(kg * priceCents));
   return (
@@ -117,9 +122,9 @@ export function TripPreview({
       <div className="px-6 pt-5 pb-6">
         <div className="flex items-center justify-between text-sm text-white/65">
           <span className="font-semibold tracking-wide text-white uppercase">
-            Votre annonce
+            {t("Votre annonce")}
           </span>
-          <span className="first-letter:uppercase">{dateLabel(date)}</span>
+          <span className="first-letter:uppercase">{dateLabel(t, lang, date)}</span>
         </div>
         <div className="mt-5">
           <Codes
@@ -134,31 +139,31 @@ export function TripPreview({
       <div className="perforation mx-6 opacity-30" />
       <dl className="tabular grid grid-cols-2 gap-x-4 gap-y-4 px-6 py-5 text-sm">
         <div>
-          <dt className="text-white/55">Transport</dt>
+          <dt className="text-white/55">{t("Transport")}</dt>
           <dd className="mt-0.5 flex items-center gap-1.5 font-semibold">
             <Icon className="h-4 w-4 text-signal" aria-hidden="true" />
             {mode === "plane" && flight ? flight : MODE_LABEL[mode]}
           </dd>
         </div>
         <div>
-          <dt className="text-white/55">Départ</dt>
+          <dt className="text-white/55">{t("Départ")}</dt>
           <dd className="mt-0.5 font-semibold">{time || "--:--"}</dd>
         </div>
         <div>
-          <dt className="text-white/55">Kilos libres</dt>
+          <dt className="text-white/55">{t("Kilos libres")}</dt>
           <dd key={kg} className="pop-in mt-0.5 font-semibold">
-            {kg || 0} kg
+            {t("{v} kg", { v: kg || 0 })}
           </dd>
         </div>
         <div>
-          <dt className="text-white/55">Prix au kilo</dt>
+          <dt className="text-white/55">{t("Prix au kilo")}</dt>
           <dd key={priceCents} className="pop-in mt-0.5 font-semibold">
             {euros(priceCents)}
           </dd>
         </div>
       </dl>
       <div className="bg-signal px-6 py-4 text-ink">
-        <p className="text-sm font-semibold">Si tout part, vous gagnez</p>
+        <p className="text-sm font-semibold">{t("Si tout part, vous gagnez")}</p>
         <p key={total} className="display pop-in text-3xl">
           {euros(total)}
         </p>
@@ -191,7 +196,10 @@ export function ParcelPreview({
   homeDelivery: boolean;
   latest?: string;
 }) {
-  const label = CATEGORIES.find((c) => c.id === category)?.label;
+  const t = useT();
+  const lang = useLocale();
+  const fr = CATEGORIES.find((c) => c.id === category)?.label;
+  const label = fr && t(fr);
   return (
     <div className="relative">
       <div className="relative overflow-hidden rounded-3xl bg-[#e9d3ae] p-1.5 shadow-[0_24px_60px_-30px_rgb(14_48_76/0.7)]">
@@ -203,10 +211,10 @@ export function ParcelPreview({
         <div className="relative rounded-[20px] bg-white p-5">
           <div className="flex items-center justify-between">
             <span className="text-sm font-bold tracking-wide uppercase">
-              Colis
+              {t("Colis")}
             </span>
             <span className="text-sm text-muted">
-              {latest ? `avant le ${dateLabel(latest)}` : "Dates à choisir"}
+              {latest ? t("avant le {dateLabel}", { dateLabel: dateLabel(t, lang, latest) }) : t("Dates à choisir")}
             </span>
           </div>
           <div className="mt-4">
@@ -220,15 +228,15 @@ export function ParcelPreview({
           <div className="perforation my-4" />
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-sm text-muted">Contenu</p>
+              <p className="text-sm text-muted">{t("Contenu")}</p>
               <p key={label} className="pop-in truncate font-semibold">
-                {label ?? "À préciser"}
+                {label ?? t("À préciser")}
               </p>
               {dims && <p className="text-sm text-muted">{dims}</p>}
             </div>
             <p key={kg} className="display pop-in shrink-0 text-4xl">
               {kg || 0}
-              <span className="ml-1 text-lg">kg</span>
+              <span className="ml-1 text-lg">{t("kg")}</span>
             </p>
           </div>
           {/* Code-barres décoratif */}
@@ -248,7 +256,7 @@ export function ParcelPreview({
       </div>
       {homeDelivery && (
         <span className="stamp-in absolute -top-3 -right-2 flex items-center gap-1.5 rounded-lg border-2 border-brand bg-white px-2.5 py-1 text-xs font-extrabold text-brand uppercase">
-          <Home className="h-3.5 w-3.5" aria-hidden="true" /> À domicile
+          <Home className="h-3.5 w-3.5" aria-hidden="true" />{" "}{t("À domicile")}
         </span>
       )}
       {photos.length > 0 && (

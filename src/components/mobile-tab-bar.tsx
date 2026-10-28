@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import { MessageCircle, PackagePlus, Plane, Search, UserRound } from "lucide-react";
+import { useT } from "@/i18n/client";
 
 const TABS = [
   { href: "/recherche", label: "Trouver", icon: Search },
@@ -28,9 +29,10 @@ function ActiveTabBar() {
 }
 
 function TabBar({ path }: { path: string }) {
+  const t = useT();
   return (
     <nav
-      aria-label="Navigation principale"
+      aria-label={t("Navigation principale")}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
     >
       <ul className="mx-auto grid max-w-md grid-cols-5">
@@ -46,7 +48,7 @@ function TabBar({ path }: { path: string }) {
                 ) : (
                   <Icon className={`h-5 w-5 ${active ? "text-brand" : "text-muted"}`} aria-hidden="true" />
                 )}
-                <span className={primary ? "text-brand" : active ? "text-brand" : "text-muted"}>{label}</span>
+                <span className={primary ? "text-brand" : active ? "text-brand" : "text-muted"}>{t(label)}</span>
               </Link>
             </li>
           );
