@@ -8,8 +8,7 @@ import { Avatar } from "@/components/avatar";
 import { BookingForm } from "@/components/booking-form";
 import { TakeoffBanner } from "@/components/journey";
 import { PageShell } from "@/components/page-shell";
-import { startInquiry } from "@/app/actions/messages";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink, buttonClass } from "@/components/ui/button";
 import { proposeTrip } from "@/app/actions/requests";
 import { boostTrip } from "@/app/actions/trips";
 import { BOOST_FEE_CENTS } from "@/lib/ambassador";
@@ -137,11 +136,10 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
               ) : null}
               {traveler.bio && <p className="mt-4 leading-relaxed text-ink-soft">{traveler.bio}</p>}
               {!isOwner && trip.status !== "cancelled" && (
-                <form action={startInquiry.bind(null, trip.id)} className="mt-5">
-                  <Button type="submit" variant="outline" size="sm">
-                    <MessageCircle className="h-4 w-4" aria-hidden="true" /> Poser une question à {traveler.full_name || "ce voyageur"}
-                  </Button>
-                </form>
+                // Lien classique (chargement complet) : la page ouvre la discussion puis redirige côté serveur.
+                <a href={`/messages/nouveau?trajet=${trip.id}`} className={buttonClass("outline", "sm", "mt-5")}>
+                  <MessageCircle className="h-4 w-4" aria-hidden="true" /> Poser une question à {traveler.full_name || "ce voyageur"}
+                </a>
               )}
             </section>
           )}
