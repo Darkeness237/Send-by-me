@@ -23,7 +23,8 @@ export function TripQuote({
   const t = useT();
   const [weight, setWeight] = useState(Math.min(5, maxKg));
   const [delivery, setDelivery] = useState(false);
-  const q = quote(pricePerKgCents, weight || 0.5, delivery && deliveryCountry !== null ? homeDeliveryFor(deliveryCountry, roundKg(weight || 0.5)) : 0);
+  const [bulky, setBulky] = useState(false);
+  const q = quote(pricePerKgCents, weight || 0.5, delivery && deliveryCountry !== null ? homeDeliveryFor(deliveryCountry, roundKg(weight || 0.5), bulky) : 0);
   const suite = encodeURIComponent(`/trajets/${tripId}`);
   return (
     <div className="space-y-5">
@@ -54,6 +55,15 @@ export function TripQuote({
             <span className="block text-sm text-muted">{t("Notre livreur récupère le colis à l'arrivée et l'apporte chez votre proche.")}</span>
           </span>
         </label>
+      )}
+      {deliveryCountry !== null && delivery && (weight || 0) <= 10 && (
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-card p-3 text-sm ring-1 ring-line">
+              <input type="checkbox" checked={bulky} onChange={(e) => setBulky(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand" />
+              <span>
+                <span className="block font-semibold">{t("Colis encombrant")}</span>
+                <span className="block text-muted">{t("Léger mais volumineux (plus grand qu'une valise cabine) : notre livreur le facture au volume.")}</span>
+              </span>
+            </label>
       )}
       <dl className="tabular space-y-2 rounded-2xl bg-paper p-4 text-[15px]">
         <div className="flex justify-between">

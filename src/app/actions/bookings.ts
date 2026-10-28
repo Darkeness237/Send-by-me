@@ -61,6 +61,7 @@ const requestSchema = z.object({
   declaration: z.literal("on", { error: "Confirmez que le colis ne contient aucun objet interdit" }),
   home_delivery: z.literal("on").optional(),
   delivery_address: z.string().trim().max(300).optional(),
+  delivery_bulky: z.literal("on").optional(),
 });
 
 export async function requestBooking(_: FormState, formData: FormData): Promise<FormState> {
@@ -88,6 +89,7 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
     return { error: "Ce voyageur n'accepte pas ce type de colis." };
 
   const wantsDelivery = d.home_delivery === "on";
+  const bulky = wantsDelivery && d.delivery_bulky === "on" && roundKg(d.weight_kg) <= 10;
   if (wantsDelivery && (d.delivery_address ?? "").length < 5) return { error: "Indiquez l'adresse de livraison du destinataire." };
 
   const { count } = await admin
@@ -99,7 +101,7 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
   if (count) return { error: "Vous avez déjà une demande en cours sur ce trajet." };
 
   // Prix recalculé ici, à partir du trajet en base. Une proposition de prix ne s'applique qu'une fois acceptée.
-  const q = quote(trip.price_per_kg_cents, d.weight_kg, wantsDelivery ? homeDeliveryFor(trip.to_country, roundKg(d.weight_kg)) : 0);
+  const q = quote(trip.price_per_kg_cents, d.weight_kg, wantsDelivery ? homeDeliveryFor(trip.to_country, roundKg(d.weight_kg), bulky) : 0);
   const offerCents = d.offer_price ? Math.round(d.offer_price * 100) : null;
 
   const { data: booking, error } = await admin
@@ -128,7 +130,7 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
   if (error || !booking) return { error: "La demande n'a pas pu être envoyée. Réessayez." };
   if (wantsDelivery) {
     // Adresse gardée à part : seuls l'expéditeur et l'équipe (pour le partenaire de livraison) la voient.
-    await admin.from("booking_deliveries").insert({ booking_id: booking.id, sender_id: userId, address: d.delivery_address });
+    await admin.from("booking_deliveries").insert({ booking_id: booking.id, sender_id: userId, address: d.delivery_address, bulky });
   }
   // Crédit de parrainage : déduit des frais, au plus la commission Send By Me (la part du voyageur est intacte).
   await admin.rpc("apply_booking_credit", { p_booking_id: booking.id, p_max_cents: q.commissionCents });

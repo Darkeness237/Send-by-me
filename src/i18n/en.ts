@@ -1347,4 +1347,6 @@ export const en: Record<string, string> = {
   "Affichage": "Display",
   "« Auto » passe en mode nuit quand votre téléphone le fait.": "“Auto” switches to dark mode when your phone does.",
   "IBAN enregistré. Vos gains seront versés sur ce compte.": "IBAN saved. Your earnings will be paid to this account.",
+  "Colis encombrant": "Bulky parcel",
+  "Léger mais volumineux (plus grand qu'une valise cabine) : notre livreur le facture au volume.": "Light but bulky (bigger than a cabin suitcase): our courier charges it by volume.",
 };

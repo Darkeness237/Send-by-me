@@ -251,7 +251,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
   if (tab === "livraisons") {
     const { data: rows } = await db
       .from("bookings")
-      .select("id, status, tracking_code, delivery_status, delivery_partner_ref, weight_kg, recipient_name, recipient_phone, trip:trips(to_city, departure_at), delivery:booking_deliveries(address)")
+      .select("id, status, tracking_code, delivery_status, delivery_partner_ref, weight_kg, recipient_name, recipient_phone, trip:trips(to_city, departure_at), delivery:booking_deliveries(address, bulky)")
       .gt("delivery_cents", 0)
       .in("status", ["paid", "picked_up"])
       .order("created_at", { ascending: true })
@@ -271,7 +271,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
             <li key={id} className="rounded-2xl bg-card p-5 ring-1 ring-line">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="font-bold">
-                  <span className="wide tabular">{b.tracking_code as string}</span> · {trip?.to_city as string} · {b.weight_kg as number} kg
+                  <span className="wide tabular">{b.tracking_code as string}</span> · {trip?.to_city as string} · {b.weight_kg as number} kg{one(b.delivery)?.bulky ? " · encombrant" : ""}
                 </p>
                 <span className="rounded-full bg-paper px-2.5 py-0.5 text-xs font-semibold">
                   {DELIVERY_STATUS_LABEL[(b.delivery_status as DeliveryStatus) ?? "requested"]}

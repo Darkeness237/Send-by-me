@@ -25,7 +25,8 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
   const [state, action, pending] = useActionState(requestBooking, null);
   const [weight, setWeight] = useState(Math.min(5, maxKg));
   const [delivery, setDelivery] = useState(false);
-  const q = quote(pricePerKgCents, weight || 0.5, delivery && deliveryCountry !== null ? homeDeliveryFor(deliveryCountry, roundKg(weight || 0.5)) : 0);
+  const [bulky, setBulky] = useState(false);
+  const q = quote(pricePerKgCents, weight || 0.5, delivery && deliveryCountry !== null ? homeDeliveryFor(deliveryCountry, roundKg(weight || 0.5), bulky) : 0);
   const discount = Math.min(creditCents, q.commissionCents);
   const categories = CATEGORIES.filter((c) => acceptedCategories.includes(c.id));
 
@@ -115,6 +116,15 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
               </span>
             </span>
           </label>
+          {delivery && (weight || 0) <= 10 && (
+            <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-xl bg-card p-3 text-sm ring-1 ring-line">
+              <input type="checkbox" name="delivery_bulky" checked={bulky} onChange={(e) => setBulky(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand" />
+              <span>
+                <span className="block font-semibold">{t("Colis encombrant")}</span>
+                <span className="block text-muted">{t("Léger mais volumineux (plus grand qu'une valise cabine) : notre livreur le facture au volume.")}</span>
+              </span>
+            </label>
+          )}
           {delivery && (
             <Field label={t("Adresse de livraison")} htmlFor="delivery_address" hint={t("Transmise uniquement à notre partenaire de livraison, jamais au voyageur.")}>
               <Textarea id="delivery_address" name="delivery_address" required minLength={5} maxLength={300} rows={2} placeholder={t("Quartier, rue, point de repère")} />
