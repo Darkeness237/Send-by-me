@@ -7,6 +7,7 @@ import { isSupabaseConfigured, SITE_URL } from "@/lib/env";
 import { findPlace } from "@/lib/places";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { cleanIban, isValidIban, MOBILE_OPERATORS } from "@/lib/payout";
+import { CONNECT_COUNTRIES, ensureConnectAccount, expressDashboardUrl, getConnectAccount, onboardingUrl } from "@/lib/stripe-connect";
 import { REPORT_REASONS } from "@/lib/types";
 import type { FormState } from "./auth";
 
@@ -157,4 +158,39 @@ export async function deletePayoutMethod() {
   await supabase.from("payout_methods").delete().eq("user_id", userId);
   revalidatePath("/espace/profil");
   redirect("/espace/profil/versement");
+}
+
+// ── Virements automatiques (Stripe Connect) ─────────────────────
+/** Crée le compte Stripe du voyageur si besoin, puis l'envoie sur le formulaire Stripe (identité, IBAN). */
+export async function startStripeOnboarding(formData: FormData) {
+  const userId = await getUserId();
+  if (!userId) redirect("/connexion?suite=/espace/profil/versement");
+  const country = String(formData.get("country") ?? "FR");
+  if (!CONNECT_COUNTRIES.some(([c]) => c === country)) redirect("/espace/profil/versement?stripe=pays");
+  const supabase = await createClient();
+  const [{ data: user }, { data: profile }] = await Promise.all([supabase.auth.getUser(), supabase.from("profiles").select("full_name").eq("id", userId).maybeSingle()]);
+  let url: string;
+  try {
+    const accountId = await ensureConnectAccount(userId, country, user.user?.email ?? null, profile?.full_name ?? "");
+    url = await onboardingUrl(accountId);
+  } catch (e) {
+    console.error("Inscription Stripe du voyageur", e instanceof Error ? e.message : e);
+    redirect("/espace/profil/versement?stripe=erreur");
+  }
+  redirect(url);
+}
+
+/** Tableau de bord Stripe Express du voyageur : virements, IBAN. */
+export async function openStripeDashboard() {
+  const userId = await getUserId();
+  if (!userId) redirect("/connexion?suite=/espace/profil/versement");
+  const acc = await getConnectAccount(userId);
+  if (!acc) redirect("/espace/profil/versement");
+  let url: string;
+  try {
+    url = await expressDashboardUrl(acc.account_id);
+  } catch {
+    redirect("/espace/profil/versement?stripe=erreur");
+  }
+  redirect(url);
 }

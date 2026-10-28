@@ -50,6 +50,8 @@ const DB_PATTERNS: [RegExp, string][] = [
   [/^Pour votre colis (.+)\. Répondez-lui dans la messagerie\.$/, "About your parcel $1. Reply in your messages."],
   [/^Nouveau trajet (.+)$/, "New trip $1"],
   [/^Prime de 5 € : (\d+) livraisons réussies$/, "€5 bonus: $1 successful deliveries"],
+  [/^Virement de (.+) envoyé$/, "Transfer of $1 sent"],
+  [/^Votre part pour (.+) est en route vers votre compte bancaire\.$/, "Your share for $1 is on its way to your bank account."],
 ];
 
 /** Texte stocké en base : traduction exacte, sinon par motif. */

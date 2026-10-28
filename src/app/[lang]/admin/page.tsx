@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { setVerified } from "@/app/actions/admin";
 import { completeHomeDelivery } from "@/app/actions/tracking";
 import { DELIVERY_STATUS_LABEL, type DeliveryStatus } from "@/lib/delivery";
-import { PayoutForm, RefundForm, ResolveReportForm, ReviewForm, RewardsPayoutForm } from "@/components/admin-forms";
+import { PayoutForm, RefundForm, ResolveReportForm, ReviewForm, RewardsPayoutForm, StripePayoutButton } from "@/components/admin-forms";
 import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { buttonClass } from "@/components/ui/button";
@@ -280,6 +280,8 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
     const travelerIds = [...new Set((data ?? []).map((b) => one((b as Row).trip as Row | Row[] | null)?.traveler_id as string).filter(Boolean))];
     const { data: methods } = travelerIds.length ? await db.from("payout_methods").select("*").in("user_id", travelerIds) : { data: [] };
     const methodFor = new Map(((methods ?? []) as (PayoutMethod & { user_id: string })[]).map((m) => [m.user_id, m]));
+    const { data: connects } = travelerIds.length ? await db.from("stripe_connect_accounts").select("user_id, transfers_active").in("user_id", travelerIds) : { data: [] };
+    const stripeReady = new Set((connects ?? []).filter((c) => c.transfers_active).map((c) => c.user_id as string));
     content = (data ?? []).length ? (
       <ul className="space-y-3">
         {(data as Row[]).map((b) => {
@@ -300,6 +302,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
                 </p>
                 {(() => {
                   const m = methodFor.get(trip?.traveler_id as string);
+                  if (stripeReady.has(trip?.traveler_id as string)) return <p className="mt-1 text-sm font-semibold text-ok">Virement automatique Stripe actif (s&apos;il n&apos;est pas parti, relancez-le).</p>;
                   if (!m) return <p className="mt-1 text-sm font-semibold text-danger">Aucun moyen de versement enregistré : prévenir le voyageur.</p>;
                   return (
                     <p className="tabular mt-1 text-sm">
@@ -308,7 +311,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
                   );
                 })()}
               </div>
-              <PayoutForm bookingId={b.id as string} />
+              {stripeReady.has(trip?.traveler_id as string) ? <StripePayoutButton bookingId={b.id as string} /> : <PayoutForm bookingId={b.id as string} />}
             </li>
           );
         })}

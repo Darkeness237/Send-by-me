@@ -63,8 +63,12 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
     getUnreadCount(userId),
     getCreditBalance(userId),
     (async () => {
-      const { data } = await (await createClient()).from("payout_methods").select("user_id").eq("user_id", userId).maybeSingle();
-      return !!data;
+      const supabase = await createClient();
+      const [{ data: manual }, { data: auto }] = await Promise.all([
+        supabase.from("payout_methods").select("user_id").eq("user_id", userId).maybeSingle(),
+        supabase.from("stripe_connect_accounts").select("transfers_active").eq("user_id", userId).maybeSingle(),
+      ]);
+      return !!manual || !!auto?.transfers_active;
     })(),
   ]);
 

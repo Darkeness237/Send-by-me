@@ -107,9 +107,11 @@ const MenuGroup = ({ children }: { children: ReactNode }) => (
   <ul className="divide-y divide-line overflow-hidden rounded-3xl bg-white ring-1 ring-line">{children}</ul>
 );
 
-async function AccountTab({ payout }: { payout: PayoutMethod | null }) {
+async function AccountTab({ payout, autoPayout }: { payout: PayoutMethod | null; autoPayout: boolean }) {
   const t = await getT();
-  const payoutHint = !payout
+  const payoutHint = autoPayout
+    ? t("Virements automatiques activés")
+    : !payout
     ? t("À ajouter pour recevoir vos gains")
     : payout.kind === "iban"
       ? t("Virement · {iban}", { iban: maskIban(payout.iban ?? "") })
@@ -117,7 +119,7 @@ async function AccountTab({ payout }: { payout: PayoutMethod | null }) {
   return (
     <div className="mt-6 space-y-5">
       <MenuGroup>
-        <MenuRow href="/espace/profil/versement" icon={Landmark} label={t("Moyen de versement")} hint={payoutHint} tone={payout ? undefined : "warn"} />
+        <MenuRow href="/espace/profil/versement" icon={Landmark} label={t("Moyen de versement")} hint={payoutHint} tone={payout || autoPayout ? undefined : "warn"} />
         <MenuRow href="/espace/profil/versements" icon={Wallet} label={t("Versements reçus")} hint={t("Vos gains de voyageur et vos primes")} />
         <MenuRow href="/espace/profil/paiements" icon={Receipt} label={t("Paiements et remboursements")} hint={t("Vos envois payés et remboursés")} />
       </MenuGroup>
@@ -161,7 +163,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
   if (!profile) redirect("/espace");
   const supabase = await createClient();
   const tab = sp.onglet === "compte" ? "compte" : "apropos";
-  const [{ data: requests }, { data: contact }, { data: payout }, { count: trips }, { count: sendings }] = await Promise.all([
+  const [{ data: requests }, { data: contact }, { data: payout }, { count: trips }, { count: sendings }, { data: connect }] = await Promise.all([
     supabase
       .from("identity_verifications")
       .select("kind, status, rejection_reason, created_at")
@@ -172,7 +174,9 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
     supabase.from("payout_methods").select("*").eq("user_id", userId).maybeSingle(),
     supabase.from("trips").select("id", { count: "exact", head: true }).eq("traveler_id", userId),
     supabase.from("bookings").select("id", { count: "exact", head: true }).eq("sender_id", userId).in("status", ["paid", "picked_up", "delivered"]),
+    supabase.from("stripe_connect_accounts").select("transfers_active").eq("user_id", userId).maybeSingle(),
   ]);
+  const autoPayout = !!connect?.transfers_active;
   const last = (kind: string) => (requests ?? []).find((r) => r.kind === kind) as Request;
   const idReq = last("identity");
   const addrReq = last("address");
@@ -230,7 +234,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
       </nav>
 
       {tab === "compte" ? (
-        <AccountTab payout={payout as PayoutMethod | null} />
+        <AccountTab payout={payout as PayoutMethod | null} autoPayout={autoPayout} />
       ) : (
       <>
       <section className="mt-6 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8" aria-labelledby="verifie">
@@ -244,7 +248,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
               [true, t("E-mail confirmé"), ""],
               [!!contact?.phone_verified_at, t("Téléphone vérifié"), t("Téléphone à vérifier")],
               [!!profile.address_verified, t("Adresse vérifiée"), t("Adresse à vérifier")],
-              [!!payout, t("Moyen de versement enregistré"), t("Moyen de versement à ajouter")],
+              [!!payout || autoPayout, t("Moyen de versement enregistré"), t("Moyen de versement à ajouter")],
             ] as const
           ).map(([ok, yes, no]) => (
             <li key={yes} className="flex items-center gap-3">

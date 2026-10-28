@@ -9,6 +9,7 @@ import { isStripeConfigured, stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession } from "@/lib/supabase/server";
 import type { FormState } from "./auth";
+import { payTraveler } from "@/lib/stripe-connect";
 
 /** Chaque action admin revérifie le rôle côté serveur. */
 async function requireAdmin() {
@@ -183,4 +184,14 @@ export async function reviewTripProof(_: FormState, formData: FormData): Promise
   if (proof.file_path) await db.storage.from(VERIF_BUCKET).remove([proof.file_path]);
   revalidatePath("/admin");
   return { ok: decision === "approved" ? "Trajet vérifié. Justificatif supprimé." : "Justificatif refusé et supprimé." };
+}
+
+/** Relance le virement automatique Stripe d'une réservation livrée (compte du voyageur actif). */
+export async function payoutViaStripe(_: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const bookingId = String(formData.get("booking_id") ?? "");
+  if (!uuid.safeParse(bookingId).success) return { error: "Réservation invalide." };
+  const transferId = await payTraveler(bookingId);
+  revalidatePath("/admin");
+  return transferId ? { ok: `Virement Stripe envoyé (${transferId}).` } : { error: "Virement impossible : compte Stripe du voyageur inactif ou erreur Stripe (voir les journaux)." };
 }

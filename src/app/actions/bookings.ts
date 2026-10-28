@@ -15,6 +15,7 @@ import { createClient, getUserId } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/types";
 import type { FormState } from "./auth";
 import { getActionT } from "@/i18n/server";
+import { payTraveler } from "@/lib/stripe-connect";
 
 const uuid = z.uuid();
 const categoryIds = CATEGORIES.map((c) => c.id) as [string, ...string[]];
@@ -238,6 +239,8 @@ export async function confirmDelivery(_: FormState, formData: FormData): Promise
   const now = new Date().toISOString();
   await admin.from("bookings").update({ status: "delivered", delivered_at: now, updated_at: now }).eq("id", bookingId).eq("status", "picked_up");
   await notifyBooking(bookingId, "delivered");
+  // Virement automatique au voyageur s'il a activé Stripe ; sinon le versement reste à faire depuis l'administration.
+  await payTraveler(bookingId).catch((e) => console.error("Virement au voyageur", bookingId, e));
   refresh(bookingId);
   return { ok: "Réception validée : la transaction est terminée." };
 }

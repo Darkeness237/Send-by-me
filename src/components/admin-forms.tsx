@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { markPayoutPaid, markRewardsPaid, refundBooking, resolveReport, reviewIdentity, reviewTripProof } from "@/app/actions/admin";
+import { markPayoutPaid, markRewardsPaid, refundBooking, resolveReport, reviewIdentity, reviewTripProof, payoutViaStripe } from "@/app/actions/admin";
 import { Button } from "@/components/ui/button";
 import { FormMessage, Input } from "@/components/ui/field";
 
@@ -35,6 +35,21 @@ export function PayoutForm({ bookingId }: { bookingId: string }) {
       <Input id={`ref-${bookingId}`} name="reference" required placeholder="Référence du virement" className="w-56" />
       <Button type="submit" size="sm" disabled={pending} className="mt-1.5">
         Marquer versé
+      </Button>
+      {state?.error && <FormMessage state={state} />}
+    </form>
+  );
+}
+
+/** Compte Stripe du voyageur actif : virement automatique (ou relance si le premier a échoué). */
+export function StripePayoutButton({ bookingId }: { bookingId: string }) {
+  const [state, action, pending] = useActionState(payoutViaStripe, null);
+  if (state?.ok) return <FormMessage state={state} />;
+  return (
+    <form action={action} className="flex flex-wrap items-start gap-2">
+      <input type="hidden" name="booking_id" value={bookingId} />
+      <Button type="submit" size="sm" disabled={pending}>
+        {pending ? "Virement…" : "Verser via Stripe"}
       </Button>
       {state?.error && <FormMessage state={state} />}
     </form>
