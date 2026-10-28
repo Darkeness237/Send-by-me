@@ -1159,4 +1159,12 @@ export const en: Record<string, string> = {
   "Canada / États-Unis": "Canada / United States",
   "Politique de confidentialité": "Privacy policy",
   "Envoyez votre lien à un proche par WhatsApp, SMS ou e-mail.": "Send your link to a friend or relative by WhatsApp, SMS or e-mail.",
+  "Compte créé ! Ouvrez le lien de confirmation envoyé par e-mail (regardez aussi dans les courriers indésirables), puis connectez-vous ici.": "Account created! Open the confirmation link we e-mailed you (check your spam folder too), then log in here.",
+  "Confirmez d'abord votre adresse e-mail pour vous connecter.": "Please confirm your e-mail address first to log in.",
+  "Un compte existe déjà avec cette adresse. Connectez-vous, ou utilisez « Mot de passe oublié ? ».": "An account already exists with this address. Log in, or use “Forgotten password?”.",
+  "Trop d'envois rapprochés. Réessayez dans quelques minutes.": "Too many e-mails sent in a short time. Try again in a few minutes.",
+  "Envoi impossible pour le moment. Réessayez plus tard.": "Couldn't send it right now. Try again later.",
+  "Lien de confirmation renvoyé. Ouvrez-le depuis votre boîte mail (ou les courriers indésirables), puis connectez-vous.": "Confirmation link sent again. Open it from your inbox (or spam folder), then log in.",
+  "Votre adresse {email} n'est pas encore confirmée. Ouvrez le lien reçu par e-mail (regardez aussi dans les courriers indésirables).": "Your address {email} isn't confirmed yet. Open the link we e-mailed you (check your spam folder too).",
+  "Renvoyer l'e-mail de confirmation": "Resend the confirmation e-mail",
 };

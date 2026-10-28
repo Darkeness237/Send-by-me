@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { signIn, signUp } from "@/app/actions/auth";
+import { resendConfirmation, signIn, signUp } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 import { submitKeepingValues } from "@/components/ui/keep-form";
@@ -13,32 +13,59 @@ export function SignInForm({ next }: { next?: string }) {
   const t = useT();
   const [state, action, pending] = useActionState(signIn, null);
   return (
-    <form action={action} className="space-y-5">
-      <input type="hidden" name="suite" value={next ?? ""} />
-      <Field label={t("E-mail")} htmlFor="email">
-        <Input id="email" name="email" type="email" autoComplete="email" required />
-      </Field>
-      <Field
-        label={t("Mot de passe")}
-        htmlFor="password"
-        hint={
-          <Link href="/mot-de-passe-oublie" className="font-semibold text-brand">
-            {t("Mot de passe oublié ?")}
+    <>
+      {state?.unconfirmed && <ResendConfirmation email={state.unconfirmed} />}
+      <form action={action} onSubmit={submitKeepingValues(action)} className="space-y-5">
+        <input type="hidden" name="suite" value={next ?? ""} />
+        <Field label={t("E-mail")} htmlFor="email">
+          <Input id="email" name="email" type="email" autoComplete="email" required />
+        </Field>
+        <Field
+          label={t("Mot de passe")}
+          htmlFor="password"
+          hint={
+            <Link href="/mot-de-passe-oublie" className="font-semibold text-brand">
+              {t("Mot de passe oublié ?")}
+            </Link>
+          }
+        >
+          <PasswordInput id="password" name="password" autoComplete="current-password" required minLength={8} />
+        </Field>
+        <FormMessage state={state} />
+        <Button type="submit" size="lg" className="w-full" disabled={pending}>
+          {pending ? t("Connexion…") : t("Se connecter")}
+        </Button>
+        <p className="text-center text-sm text-muted">
+          {t("Pas encore de compte ?")}{" "}
+          <Link href={`/inscription${next ? `?suite=${encodeURIComponent(next)}` : ""}`} className="font-semibold text-brand">
+            {t("Créer un compte")}
           </Link>
-        }
-      >
-        <PasswordInput id="password" name="password" autoComplete="current-password" required minLength={8} />
-      </Field>
-      <FormMessage state={state} />
-      <Button type="submit" size="lg" className="w-full" disabled={pending}>
-        {pending ? t("Connexion…") : t("Se connecter")}
-      </Button>
-      <p className="text-center text-sm text-muted">
-        {t("Pas encore de compte ?")}{" "}
-        <Link href={`/inscription${next ? `?suite=${encodeURIComponent(next)}` : ""}`} className="font-semibold text-brand">
-          {t("Créer un compte")}
-        </Link>
+        </p>
+      </form>
+    </>
+  );
+}
+
+/** Lien de confirmation perdu ou arrivé dans les courriers indésirables : on le renvoie. */
+function ResendConfirmation({ email }: { email: string }) {
+  const t = useT();
+  const [state, resend, pending] = useActionState(resendConfirmation, null);
+  return (
+    <form action={resend} className="mb-5 space-y-3 rounded-2xl bg-signal/10 p-4 ring-1 ring-signal/30">
+      <p className="text-sm text-ink">
+        {t("Votre adresse {email} n'est pas encore confirmée. Ouvrez le lien reçu par e-mail (regardez aussi dans les courriers indésirables).", { email })}
       </p>
+      <input type="hidden" name="email" value={email} />
+      {state?.ok ? (
+        <FormMessage state={state} />
+      ) : (
+        <>
+          <Button type="submit" variant="outline" className="w-full" disabled={pending}>
+            {pending ? t("Envoi…") : t("Renvoyer l'e-mail de confirmation")}
+          </Button>
+          <FormMessage state={state} />
+        </>
+      )}
     </form>
   );
 }

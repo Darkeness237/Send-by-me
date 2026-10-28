@@ -6,7 +6,8 @@ import { isSupabaseConfigured, SITE_URL } from "@/lib/env";
 import { cleanReferralCode } from "@/lib/referral";
 import { createClient } from "@/lib/supabase/server";
 
-export type FormState = { error?: string; ok?: string } | null;
+// unconfirmed : adresse inscrite mais pas encore confirmée (le formulaire propose de renvoyer le lien).
+export type FormState = { error?: string; ok?: string; unconfirmed?: string } | null;
 
 const DEMO_ERROR = "Le site est en mode démo : connectez Supabase pour activer les comptes.";
 
@@ -28,6 +29,11 @@ export async function signIn(_: FormState, formData: FormData): Promise<FormStat
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
+  if (error?.code === "email_not_confirmed")
+    return {
+      error: "Confirmez d'abord votre adresse e-mail pour vous connecter.",
+      unconfirmed: parsed.data.email,
+    };
   if (error) return { error: "E-mail ou mot de passe incorrect." };
   const next = safeNext(formData.get("suite"));
   // Premier passage : écran de bienvenue (photo, téléphone, identité).
@@ -85,11 +91,26 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
   if (error) {
     return { error: error.code === "weak_password" ? "Mot de passe trop faible, choisissez-en un plus long." : "Inscription impossible avec cette adresse." };
   }
+  // Adresse déjà inscrite et confirmée : Supabase ne crée rien et ne prévient pas, on le dit au membre.
+  if (data.user && !data.user.identities?.length) {
+    return { error: "Un compte existe déjà avec cette adresse. Connectez-vous, ou utilisez « Mot de passe oublié ? »." };
+  }
   if (!data.session) {
     const next = safeNext(formData.get("suite"));
     redirect(`/connexion?inscrit=1&suite=${encodeURIComponent(next)}`);
   }
   redirect(safeNext(formData.get("suite")));
+}
+
+/** Renvoie le lien de confirmation d'inscription. */
+export async function resendConfirmation(_: FormState, formData: FormData): Promise<FormState> {
+  if (!isSupabaseConfigured) return { error: DEMO_ERROR };
+  const email = z.email().max(200).safeParse(formData.get("email"));
+  if (!email.success) return { error: "Adresse e-mail invalide." };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({ type: "signup", email: email.data, options: { emailRedirectTo: `${SITE_URL}/auth/confirm` } });
+  if (error) return { error: error.status === 429 ? "Trop d'envois rapprochés. Réessayez dans quelques minutes." : "Envoi impossible pour le moment. Réessayez plus tard." };
+  return { ok: "Lien de confirmation renvoyé. Ouvrez-le depuis votre boîte mail (ou les courriers indésirables), puis connectez-vous." };
 }
 
 export async function signOut() {

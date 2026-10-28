@@ -17,7 +17,7 @@ async function Form({ searchParams }: { searchParams: Promise<Record<string, str
     <>
       {sp.inscrit === "1" && (
         <p role="status" className="mb-5 rounded-xl bg-ok-pale px-4 py-3 text-sm text-ok">
-          {t("Compte créé ! Ouvrez le lien de confirmation reçu par e-mail, puis connectez-vous ici.")}
+          {t("Compte créé ! Ouvrez le lien de confirmation envoyé par e-mail (regardez aussi dans les courriers indésirables), puis connectez-vous ici.")}
         </p>
       )}
       {(sp.erreur === "google" || sp.erreur === "facebook") && (
