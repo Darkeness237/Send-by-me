@@ -1,6 +1,6 @@
 # Kit marketing Send By Me — campagnes et mode d'emploi
 
-Ce dossier contient **138 visuels** (`visuels/`) et **26 vidéos MP4** (`videos/`, 15 films déclinés en plusieurs formats), prêts à publier, ainsi que les textes qui vont avec (`CONTENUS.md`). Tout respecte la charte : police Nunito, bleu nuit `#0e304c`, bleu-vert `#2f7a82`, orange `#eb9332`, crème `#fbf8f1`.
+Ce dossier contient **138 visuels** (`visuels/`) et **des vidéos MP4 avec voix off et musique** (`videos/`) : 9 vidéos longues de 45 s à 1 min 30 (numéros 20 à 28) et 15 formats courts (numéros 01 à 15), prêts à publier, ainsi que les textes qui vont avec (`CONTENUS.md`). Tout respecte la charte : police Nunito, bleu nuit `#0e304c`, bleu-vert `#2f7a82`, orange `#eb9332`, crème `#fbf8f1`.
 
 > **Règles à garder.** Aucun chiffre de clients, aucun avis ni témoignage n'a été inventé. Les montants affichés (207 €, 53,80 €) sont des **exemples** signalés comme tels et calculés avec les vrais tarifs du site. Quand vous aurez de vrais témoignages, recueillez un accord écrit avant de les publier. Les photos viennent de Pexels (licence gratuite, usage commercial autorisé, voir `docs/CREDITS.md`) : ne présentez jamais une personne photographiée comme une cliente qui recommande Send By Me.
 
@@ -85,7 +85,7 @@ Les vidéos animées du dossier `videos/` lancent la marque. Pour la suite, rien
 4. **« Ce que maman a reçu »** — ouverture du colis par la famille (avec accord), sans voix off, musique tendance.
 5. **« Mythe ou réalité ? »** — format micro-trottoir dans un quartier (Château-Rouge, Matonge) : « Vous payez d'avance votre GP ? » puis l'explication du paiement bloqué.
 
-Ajoutez les musiques directement dans TikTok, Instagram ou CapCut (bibliothèques libres de droits de chaque application). Les vidéos fournies sont muettes pour cette raison.
+Les vidéos fournies ont une **voix off française** (synthèse vocale Piper, voix « siwis », licence CC BY 4.0 : mentionner « Voix : SIWIS (CC BY 4.0) » dans la description quand c'est possible) et une **musique originale** composée pour Send By Me, libre de droits. Sur TikTok et Instagram, vous pouvez aussi baisser la piste d'origine et ajouter un son tendance.
 
 ---
 
@@ -171,7 +171,8 @@ Gardez les 3 visuels qui marchent le mieux, déclinez-les (autre photo, autre li
 | `11-imprimes/affiche-*` | A4 à 300 dpi | Commerces, associations, campus |
 | `12-bannieres/` | Tailles Google Display (2x) | Google Ads, sites partenaires |
 | `14-conseils/` | 1080 × 1080 et 1350 | Contenu utile entre deux campagnes (à épingler) |
-| `videos/*-9x16.mp4` | 1080 × 1920 | Reels, TikTok, Stories, YouTube Shorts |
+| `videos/2*-9x16.mp4` | 1080 × 1920, 45 s à 1 min 30 | Reels, TikTok, YouTube Shorts (moins de 60 s) ou vidéo longue, publicité Meta |
+| `videos/0*` et `1*-9x16.mp4` | 1080 × 1920, 10 à 25 s | Stories, Reels courts, statuts WhatsApp |
 | `videos/*-1x1.mp4` | 1080 × 1080 | Feed Facebook et Instagram |
 | `videos/*-16x9.mp4` | 1920 × 1080 | YouTube, site, LinkedIn |
 

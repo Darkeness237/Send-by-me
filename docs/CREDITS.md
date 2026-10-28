@@ -33,3 +33,6 @@ Photos supplémentaires issues de Pexels (même licence), utilisées uniquement 
 Les photos du site (`public/images/`) sont aussi utilisées.
 
 Police : **Nunito** (`marketing/_src/fonts/`), licence SIL Open Font License 1.1, https://github.com/google/fonts/tree/main/ofl/nunito
+
+
+Voix off des vidéos : synthèse vocale Piper (https://github.com/rhasspy/piper), voix `fr_FR-siwis-medium` entraînée sur le corpus SIWIS (https://datashare.is.ed.ac.uk/handle/10283/2353), licence CC BY 4.0. Musique : composition originale générée par `marketing/_src/music.py`, propriété de Send By Me.
