@@ -5,7 +5,7 @@ import { JourneyHero } from "@/components/journey";
 import { PageShell } from "@/components/page-shell";
 import { PublishForm } from "@/components/publish-form";
 import { getMarketPrices } from "@/lib/data";
-import aeroport from "../../../../public/images/aeroport-depart.jpg";
+import voyageuse from "../../../../public/images/voyageuse-prepare.jpg";
 import { getT } from "@/i18n/server";
 import { GuestGate } from "@/components/guest-gate";
 import { getUserId } from "@/lib/supabase/server";
@@ -43,9 +43,9 @@ export default async function PublishPage() {
     <PageShell>
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:py-10">
         <JourneyHero
-          image={aeroport}
-          alt={t("Une voyageuse attend son vol à l'aéroport")}
-          position="50% 30%"
+          image={voyageuse}
+          alt={t("Une voyageuse souriante prépare sa valise")}
+          position="50% 25%"
           eyebrow={t("Vous partez bientôt ?")}
           title={t("Proposer mes kilos")}
           text={t("Votre valise a de la place ? Des familles attendent un colis sur votre ligne. Vous choisissez qui vous aidez, et vous fixez votre prix.")}

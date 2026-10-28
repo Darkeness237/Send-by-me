@@ -1226,4 +1226,7 @@ export const en: Record<string, string> = {
   "Un colis remis en main propre à une jeune fille, chez elle": "A parcel handed to a girl at home",
   "Trouver un trajet": "Find a trip",
   "auprès du voyageur, dès son arrivée.": "from the traveller, as soon as they arrive.",
+  "Une voyageuse souriante prépare sa valise": "A smiling traveller packs her suitcase",
+  "Une étiquette collée sur un colis prêt à partir": "A label stuck on a parcel ready to go",
+  "Un livreur remet un colis en main propre": "A courier hands over a parcel in person",
 };

@@ -5,7 +5,7 @@ import { JourneyHero } from "@/components/journey";
 import { PageShell } from "@/components/page-shell";
 import { RequestForm } from "@/components/request-form";
 import { getUserId } from "@/lib/supabase/server";
-import remise from "../../../../../public/images/remise-colis.jpg";
+import preparer from "../../../../../public/images/preparer-colis.jpg";
 import { getT } from "@/i18n/server";
 import { GuestGate } from "@/components/guest-gate";
 
@@ -41,8 +41,8 @@ export default async function NewRequestPage(props: PageProps<"/[lang]/demandes/
     <PageShell>
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:py-10">
         <JourneyHero
-          image={remise}
-          alt={t("Un colis passe de main en main")}
+          image={preparer}
+          alt={t("Une étiquette collée sur un colis prêt à partir")}
           eyebrow={t("Envoyer un colis")}
           title={t("Publier une demande d'envoi")}
           text={t("Dites-nous ce que vous envoyez et où. Les voyageurs qui partent sur votre ligne vous contactent.")}
