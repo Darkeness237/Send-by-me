@@ -16,7 +16,6 @@ import { getCreditBalance, getTrip, getTripProof, matchingRequests } from "@/lib
 import { isSupabaseConfigured } from "@/lib/env";
 import { TripProofForm } from "@/components/verification-forms";
 import { isUpcoming, kg, longDate, memberSince, timeLabel } from "@/lib/format";
-import { homeDeliveryFor } from "@/lib/delivery";
 import { airlineName, TRANSPORT_CHECK_LABEL } from "@/lib/flights";
 import { codeFor, tzFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
@@ -337,14 +336,14 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
             ) : !bookable ? (
               <p className="text-muted">{t("Ce trajet n'accepte plus de réservations.")}</p>
             ) : !userId ? (
-              <TripQuote tripId={trip.id} pricePerKgCents={trip.price_per_kg_cents} maxKg={left} homeDeliveryCents={homeDeliveryFor(trip.to_country)} />
+              <TripQuote tripId={trip.id} pricePerKgCents={trip.price_per_kg_cents} maxKg={left} deliveryCountry={trip.to_country} />
             ) : (
               <BookingForm
                 tripId={trip.id}
                 pricePerKgCents={trip.price_per_kg_cents}
                 maxKg={left}
                 acceptedCategories={trip.accepted_categories}
-                homeDeliveryCents={homeDeliveryFor(trip.to_country)}
+                deliveryCountry={trip.to_country}
                 creditCents={credit}
               />
             )}

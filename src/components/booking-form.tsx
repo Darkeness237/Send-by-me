@@ -5,26 +5,27 @@ import { requestBooking } from "@/app/actions/bookings";
 import { Field, FormMessage, Input, Select, Textarea } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { submitKeepingValues } from "@/components/ui/keep-form";
-import { COMMISSION_TIERS, euros, percent, quote, SECURITY_FEE_CENTS } from "@/lib/pricing";
+import { COMMISSION_TIERS, euros, percent, quote, roundKg, SECURITY_FEE_CENTS } from "@/lib/pricing";
 import { CATEGORIES, groupedCategories } from "@/lib/types";
 import { useT } from "@/i18n/client";
 import { Truck } from "lucide-react";
+import { homeDeliveryFor } from "@/lib/delivery";
 
 type Props = {
   tripId: string;
   pricePerKgCents: number;
   maxKg: number;
   acceptedCategories: string[];
-  homeDeliveryCents: number;
+  deliveryCountry: string | null; // null : livraison à domicile indisponible
   creditCents?: number;
 };
 
-export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories, homeDeliveryCents, creditCents = 0 }: Props) {
+export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories, deliveryCountry, creditCents = 0 }: Props) {
   const t = useT();
   const [state, action, pending] = useActionState(requestBooking, null);
   const [weight, setWeight] = useState(Math.min(5, maxKg));
   const [delivery, setDelivery] = useState(false);
-  const q = quote(pricePerKgCents, weight || 0.5, delivery ? homeDeliveryCents : 0);
+  const q = quote(pricePerKgCents, weight || 0.5, delivery && deliveryCountry !== null ? homeDeliveryFor(deliveryCountry, roundKg(weight || 0.5)) : 0);
   const discount = Math.min(creditCents, q.commissionCents);
   const categories = CATEGORIES.filter((c) => acceptedCategories.includes(c.id));
 
@@ -93,7 +94,7 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
         </div>
       </details>
 
-      {homeDeliveryCents > 0 ? (
+      {deliveryCountry !== null ? (
         <div className="rounded-2xl border-2 border-signal/50 bg-signal/5 p-4 has-checked:border-brand has-checked:bg-brand-pale/40">
           <label className="flex cursor-pointer items-start gap-3">
             <input

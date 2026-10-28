@@ -1,10 +1,11 @@
 import "server-only";
 
+import { partnerCostCents } from "@/lib/delivery";
 import { STRIPE_FIXED_CENTS, STRIPE_RATE } from "@/lib/pricing";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const EXPENSE_CATEGORIES = [
-  ["livraison", "Livreur partenaire"],
+  ["livraison", "Livreur : suppléments (zones éloignées)"],
   ["stripe", "Frais Stripe réels / litiges"],
   ["marketing", "Publicité et flyers"],
   ["logiciel", "Logiciels et hébergement"],
@@ -47,6 +48,8 @@ export type Finances = {
   deliveryFees: number; // livraison à domicile
   boosts: number; // mises en avant payées par les voyageurs
   stripe: number; // frais Stripe estimés
+  partner: number; // livreur partenaire, estimé d'après sa grille
+  deliveries: number;
   rewards: number; // primes ambassadeurs dues sur la période
   expenses: Expense[];
   expensesTotal: number;
@@ -59,7 +62,7 @@ export async function getFinances(period: Period, nowMs: number): Promise<Financ
   const { from, to } = periodRange(period, nowMs);
   const since = <T extends { gte: (c: string, v: string) => T }>(q: T, col: string) => (from ? q.gte(col, from) : q);
   const [{ data: rows }, { data: boosted }, { data: rewards }, { data: expenses }] = await Promise.all([
-    since(db.from("bookings").select("total_cents, base_cents, fee_cents, delivery_cents").in("status", ["paid", "picked_up", "delivered"]).lt("paid_at", to), "paid_at").limit(10000),
+    since(db.from("bookings").select("total_cents, base_cents, fee_cents, delivery_cents, weight_kg, trip:trips(to_country)").in("status", ["paid", "picked_up", "delivered"]).lt("paid_at", to), "paid_at").limit(10000),
     since(db.from("trips").select("boost_fee_cents").gt("boost_fee_cents", 0).lt("boosted_at", to), "boosted_at").limit(10000),
     since(db.from("ambassador_rewards").select("amount_cents").lt("created_at", to), "created_at").limit(10000),
     since(db.from("admin_expenses").select("id, spent_on, category, label, amount_cents, booking_id").lt("spent_on", period === "mois-1" ? to.slice(0, 10) : "9999-12-31"), "spent_on")
@@ -68,7 +71,9 @@ export async function getFinances(period: Period, nowMs: number): Promise<Financ
       .limit(500),
   ]);
   const sum = <T,>(list: T[] | null, f: (r: T) => number) => (list ?? []).reduce((a, r) => a + (f(r) || 0), 0);
-  type B = { total_cents: number; base_cents: number; fee_cents: number; delivery_cents: number | null };
+  type B = { total_cents: number; base_cents: number; fee_cents: number; delivery_cents: number | null; weight_kg: number; trip: { to_country: string } | { to_country: string }[] | null };
+  const country = (r: B) => (Array.isArray(r.trip) ? r.trip[0] : r.trip)?.to_country ?? null;
+  const withDelivery = ((rows ?? []) as B[]).filter((r) => (r.delivery_cents ?? 0) > 0);
   const b = (rows ?? []) as B[];
   const f = {
     bookings: b.length,
@@ -78,10 +83,12 @@ export async function getFinances(period: Period, nowMs: number): Promise<Financ
     deliveryFees: sum(b, (r) => r.delivery_cents ?? 0),
     boosts: sum(boosted as { boost_fee_cents: number }[] | null, (r) => r.boost_fee_cents),
     stripe: sum(b, (r) => stripeEstimate(r.total_cents)),
+    partner: sum(withDelivery, (r) => partnerCostCents(country(r), Number(r.weight_kg))),
+    deliveries: withDelivery.length,
     rewards: sum(rewards as { amount_cents: number }[] | null, (r) => r.amount_cents),
     expenses: (expenses ?? []) as Expense[],
   };
   const expensesTotal = sum(f.expenses, (e) => e.amount_cents);
   const revenue = f.serviceFees + f.deliveryFees + f.boosts;
-  return { ...f, expensesTotal, revenue, net: revenue - f.stripe - f.rewards - expensesTotal };
+  return { ...f, expensesTotal, revenue, net: revenue - f.stripe - f.partner - f.rewards - expensesTotal };
 }

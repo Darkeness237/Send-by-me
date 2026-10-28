@@ -158,7 +158,7 @@ export async function AdminOverview({ queues }: { queues: Queue[] }) {
           icon={PiggyBank}
           label="Résultat net estimé (30 j)"
           value={euros(fin.net)}
-          sub={`Revenus ${euros(fin.revenue)} − coûts ${euros(fin.stripe + fin.rewards + fin.expensesTotal)} · voir le détail →`}
+          sub={`Revenus ${euros(fin.revenue)} − coûts ${euros(fin.stripe + fin.partner + fin.rewards + fin.expensesTotal)} · voir le détail →`}
           href="/admin?onglet=finances"
         />
         <Tile icon={Users} label="Membres" value={String(members ?? 0)} sub={`+${newMembers ?? 0} ce mois · ${verified ?? 0} vérifiés`} />

@@ -4,25 +4,26 @@ import { useState } from "react";
 import { BadgeCheck, KeyRound, Lock, Truck } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
-import { euros, quote } from "@/lib/pricing";
+import { euros, quote, roundKg } from "@/lib/pricing";
 import { useT } from "@/i18n/client";
+import { homeDeliveryFor } from "@/lib/delivery";
 
 /** Visiteur sans compte : il simule le prix exact sur ce trajet avant qu'on lui demande de s'inscrire. */
 export function TripQuote({
   tripId,
   pricePerKgCents,
   maxKg,
-  homeDeliveryCents,
+  deliveryCountry,
 }: {
   tripId: string;
   pricePerKgCents: number;
   maxKg: number;
-  homeDeliveryCents: number;
+  deliveryCountry: string | null; // null : livraison à domicile indisponible
 }) {
   const t = useT();
   const [weight, setWeight] = useState(Math.min(5, maxKg));
   const [delivery, setDelivery] = useState(false);
-  const q = quote(pricePerKgCents, weight || 0.5, delivery ? homeDeliveryCents : 0);
+  const q = quote(pricePerKgCents, weight || 0.5, delivery && deliveryCountry !== null ? homeDeliveryFor(deliveryCountry, roundKg(weight || 0.5)) : 0);
   const suite = encodeURIComponent(`/trajets/${tripId}`);
   return (
     <div className="space-y-5">
@@ -42,7 +43,7 @@ export function TripQuote({
           <span className="text-muted">{t("kg")}</span>
         </div>
       </Field>
-      {homeDeliveryCents > 0 && (
+      {deliveryCountry !== null && (
         <label className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-signal/50 bg-signal/5 p-4 has-checked:border-brand has-checked:bg-brand-pale/40">
           <input type="checkbox" checked={delivery} onChange={(e) => setDelivery(e.target.checked)} className="mt-1 h-4 w-4 accent-brand" />
           <span>

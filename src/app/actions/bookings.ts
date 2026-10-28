@@ -99,7 +99,7 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
   if (count) return { error: "Vous avez déjà une demande en cours sur ce trajet." };
 
   // Prix recalculé ici, à partir du trajet en base. Une proposition de prix ne s'applique qu'une fois acceptée.
-  const q = quote(trip.price_per_kg_cents, d.weight_kg, wantsDelivery ? homeDeliveryFor(trip.to_country) : 0);
+  const q = quote(trip.price_per_kg_cents, d.weight_kg, wantsDelivery ? homeDeliveryFor(trip.to_country, roundKg(d.weight_kg)) : 0);
   const offerCents = d.offer_price ? Math.round(d.offer_price * 100) : null;
 
   const { data: booking, error } = await admin
