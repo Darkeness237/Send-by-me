@@ -57,7 +57,7 @@ async function Results({ searchParams }: { searchParams: Promise<SP> }) {
         <ul className="mt-5 space-y-4">
           {trips.map((t) => (
             <li key={t.id}>
-              <TripTag trip={t} goodPrice={priceLevel(t.price_per_kg_cents, priceGuide(t.from_city, t.to_city, t.mode, market)) === "attractive"} />
+              <TripTag trip={t} goodPrice={priceLevel(t.price_per_kg_cents, priceGuide(t.from_city, t.to_city, t.mode, market, { from: t.from_country, to: t.to_country })) === "attractive"} />
             </li>
           ))}
         </ul>

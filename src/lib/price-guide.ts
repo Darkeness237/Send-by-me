@@ -19,13 +19,18 @@ export type PriceGuide = {
 /** Nombre d'annonces nécessaires pour se fier aux prix observés sur la ligne. */
 const MIN_SAMPLE = 3;
 
-const EUROPE = new Set(["France", "Belgique"]);
+// Pays d'Europe, en codes ISO puis en noms français (tels qu'affichés dans « Ville, Pays »).
+const EUROPE_CODES = "AD AL AT BA BE BG BY CH CY CZ DE DK EE ES FI FO FR GB GI GR HR HU IE IS IT LI LT LU LV MC MD ME MK MT NL NO PL PT RO RS RU SE SI SK SM UA VA XK".split(" ");
+const frenchName = new Intl.DisplayNames(["fr"], { type: "region" });
+const EUROPE = new Set([...EUROPE_CODES, ...EUROPE_CODES.map((c) => normalize(frenchName.of(c) ?? c))]);
 
-/** Fourchettes par défaut, quand la ligne n'a pas encore assez d'annonces. */
-function defaultRange(from: string, to: string, mode: TripMode) {
-  const a = findPlace(from)?.country;
-  const b = findPlace(to)?.country;
-  const sameContinent = !!a && !!b && EUROPE.has(a) === EUROPE.has(b);
+const inEurope = (country: string) => EUROPE.has(country) || EUROPE.has(normalize(country));
+
+/** Fourchettes par défaut, quand la ligne n'a pas encore assez d'annonces : les mêmes pour tous les pays. */
+function defaultRange(from: string, to: string, mode: TripMode, countries: { from?: string; to?: string }) {
+  const a = countries.from || findPlace(from)?.country;
+  const b = countries.to || findPlace(to)?.country;
+  const sameContinent = !!a && !!b && inEurope(a) === inEurope(b);
   if (mode !== "plane") return sameContinent ? { low: 300, high: 600 } : { low: 500, high: 900 };
   return sameContinent ? { low: 500, high: 800 } : { low: 700, high: 1100 };
 }
@@ -36,14 +41,20 @@ export function marketKey(from: string, to: string, mode: TripMode) {
   return `${normalize(from)}|${normalize(to)}|${mode}`;
 }
 
-export function priceGuide(from: string, to: string, mode: TripMode, market: MarketPrice[] = []): PriceGuide {
+export function priceGuide(
+  from: string,
+  to: string,
+  mode: TripMode,
+  market: MarketPrice[] = [],
+  countries: { from?: string; to?: string } = {},
+): PriceGuide {
   const m = market.find((x) => marketKey(x.from, x.to, x.mode) === marketKey(from, to, mode));
   if (m && m.count >= MIN_SAMPLE) {
     const low = roundTo50(m.medianCents * 0.85);
     const high = roundTo50(m.medianCents * 1.15);
     return { lowCents: low, highCents: high, maxCents: roundTo50(high * 1.5), source: "market", sample: m.count };
   }
-  const { low, high } = defaultRange(from, to, mode);
+  const { low, high } = defaultRange(from, to, mode, countries);
   return { lowCents: low, highCents: high, maxCents: roundTo50(high * 1.5), source: "default", sample: m?.count ?? 0 };
 }
 

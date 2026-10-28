@@ -66,6 +66,10 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
     splitCity(toCity).city,
     mode,
     market,
+    {
+      from: from.selected?.country || splitCity(fromCity).country,
+      to: to.selected?.country || splitCity(toCity).country,
+    },
   );
   const priceCents = Math.round((price || 0) * 100);
   const level = priceLevel(priceCents, guide);

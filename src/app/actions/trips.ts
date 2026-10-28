@@ -126,7 +126,7 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
   }
 
   // Plafond de prix de la ligne : le total payé par l'expéditeur doit rester raisonnable.
-  const guide = priceGuide(from.city, to.city, d.mode, await getMarketPrices());
+  const guide = priceGuide(from.city, to.city, d.mode, await getMarketPrices(), { from: from.country, to: to.country });
   if (Math.round(d.price_per_kg * 100) > guide.maxCents) {
     return { error: `Prix trop élevé pour cette ligne : ${euros(guide.maxCents)} le kilo maximum (prix conseillé ${euros(guide.lowCents)} à ${euros(guide.highCents)}).` };
   }
