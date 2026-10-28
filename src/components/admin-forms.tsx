@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { markPayoutPaid, refundBooking, resolveReport, reviewIdentity, reviewTripProof } from "@/app/actions/admin";
+import { markPayoutPaid, markRewardsPaid, refundBooking, resolveReport, reviewIdentity, reviewTripProof } from "@/app/actions/admin";
 import { Button } from "@/components/ui/button";
 import { FormMessage, Input } from "@/components/ui/field";
 
@@ -35,6 +35,24 @@ export function PayoutForm({ bookingId }: { bookingId: string }) {
       <Input id={`ref-${bookingId}`} name="reference" required placeholder="Référence du virement" className="w-56" />
       <Button type="submit" size="sm" disabled={pending} className="mt-1.5">
         Marquer versé
+      </Button>
+      {state?.error && <FormMessage state={state} />}
+    </form>
+  );
+}
+
+export function RewardsPayoutForm({ travelerId }: { travelerId: string }) {
+  const [state, action, pending] = useActionState(markRewardsPaid, null);
+  if (state?.ok) return <FormMessage state={state} />;
+  return (
+    <form action={action} className="flex flex-wrap items-start gap-2">
+      <input type="hidden" name="traveler_id" value={travelerId} />
+      <label className="sr-only" htmlFor={`rref-${travelerId}`}>
+        Référence du virement
+      </label>
+      <Input id={`rref-${travelerId}`} name="reference" required placeholder="Référence du virement" className="w-56" />
+      <Button type="submit" size="sm" disabled={pending} className="mt-1.5">
+        Marquer versées
       </Button>
       {state?.error && <FormMessage state={state} />}
     </form>

@@ -8,7 +8,7 @@ import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ButtonLink } from "@/components/ui/button";
-import { searchTrips } from "@/lib/data";
+import { getHomeProof, searchTrips } from "@/lib/data";
 import { demoTrips } from "@/lib/demo";
 import { CORRIDORS, corridorSlug, findPlace } from "@/lib/places";
 import { euros, quote } from "@/lib/pricing";
@@ -24,6 +24,75 @@ async function LiveBoard() {
 }
 
 const example = quote(900, 5);
+
+/** Chiffres et avis réels. Tant qu'un chiffre est trop petit pour parler, on montre un fait vérifiable à la place. */
+async function HomeProof() {
+  const p = await getHomeProof().catch(() => null);
+  const live = [
+    p && p.upcomingTrips >= 10 && { value: p.upcomingTrips.toLocaleString("fr-FR"), label: "trajets à venir en ce moment" },
+    p && p.availableKg >= 100 && { value: `${p.availableKg.toLocaleString("fr-FR")} kg`, label: "disponibles dans les valises" },
+    p && p.delivered >= 25 && { value: p.delivered.toLocaleString("fr-FR"), label: "colis livrés et validés par code" },
+    p && p.ratingAvg && p.ratingCount >= 10 && {
+      value: `${p.ratingAvg.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}/5`,
+      label: `note moyenne sur ${p.ratingCount} avis`,
+    },
+  ].filter(Boolean) as { value: string; label: string }[];
+  const facts = [
+    { value: euros(example.totalCents), label: "pour 5 kg Paris → Douala à 9 €/kg, tout compris" },
+    { value: "7 744", label: "aéroports dans 236 pays, tous disponibles à la publication" },
+    { value: "100 %", label: "du prix fixé revient au voyageur" },
+    { value: "0 €", label: "pour publier un trajet ou une demande" },
+  ];
+  const tiles = [...live, ...facts].slice(0, 4);
+  const reviews = p?.reviews ?? [];
+
+  return (
+    <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
+      <h2 className="display max-w-2xl text-3xl sm:text-4xl">Des kilos libres près de chez vous, à prix connu d&apos;avance</h2>
+      <dl className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {tiles.map((t) => (
+          <div key={t.label} className="rounded-3xl bg-white p-6 ring-1 ring-line">
+            <dt className="sr-only">{t.label}</dt>
+            <dd className="wide tabular text-3xl font-extrabold text-ink sm:text-4xl">{t.value}</dd>
+            <dd className="mt-2 text-[15px] leading-snug text-muted">{t.label}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {reviews.length >= 3 && (
+        <div className="mt-12">
+          <h3 className="text-xl font-bold">Ce qu&apos;en disent nos membres</h3>
+          <ul className="mt-5 grid gap-4 md:grid-cols-3">
+            {reviews.slice(0, 3).map((r) => (
+              <li key={r.created_at + r.author} className="flex flex-col rounded-3xl bg-white p-6 ring-1 ring-line">
+                <p className="flex gap-0.5" aria-label={`${r.rating} sur 5`}>
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Star key={i} className={`h-4 w-4 ${i < r.rating ? "fill-signal text-signal" : "text-line"}`} aria-hidden="true" />
+                  ))}
+                </p>
+                <blockquote className="mt-3 flex-1 leading-relaxed text-ink-soft">« {r.comment} »</blockquote>
+                <p className="mt-4 text-sm font-semibold text-ink">
+                  {r.author}
+                  {r.route && <span className="font-normal text-muted"> · {r.route}</span>}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-muted">Avis laissés après un envoi réel sur Send By Me, publiés sans retouche.</p>
+        </div>
+      )}
+
+      <div className="mt-10 flex flex-wrap gap-3">
+        <ButtonLink href="/recherche" size="lg">
+          Trouver un voyageur <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </ButtonLink>
+        <ButtonLink href="/publier" size="lg" variant="outline">
+          Rentabiliser mes kilos
+        </ButtonLink>
+      </div>
+    </section>
+  );
+}
 
 export default function Home() {
   return (
@@ -174,6 +243,11 @@ export default function Home() {
             </ol>
           </div>
         </section>
+
+        {/* Chiffres et avis */}
+        <Suspense fallback={<div className="mx-auto h-[420px] max-w-6xl" />}>
+          <HomeProof />
+        </Suspense>
 
         {/* Exemple de prix */}
         <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:items-center md:py-20">

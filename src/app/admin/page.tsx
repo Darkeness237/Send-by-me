@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { setVerified } from "@/app/actions/admin";
 import { completeHomeDelivery } from "@/app/actions/tracking";
 import { DELIVERY_STATUS_LABEL, type DeliveryStatus } from "@/lib/delivery";
-import { PayoutForm, RefundForm, ResolveReportForm, ReviewForm } from "@/components/admin-forms";
+import { PayoutForm, RefundForm, ResolveReportForm, ReviewForm, RewardsPayoutForm } from "@/components/admin-forms";
 import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { buttonClass } from "@/components/ui/button";
@@ -24,6 +24,7 @@ const TABS = [
   ["signalements", "Signalements"],
   ["livraisons", "Livraisons"],
   ["versements", "Versements"],
+  ["primes", "Primes ambassadeurs"],
   ["membres", "Membres"],
   ["reservations", "Réservations"],
 ] as const;
@@ -39,15 +40,16 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
   const tab: Tab = (TABS.find(([k]) => k === sp.onglet)?.[0] ?? "verifications") as Tab;
   const db = createAdminClient();
 
-  const [{ count: pendingIds }, { count: pendingProofs }, { count: openReports }, { count: duePayouts }, { count: unverified }, { count: openDeliveries }] = await Promise.all([
+  const [{ count: pendingIds }, { count: pendingProofs }, { count: openReports }, { count: duePayouts }, { count: unverified }, { count: openDeliveries }, { count: dueRewards }] = await Promise.all([
     db.from("identity_verifications").select("id", { count: "exact", head: true }).eq("status", "pending"),
     db.from("trip_proofs").select("trip_id", { count: "exact", head: true }).eq("status", "pending"),
     db.from("reports").select("id", { count: "exact", head: true }).eq("status", "open"),
     db.from("bookings").select("id", { count: "exact", head: true }).eq("payout_status", "due"),
     db.from("profiles").select("id", { count: "exact", head: true }).eq("id_verified", false),
     db.from("bookings").select("id", { count: "exact", head: true }).gt("delivery_cents", 0).in("status", ["paid", "picked_up"]),
+    db.from("ambassador_rewards").select("id", { count: "exact", head: true }).is("paid_at", null),
   ]);
-  const counts: Record<Tab, number | null> = { verifications: (pendingIds ?? 0) + (pendingProofs ?? 0), signalements: openReports, livraisons: openDeliveries, versements: duePayouts, membres: unverified, reservations: null };
+  const counts: Record<Tab, number | null> = { verifications: (pendingIds ?? 0) + (pendingProofs ?? 0), signalements: openReports, livraisons: openDeliveries, versements: duePayouts, primes: dueRewards, membres: unverified, reservations: null };
 
   let content: React.ReactNode = null;
 
@@ -266,9 +268,10 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
   }
 
   if (tab === "versements") {
+    const boostShown = new Set<string>();
     const { data } = await db
       .from("bookings")
-      .select("id, base_cents, delivery_cents, delivered_at, trip:trips(from_city, to_city, traveler:profiles!trips_traveler_id_fkey(full_name))")
+      .select("id, base_cents, delivery_cents, delivered_at, trip:trips(id, from_city, to_city, boost_fee_cents, boost_settled_booking, traveler:profiles!trips_traveler_id_fkey(full_name))")
       .eq("payout_status", "due")
       .order("delivered_at", { ascending: true })
       .limit(100);
@@ -276,11 +279,15 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
       <ul className="space-y-3">
         {(data as Row[]).map((b) => {
           const trip = one(b.trip);
+          // Mise en avant payante : retenue une seule fois, sur le premier versement du trajet.
+          const boost = trip && (trip.boost_fee_cents as number) > 0 && !trip.boost_settled_booking && !boostShown.has(trip.id as string) ? (trip.boost_fee_cents as number) : 0;
+          if (boost) boostShown.add(trip!.id as string);
           return (
             <li key={b.id as string} className="flex flex-wrap items-center gap-4 rounded-2xl bg-white p-5 ring-1 ring-line">
               <div className="min-w-0 flex-1">
                 <p className="font-bold">
-                  {one(trip?.traveler)?.full_name as string} · <span className="tabular">{euros((b.base_cents as number) + ((b.delivery_cents as number) ?? 0))}</span>
+                  {one(trip?.traveler)?.full_name as string} · <span className="tabular">{euros((b.base_cents as number) + ((b.delivery_cents as number) ?? 0) - boost)}</span>
+                  {boost > 0 && <span className="ml-2 text-sm font-normal text-muted">(mise en avant −{euros(boost)} retenue)</span>}
                 </p>
                 <p className="text-sm text-muted">
                   {codeFor((trip?.from_city as string) ?? "")} › {codeFor((trip?.to_city as string) ?? "")} · livré le{" "}
@@ -294,6 +301,42 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
       </ul>
     ) : (
       <Empty text="Aucun versement en attente." />
+    );
+  }
+
+  if (tab === "primes") {
+    const { data } = await db
+      .from("ambassador_rewards")
+      .select("id, traveler_id, kind, amount_cents, milestone, created_at, traveler:profiles!ambassador_rewards_traveler_id_fkey(full_name)")
+      .is("paid_at", null)
+      .order("created_at", { ascending: true })
+      .limit(500);
+    const byTraveler = new Map<string, { name: string; total: number; items: Row[] }>();
+    for (const r of (data ?? []) as Row[]) {
+      const key = r.traveler_id as string;
+      const entry = byTraveler.get(key) ?? { name: (one(r.traveler)?.full_name as string) || "Membre", total: 0, items: [] };
+      entry.total += r.amount_cents as number;
+      entry.items.push(r);
+      byTraveler.set(key, entry);
+    }
+    content = byTraveler.size ? (
+      <ul className="space-y-3">
+        {[...byTraveler].map(([travelerId, t]) => (
+          <li key={travelerId} className="flex flex-wrap items-center gap-4 rounded-2xl bg-white p-5 ring-1 ring-line">
+            <div className="min-w-0 flex-1">
+              <p className="font-bold">
+                {t.name} · <span className="tabular">{euros(t.total)}</span>
+              </p>
+              <p className="text-sm text-muted">
+                {t.items.map((r) => (r.kind === "milestone" ? `${r.milestone} livraisons` : "filleul")).join(" · ")}
+              </p>
+            </div>
+            <RewardsPayoutForm travelerId={travelerId} />
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <Empty text="Aucune prime à verser." />
     );
   }
 

@@ -64,6 +64,7 @@ export type Profile = {
   created_at: string;
   rating_avg?: number | null;
   rating_count?: number | null;
+  ambassador_since?: string | null;
 };
 
 export type Trip = {
@@ -85,6 +86,8 @@ export type Trip = {
   notes: string | null;
   status: TripStatus;
   ticket_verified?: boolean;
+  featured?: boolean;
+  boosted_at?: string | null;
   from_tz?: string | null;
   to_tz?: string | null;
   carrier?: string | null;

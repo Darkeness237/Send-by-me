@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
-import { KeyRound, Lock } from "lucide-react";
+import { KeyRound, Lock, Printer } from "lucide-react";
 import { acceptBooking, cancelBooking, confirmPickup, declineBooking } from "@/app/actions/bookings";
 import { startCheckout } from "@/app/actions/payments";
 import { Avatar } from "@/components/avatar";
@@ -194,6 +194,18 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
             <p className="mb-5 rounded-2xl bg-warn-pale px-4 py-3 text-sm text-warn">
               Avant de remettre le colis, ajoutez les photos du contenu et du colis emballé (section « Photos du colis »). Le voyageur ne peut pas le prendre en charge sans elles.
             </p>
+          )}
+          {(isSender || isTraveler) && ["accepted", "paid", "picked_up"].includes(booking.status) && booking.tracking_code && (
+            <Link
+              href={`/reservations/${booking.id}/etiquette`}
+              className="mb-5 flex items-center gap-3 rounded-2xl bg-paper px-4 py-3 text-sm ring-1 ring-line hover:ring-brand"
+            >
+              <Printer className="h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+              <span className="flex-1">
+                <span className="block font-semibold">Étiquette du colis</span>
+                <span className="block text-muted">Numéro de suivi et QR code à coller sur le colis avant la remise.</span>
+              </span>
+            </Link>
           )}
           {isSender && code && (
             <div className="rounded-2xl bg-ink p-5 text-white">

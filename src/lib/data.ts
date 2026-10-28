@@ -4,12 +4,14 @@ import { connection } from "next/server";
 import { demoTrips } from "./demo";
 import { isSupabaseConfigured } from "./env";
 import { normalize } from "./places";
+import { createAdminClient } from "./supabase/admin";
 import { createClient } from "./supabase/server";
 import { computeMarket, type MarketPrice } from "./price-guide";
+import type { AmbassadorReward } from "./ambassador";
 import type { Booking, PriceOffer, Profile, Trip } from "./types";
 
 const TRIP_SELECT =
-  "*, traveler:profiles!trips_traveler_id_fkey(id, full_name, avatar_url, bio, city, id_verified, address_verified, certified, created_at)";
+  "*, traveler:profiles!trips_traveler_id_fkey(id, full_name, avatar_url, bio, city, id_verified, address_verified, certified, ambassador_since, created_at)";
 
 async function withRatings<T extends { traveler?: Profile | null }>(rows: T[]): Promise<T[]> {
   const ids = [...new Set(rows.map((r) => r.traveler?.id).filter(Boolean))] as string[];
@@ -49,6 +51,7 @@ export async function searchTrips(q: TripSearch, limit = 30): Promise<Trip[]> {
     .select(TRIP_SELECT)
     .eq("status", "published")
     .gte("departure_at", q.date ? new Date(q.date).toISOString() : new Date().toISOString())
+    .order("featured", { ascending: false }) // trajets mis en avant en tête
     .order("departure_at", { ascending: true })
     .limit(limit);
   if (q.from) query = query.ilike("from_city", escapeLike(q.from));
@@ -337,6 +340,35 @@ export async function getReferralStats(userId: string) {
   };
 }
 
+/** Programme Ambassadeur : statut, progression et primes du membre (RLS : ses propres primes). */
+export async function getAmbassadorData(userId: string) {
+  const supabase = await createClient();
+  const [{ data: profile }, { data: trips }, { data: reviews }, { data: rewards }] = await Promise.all([
+    supabase.from("profiles").select("full_name, referral_code, id_verified, ambassador_since").eq("id", userId).single(),
+    supabase.from("trips").select("id, bookings(status)").eq("traveler_id", userId),
+    supabase.from("reviews").select("rating").eq("subject_id", userId),
+    supabase.from("ambassador_rewards").select("id, kind, amount_cents, milestone, created_at, paid_at").eq("traveler_id", userId).order("created_at", { ascending: false }),
+  ]);
+  const deliveries = (trips ?? []).reduce(
+    (n, t) => n + ((t.bookings as { status: string }[] | null) ?? []).filter((b) => b.status === "delivered").length,
+    0,
+  );
+  const ratings = (reviews ?? []).map((r) => r.rating as number);
+  const list = (rewards ?? []) as AmbassadorReward[];
+  return {
+    name: (profile?.full_name as string) || "",
+    code: (profile?.referral_code as string) ?? "",
+    idVerified: Boolean(profile?.id_verified),
+    since: (profile?.ambassador_since as string | null) ?? null,
+    deliveries,
+    rating: ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
+    ratingCount: ratings.length,
+    rewards: list,
+    pendingCents: list.filter((r) => !r.paid_at).reduce((n, r) => n + r.amount_cents, 0),
+    paidCents: list.filter((r) => r.paid_at).reduce((n, r) => n + r.amount_cents, 0),
+  };
+}
+
 // ── Suivi d'envoi ───────────────────────────────────────────────
 export type TrackingEvent = { kind: string; at: string; note: string | null };
 
@@ -518,4 +550,54 @@ export async function matchingRequests(t: Trip, limit = 12): Promise<ShipmentReq
   return ((data ?? []) as ShipmentRequest[])
     .filter((r) => Number(r.weight_kg) <= left && (t.accepted_categories as string[]).includes(r.category))
     .slice(0, limit);
+}
+
+// ── Preuves sur l'accueil : uniquement des données réelles ──────
+export type HomeReview = { rating: number; comment: string; author: string; route: string | null; created_at: string };
+
+/** Chiffres en direct et derniers avis publiés (un chiffre trop petit n'est pas renvoyé : il desservirait). */
+export async function getHomeProof() {
+  await connection();
+  if (!isSupabaseConfigured) return { upcomingTrips: 0, availableKg: 0, delivered: 0, ratingAvg: null as number | null, ratingCount: 0, reviews: [] as HomeReview[] };
+  const db = createAdminClient();
+  const now = new Date().toISOString();
+  const [{ data: trips }, { count: delivered }, { data: ratings }, { data: reviews }] = await Promise.all([
+    db.from("trips").select("capacity_kg, reserved_kg").eq("status", "published").gt("departure_at", now).limit(5000),
+    db.from("bookings").select("id", { count: "exact", head: true }).eq("status", "delivered"),
+    db.from("reviews").select("rating").limit(10000),
+    db
+      .from("reviews")
+      .select("rating, comment, created_at, author:profiles!reviews_author_id_fkey(full_name), booking:bookings(trip:trips(from_city, to_city))")
+      .gte("rating", 4)
+      .not("comment", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(12),
+  ]);
+  const list = (ratings ?? []).map((r) => r.rating as number);
+  // Prénom + initiale : l'avis reste attribué sans exposer le nom complet.
+  const shortName = (full: string) => {
+    const [firstName, last] = full.trim().split(/\s+/);
+    return [firstName, last ? `${last[0].toUpperCase()}.` : ""].filter(Boolean).join(" ") || "Membre";
+  };
+  return {
+    upcomingTrips: (trips ?? []).length,
+    availableKg: Math.round((trips ?? []).reduce((n, t) => n + Math.max(0, Number(t.capacity_kg) - Number(t.reserved_kg)), 0)),
+    delivered: delivered ?? 0,
+    ratingAvg: list.length ? list.reduce((a, b) => a + b, 0) / list.length : null,
+    ratingCount: list.length,
+    reviews: (reviews ?? [])
+      .filter((r) => ((r.comment as string) ?? "").trim().length >= 20)
+      .filter((r, i, all) => all.findIndex((o) => (o.comment as string).trim() === (r.comment as string).trim()) === i)
+      .slice(0, 6)
+      .map((r) => {
+        const trip = (first(first(r.booking as unknown) as { trip: unknown } | null)?.trip ?? null) as { from_city: string; to_city: string } | null;
+        return {
+          rating: r.rating as number,
+          comment: (r.comment as string).trim(),
+          author: shortName((first(r.author as unknown) as { full_name: string } | null)?.full_name || ""),
+          route: trip ? `${trip.from_city} → ${trip.to_city}` : null,
+          created_at: r.created_at as string,
+        };
+      }),
+  };
 }

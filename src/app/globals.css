@@ -269,3 +269,20 @@ html:not(.no-intro) .reveal {
   .reveal, .ken-burns, .route-dash, .float-y, .pop-in, .stamp-in { animation: none; }
   .confetti, .motion-only { display: none; }
 }
+
+/* Impression : seule la zone marquée .print-area sort sur papier (carte ambassadeur, étiquette colis). */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-shadow: none !important;
+  }
+}

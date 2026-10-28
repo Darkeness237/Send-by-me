@@ -8,6 +8,7 @@ import { getMarketPrices } from "@/lib/data";
 import { checkFlight, normalizeFlightNumber } from "@/lib/flights";
 import { notifySafe } from "@/lib/notify";
 import { priceGuide } from "@/lib/price-guide";
+import { BOOST_FEE_CENTS } from "@/lib/ambassador";
 import { euros } from "@/lib/pricing";
 import { zonedToUtc } from "@/lib/format";
 import { findCity } from "@/lib/airports";
@@ -224,4 +225,20 @@ async function notifyMatchingRequesters(tripId: string, travelerId: string, from
       }),
     ),
   );
+}
+
+/** Met un trajet en tête des résultats de sa ligne. 1 € retenu sur le premier versement du trajet, rien sans réservation. */
+export async function boostTrip(tripId: string) {
+  const userId = await getUserId();
+  if (!userId) redirect("/connexion");
+  if (!z.uuid().safeParse(tripId).success) return;
+  await createAdminClient()
+    .from("trips")
+    .update({ featured: true, boosted_at: new Date().toISOString(), boost_fee_cents: BOOST_FEE_CENTS })
+    .eq("id", tripId)
+    .eq("traveler_id", userId)
+    .eq("status", "published")
+    .eq("featured", false)
+    .gt("departure_at", new Date().toISOString());
+  revalidatePath(`/trajets/${tripId}`);
 }

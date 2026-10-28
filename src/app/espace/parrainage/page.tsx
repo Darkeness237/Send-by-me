@@ -79,6 +79,13 @@ async function Referral() {
           Le crédit s&apos;applique automatiquement sur les frais de service de vos prochaines réservations. Il ne s&apos;échange pas contre
           de l&apos;argent. Il est rendu si la réservation est refusée ou annulée.
         </p>
+        <p className="mt-3 text-sm">
+          Vous voyagez souvent ?{" "}
+          <Link href="/espace/ambassadeur" className="font-semibold text-brand">
+            Le programme Ambassadeur
+          </Link>{" "}
+          transforme chaque filleul en 5 € versés en argent, avec des primes à chaque palier de livraisons.
+        </p>
       </section>
 
       {stats.referrals.length > 0 && (

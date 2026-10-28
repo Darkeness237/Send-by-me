@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Plane, Star } from "lucide-react";
+import { AmbassadorBadge } from "@/components/ambassador-badge";
 import { Avatar } from "@/components/avatar";
 import { codeFor, tzFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
@@ -44,6 +45,7 @@ export function TripTag({ trip, goodPrice }: { trip: Trip; goodPrice?: boolean }
             <span className="text-sm text-muted"> /kg</span>
           </p>
           {goodPrice && <span className="mt-1 rounded-full bg-ok-pale px-2 py-0.5 text-xs font-semibold text-ok">Bon prix</span>}
+          {trip.featured && <span className="mt-1 rounded-full bg-brand-pale px-2 py-0.5 text-xs font-semibold text-brand-deep">Mis en avant</span>}
         </div>
       </div>
 
@@ -54,6 +56,11 @@ export function TripTag({ trip, goodPrice }: { trip: Trip; goodPrice?: boolean }
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-ink">
             {traveler?.full_name || "Voyageur"}
+            {traveler?.ambassador_since && (
+              <span className="ml-2 align-middle">
+                <AmbassadorBadge />
+              </span>
+            )}
             {trip.ticket_verified && <span className="ml-2 rounded-full bg-ok-pale px-2 py-0.5 text-xs font-semibold text-ok">Trajet vérifié</span>}
           </p>
           {traveler?.rating_count ? (

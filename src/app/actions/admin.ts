@@ -51,9 +51,35 @@ export async function markPayoutPaid(_: FormState, formData: FormData): Promise<
     .update({ payout_status: "paid", payout_reference: reference.slice(0, 120), paid_out_at: new Date().toISOString() })
     .eq("id", bookingId)
     .eq("payout_status", "due")
-    .select("id");
+    .select("id, trip_id");
+  // La mise en avant payante du trajet est retenue sur ce premier versement.
+  if (data?.length) {
+    await createAdminClient()
+      .from("trips")
+      .update({ boost_settled_booking: bookingId })
+      .eq("id", data[0].trip_id as string)
+      .gt("boost_fee_cents", 0)
+      .is("boost_settled_booking", null);
+  }
   revalidatePath("/admin");
   return data?.length ? { ok: "Versement enregistré." } : { error: "Ce versement n'est plus en attente." };
+}
+
+/** Marque versées toutes les primes ambassadeur en attente d'un voyageur. */
+export async function markRewardsPaid(_: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const travelerId = String(formData.get("traveler_id") ?? "");
+  const reference = String(formData.get("reference") ?? "").trim();
+  if (!uuid.safeParse(travelerId).success) return { error: "Membre invalide." };
+  if (reference.length < 3) return { error: "Indiquez la référence du virement." };
+  const { data } = await createAdminClient()
+    .from("ambassador_rewards")
+    .update({ paid_at: new Date().toISOString(), payout_reference: reference.slice(0, 120) })
+    .eq("traveler_id", travelerId)
+    .is("paid_at", null)
+    .select("id");
+  revalidatePath("/admin");
+  return data?.length ? { ok: "Primes enregistrées comme versées." } : { error: "Aucune prime en attente." };
 }
 
 /** Rembourse l'expéditeur sur Stripe, puis libère les kilos du trajet. */

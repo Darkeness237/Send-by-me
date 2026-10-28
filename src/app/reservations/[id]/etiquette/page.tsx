@@ -1,0 +1,93 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
+import QRCode from "qrcode";
+import { Logo } from "@/components/logo";
+import { PageShell } from "@/components/page-shell";
+import { PrintButton } from "@/components/print-button";
+import { getBooking } from "@/lib/data";
+import { SITE_URL } from "@/lib/env";
+import { kg, longDate } from "@/lib/format";
+import { codeFor, tzFor } from "@/lib/places";
+import { getUserId } from "@/lib/supabase/server";
+import { CATEGORIES } from "@/lib/types";
+
+export const metadata: Metadata = { title: "Étiquette du colis", robots: { index: false } };
+
+/** Étiquette à imprimer et coller sur le colis : numéro de suivi, QR code, trajet, destinataire (prénom seulement). */
+async function Label({ params }: { params: Promise<{ id: string }> }) {
+  const userId = await getUserId();
+  const { id } = await params;
+  if (!userId) redirect(`/connexion?suite=/reservations/${id}/etiquette`);
+  const booking = await getBooking(id); // RLS : participants uniquement
+  if (!booking?.trip || !booking.tracking_code) notFound();
+  if (!["accepted", "paid", "picked_up"].includes(booking.status)) redirect(`/reservations/${id}`);
+  const trip = booking.trip;
+  const trackUrl = `${SITE_URL}/suivi/${booking.tracking_code}`;
+  const qr = await QRCode.toString(trackUrl, { type: "svg", margin: 0, color: { dark: "#0e304c", light: "#ffffff" } });
+  const recipientFirstName = booking.recipient_name.split(" ")[0];
+
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+      <Link href={`/reservations/${id}`} className="text-sm font-semibold text-brand">
+        ← Ma réservation
+      </Link>
+      <h1 className="display mt-4 text-3xl sm:text-4xl">Étiquette du colis</h1>
+      <p className="mt-2 max-w-xl text-muted">
+        Imprimez-la, collez-la bien à plat sur le colis fermé, puis prenez la photo « colis emballé » avec l&apos;étiquette visible. Le
+        voyageur et votre destinataire retrouvent le même numéro dans le suivi.
+      </p>
+
+      <div className="mt-6 flex flex-wrap items-end gap-4">
+        <div className="print-area w-[420px] max-w-full rounded-xl border-2 border-dashed border-ink bg-white p-5">
+          <div className="flex items-center justify-between border-b border-line pb-3">
+            <Logo />
+            <span className="text-xs font-semibold tracking-wide text-muted uppercase">Colis voyageur</span>
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <span className="wide tabular text-4xl font-extrabold text-ink">{codeFor(trip.from_city)}</span>
+            <span className="h-0.5 flex-1 bg-ink" aria-hidden="true" />
+            <span className="wide tabular text-4xl font-extrabold text-ink">{codeFor(trip.to_city)}</span>
+          </div>
+          <p className="mt-1 flex justify-between text-sm text-ink-soft">
+            <span>{trip.from_city}</span>
+            <span>{trip.to_city}</span>
+          </p>
+          <div className="mt-4 flex gap-4">
+            <div className="h-28 w-28 shrink-0" dangerouslySetInnerHTML={{ __html: qr }} />
+            <dl className="min-w-0 text-sm">
+              <dt className="text-xs text-muted">N° de suivi</dt>
+              <dd className="wide tabular text-xl font-extrabold tracking-wider text-ink">{booking.tracking_code}</dd>
+              <dt className="mt-2 text-xs text-muted">Pour</dt>
+              <dd className="font-semibold text-ink">
+                {recipientFirstName}, {trip.to_city}
+              </dd>
+              <dt className="mt-2 text-xs text-muted">Départ</dt>
+              <dd className="text-ink">{longDate(trip.departure_at, tzFor(trip.from_city))}</dd>
+            </dl>
+          </div>
+          <p className="mt-4 border-t border-line pt-3 text-xs text-ink-soft">
+            {kg(booking.weight_kg)} · {CATEGORIES.find((c) => c.id === booking.category)?.label}. Remis en main propre contre le code de
+            réception du destinataire. Suivi : send-by-me.com/suivi
+          </p>
+        </div>
+        <PrintButton label="Imprimer l'étiquette" />
+      </div>
+      <p className="mt-4 text-sm text-muted">
+        L&apos;étiquette ne montre ni le nom complet ni le téléphone du destinataire. Pas d&apos;imprimante ? Recopiez le numéro de suivi au
+        marqueur sur le colis.
+      </p>
+    </div>
+  );
+}
+
+export default function LabelPage(props: PageProps<"/reservations/[id]/etiquette">) {
+  return (
+    <PageShell>
+      <Suspense fallback={<div className="mx-auto h-[60vh] max-w-3xl" />}>
+        <Label params={props.params} />
+      </Suspense>
+    </PageShell>
+  );
+}

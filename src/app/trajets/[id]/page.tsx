@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CalendarDays, CheckCircle2, MessageCircle, MapPin, Plane, ShieldCheck, Star, TicketCheck } from "lucide-react";
+import { AmbassadorBadge } from "@/components/ambassador-badge";
 import { Avatar } from "@/components/avatar";
 import { BookingForm } from "@/components/booking-form";
 import { TakeoffBanner } from "@/components/journey";
@@ -10,6 +11,8 @@ import { PageShell } from "@/components/page-shell";
 import { startInquiry } from "@/app/actions/messages";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { proposeTrip } from "@/app/actions/requests";
+import { boostTrip } from "@/app/actions/trips";
+import { BOOST_FEE_CENTS } from "@/lib/ambassador";
 import { RequestCard } from "@/components/request-card";
 import { getCreditBalance, getTrip, getTripProof, matchingRequests } from "@/lib/data";
 import { isSupabaseConfigured } from "@/lib/env";
@@ -106,7 +109,10 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
               <div className="flex items-center gap-4">
                 <Avatar name={traveler.full_name || "Voyageur"} verified={traveler.id_verified} certified={traveler.certified} src={traveler.avatar_url} size={56} />
                 <div>
-                  <h2 className="text-lg font-bold">{traveler.full_name || "Voyageur"}</h2>
+                  <h2 className="flex flex-wrap items-center gap-2 text-lg font-bold">
+                    {traveler.full_name || "Voyageur"}
+                    {traveler.ambassador_since && <AmbassadorBadge />}
+                  </h2>
                   <p className="flex flex-wrap items-center gap-x-3 text-sm text-muted">
                     {traveler.rating_count ? (
                       <span className="flex items-center gap-1">
@@ -275,6 +281,31 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
                         </li>
                       ))}
                     </ul>
+                  </div>
+                )}
+                {trip.status === "published" && (
+                  <div className="border-t border-line pt-5">
+                    <h3 className="font-bold">Mise en avant</h3>
+                    {trip.featured ? (
+                      <p className="mt-2 flex items-start gap-2 text-sm font-semibold text-brand-deep">
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                        {trip.boosted_at
+                          ? `Votre trajet apparaît en tête des résultats de sa ligne. ${euros(BOOST_FEE_CENTS)} sera retenu sur votre premier versement de ce trajet.`
+                          : "Votre trajet apparaît en tête des résultats de sa ligne, gratuitement."}
+                      </p>
+                    ) : (
+                      <>
+                        <p className="mt-1 mb-3 text-sm text-muted">
+                          Placez votre trajet en tête des résultats de sa ligne jusqu&apos;au départ. {euros(BOOST_FEE_CENTS)}, retenu sur votre premier
+                          versement de ce trajet : rien à payer si vous ne recevez aucune réservation.
+                        </p>
+                        <form action={boostTrip.bind(null, trip.id)}>
+                          <Button type="submit" size="sm" variant="outline">
+                            Mettre en avant pour {euros(BOOST_FEE_CENTS)}
+                          </Button>
+                        </form>
+                      </>
+                    )}
                   </div>
                 )}
                 <div className="border-t border-line pt-5">
