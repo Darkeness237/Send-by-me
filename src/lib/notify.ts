@@ -25,6 +25,10 @@ if (pushReady) webpush.setVapidDetails("mailto:support@send-by-me.com", vapidPub
 
 const escape = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
+// Adresse affichée en texte (sans lien) : Brevo ne la réécrit pas et la messagerie la rend cliquable
+// directement, ce qui évite la redirection de suivi des clics de Brevo si elle est en panne.
+export const plain = (url: string) => escape(url.replace(/^https?:\/\//, ""));
+
 function emailHtml(n: Notice) {
   const link = `${SITE_URL}${n.href ?? "/espace"}`;
   return `<!doctype html><html lang="fr"><body style="margin:0;background:#fbf8f1;font-family:Arial,Helvetica,sans-serif;color:#0e304c">
@@ -35,6 +39,7 @@ function emailHtml(n: Notice) {
 <h1 style="margin:0 0 10px;font-size:21px">${escape(n.title)}</h1>
 ${n.body ? `<p style="margin:0 0 22px;font-size:16px;line-height:1.5;color:#2b4964">${escape(n.body)}</p>` : ""}
 <a href="${link}" style="display:inline-block;background:#2f7a82;color:#fff;text-decoration:none;font-weight:bold;padding:13px 24px;border-radius:999px">Ouvrir Send By Me</a>
+<p style="margin:18px 0 0;font-size:13px;line-height:1.5;color:#5f6f80">Le bouton ne s'ouvre pas ? Copiez cette adresse dans votre navigateur :<br><span style="color:#2f7a82;word-break:break-all">${plain(link)}</span></p>
 </td></tr>
 <tr><td style="padding:16px 28px;background:#fbf8f1;font-size:12px;color:#5f6f80">Vous recevez cet e-mail car vous avez un compte Send By Me. Désactivez ces e-mails dans « Mon profil ».</td></tr>
 </table></td></tr></table></body></html>`;

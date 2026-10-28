@@ -2,6 +2,7 @@ import "server-only";
 
 import { sendEmail } from "@/lib/brevo";
 import { SITE_URL } from "@/lib/env";
+import { plain } from "@/lib/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const escape = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
@@ -38,7 +39,7 @@ export async function sendRecipientCode(bookingId: string) {
 <p style="margin:0 0 18px;font-size:36px;font-weight:bold;letter-spacing:8px;color:#0e304c">${code}</p>
 <p style="margin:0 0 22px;font-size:15px;line-height:1.5;color:#2b4964"><b>Donnez ce code au voyageur seulement quand vous avez le colis en main.</b> C'est ce code qui confirme la réception et déclenche le paiement du voyageur. Ne le communiquez à personne d'autre.</p>
 <a href="${track}" style="display:inline-block;background:#2f7a82;color:#fff;text-decoration:none;font-weight:bold;padding:13px 24px;border-radius:999px">Suivre le colis</a>
-<p style="margin:18px 0 0;font-size:13px;color:#5f6f80">Numéro de suivi : ${escape(b.tracking_code as string)}</p>
+<p style="margin:18px 0 0;font-size:13px;line-height:1.5;color:#5f6f80">Numéro de suivi : ${escape(b.tracking_code as string)}<br>Le bouton ne s'ouvre pas ? Copiez cette adresse : <span style="color:#2f7a82;word-break:break-all">${plain(track)}</span></p>
 </td></tr>
 <tr><td style="padding:16px 28px;background:#fbf8f1;font-size:12px;color:#5f6f80">Vous recevez cet e-mail parce que ${escape(from)} vous a indiqué comme destinataire d'un envoi Send By Me.</td></tr>
 </table></td></tr></table></body></html>`;
