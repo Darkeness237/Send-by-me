@@ -8,7 +8,7 @@ import { PageShell } from "@/components/page-shell";
 import { SearchForm } from "@/components/search-form";
 import { TripTag } from "@/components/trip-tag";
 import { ButtonLink } from "@/components/ui/button";
-import { searchTrips } from "@/lib/data";
+import { getUpcomingTrips } from "@/lib/data";
 import { SITE_URL } from "@/lib/env";
 import { CORRIDORS, corridorSlug, parseCorridor } from "@/lib/places";
 import { getT } from "@/i18n/server";
@@ -32,7 +32,7 @@ export async function generateMetadata(props: PageProps<"/[lang]/envoyer-un-coli
 
 async function Trips({ from, to }: { from: string; to: string }) {
   const t = await getT();
-  const trips = await searchTrips({ from, to }, 10);
+  const trips = await getUpcomingTrips(10, from, to);
   if (!trips.length) {
     return (
       <div className="rounded-3xl bg-card p-8 text-center ring-1 ring-line">

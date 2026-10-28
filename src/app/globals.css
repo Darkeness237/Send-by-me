@@ -200,7 +200,7 @@ body {
   justify-content: center;
   background: var(--color-paper);
   pointer-events: none;
-  animation: intro-out 0.5s ease-in 1.9s forwards;
+  animation: intro-out 0.3s ease-in 0.95s forwards;
 }
 .intro-splash__inner {
   display: flex;
@@ -209,14 +209,14 @@ body {
   gap: 12px;
 }
 .intro-splash__base {
-  animation: intro-pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  animation: intro-pop 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
 /* L'avion part du bas de l'anneau, prend de la vitesse et monte à sa place. */
 .intro-splash__plane {
-  animation: intro-takeoff 1s cubic-bezier(0.55, 0, 0.25, 1) 0.35s both;
+  animation: intro-takeoff 0.6s cubic-bezier(0.55, 0, 0.25, 1) 0.15s both;
 }
 .intro-splash__word {
-  animation: intro-rise 0.5s ease-out 1s both;
+  animation: intro-rise 0.35s ease-out 0.45s both;
 }
 .intro-splash__trail {
   height: 3px;
@@ -224,7 +224,7 @@ body {
   border-radius: 999px;
   background: linear-gradient(90deg, var(--color-signal), var(--color-brand));
   transform-origin: left;
-  animation: intro-trail 0.6s ease-out 1.2s both;
+  animation: intro-trail 0.35s ease-out 0.55s both;
 }
 html.no-intro .intro-splash {
   display: none;
@@ -337,4 +337,24 @@ html:not(.no-intro) .reveal {
     left: 0;
     box-shadow: none !important;
   }
+}
+
+/* ── Barre de progression de navigation ──────────────────────── */
+.nav-progress {
+  width: 0;
+  animation: nav-progress 8s cubic-bezier(0.1, 0.7, 0.2, 1) forwards;
+}
+.nav-progress--done {
+  width: 100%;
+  animation: none;
+  opacity: 0;
+  transition: width 0.15s ease-out, opacity 0.25s ease 0.12s;
+}
+@keyframes nav-progress {
+  0% { width: 0; }
+  10% { width: 35%; }
+  100% { width: 92%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-progress { animation-duration: 0.01s; width: 60%; }
 }

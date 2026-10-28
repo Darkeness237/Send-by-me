@@ -6,7 +6,9 @@ import { Nunito } from "next/font/google";
 import { SITE_URL } from "@/lib/env";
 import { INTRO_SCRIPT, IntroSplash } from "@/components/intro-splash";
 import { PwaInstall } from "@/components/pwa";
+import { NavProgress } from "@/components/nav-progress";
 import { THEME_SCRIPT } from "@/lib/theme";
+import { Suspense } from "react";
 import "../globals.css";
 
 // Police arrondie, dans l'esprit du nom « Send By Me » du logo.
@@ -62,6 +64,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className="min-h-dvh pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
         <I18nProvider locale={locale}>
           <IntroSplash />
+          <Suspense fallback={null}>
+            <NavProgress />
+          </Suspense>
           {children}
           <PwaInstall />
         </I18nProvider>

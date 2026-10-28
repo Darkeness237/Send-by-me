@@ -2,7 +2,7 @@
 // Règle de confidentialité : les pages HTML ne sont jamais mises en cache (elles peuvent contenir
 // des données personnelles). Seuls les fichiers statiques publics le sont, plus une page hors ligne.
 
-const VERSION = "sbm-v2";
+const VERSION = "sbm-v3";
 const STATIC_CACHE = `${VERSION}-static`;
 const OFFLINE_URL = "/hors-ligne";
 
@@ -24,10 +24,17 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Photos publiques du site redimensionnées par Next.js (jamais les photos de membres ni les documents).
+function isPublicOptimizedImage(url) {
+  if (url.pathname !== "/_next/image") return false;
+  const src = url.searchParams.get("url") || "";
+  return src.startsWith("/images/") || src.startsWith("/brand/") || src.startsWith("/_next/static/media/");
+}
+
 function isStaticAsset(url) {
   return (
     url.origin === self.location.origin &&
-    (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/images/") || url.pathname.startsWith("/icons/"))
+    (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/images/") || url.pathname.startsWith("/icons/") || isPublicOptimizedImage(url))
   );
 }
 

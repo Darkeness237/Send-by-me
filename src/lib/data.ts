@@ -1,11 +1,13 @@
 import "server-only";
 
+import { cacheLife } from "next/cache";
 import { connection } from "next/server";
 import { demoTrips } from "./demo";
 import { isSupabaseConfigured } from "./env";
 import { normalize } from "./places";
 import { createAdminClient } from "./supabase/admin";
 import { createClient } from "./supabase/server";
+import { createPublicClient } from "./supabase/public";
 import { computeMarket, type MarketPrice } from "./price-guide";
 import type { AmbassadorReward } from "./ambassador";
 import type { Booking, PriceOffer, Profile, Trip } from "./types";
@@ -32,6 +34,32 @@ async function withRatings<T extends { traveler?: Profile | null }>(rows: T[]): 
 const escapeLike = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
 
 export type TripSearch = { from?: string; to?: string; date?: string; kg?: number };
+
+/** Prochains départs publiés, identiques pour tous les visiteurs : mis en cache quelques minutes. */
+export async function getUpcomingTrips(limit = 6, from?: string, to?: string): Promise<Trip[]> {
+  "use cache";
+  cacheLife("minutes");
+  if (!isSupabaseConfigured) return demoTrips().slice(0, limit);
+  const db = createPublicClient();
+  let query = db
+    .from("trips")
+    .select(TRIP_SELECT)
+    .eq("status", "published")
+    .gte("departure_at", new Date().toISOString())
+    .order("featured", { ascending: false })
+    .order("departure_at", { ascending: true })
+    .limit(limit);
+  if (from) query = query.ilike("from_city", escapeLike(from));
+  if (to) query = query.ilike("to_city", escapeLike(to));
+  const { data, error } = await query;
+  if (error) throw error;
+  const trips = (data ?? []) as Trip[];
+  const ids = [...new Set(trips.map((t) => t.traveler?.id).filter(Boolean))] as string[];
+  if (!ids.length) return trips;
+  const { data: ratings } = await db.from("profile_ratings").select("*").in("profile_id", ids);
+  const map = new Map((ratings ?? []).map((r) => [r.profile_id as string, r]));
+  return trips.map((t) => (t.traveler ? { ...t, traveler: { ...t.traveler, rating_avg: map.get(t.traveler.id)?.rating_avg ?? null, rating_count: map.get(t.traveler.id)?.rating_count ?? 0 } } : t));
+}
 
 export async function searchTrips(q: TripSearch, limit = 30): Promise<Trip[]> {
   await connection();
@@ -291,9 +319,10 @@ export async function getThreadMessages(thread: { bookingId?: string; inquiryId?
 
 /** Prix observés par ligne sur les 6 derniers mois (pour le prix conseillé). */
 export async function getMarketPrices(): Promise<MarketPrice[]> {
-  await connection();
+  "use cache";
+  cacheLife("hours");
   if (!isSupabaseConfigured) return [];
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const since = new Date(Date.now() - 180 * 864e5).toISOString();
   const { data } = await supabase
     .from("trips")
@@ -557,7 +586,8 @@ export type HomeReview = { rating: number; comment: string; author: string; rout
 
 /** Chiffres en direct et derniers avis publiés (un chiffre trop petit n'est pas renvoyé : il desservirait). */
 export async function getHomeProof() {
-  await connection();
+  "use cache";
+  cacheLife("minutes");
   if (!isSupabaseConfigured) return { upcomingTrips: 0, availableKg: 0, delivered: 0, ratingAvg: null as number | null, ratingCount: 0, reviews: [] as HomeReview[] };
   const db = createAdminClient();
   const now = new Date().toISOString();
