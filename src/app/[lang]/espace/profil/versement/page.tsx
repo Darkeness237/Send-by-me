@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { CheckCircle2, ExternalLink, Lock, Trash2, Zap } from "lucide-react";
@@ -14,6 +13,7 @@ import { maskIban, maskPhone, operatorLabel, type PayoutMethod } from "@/lib/pay
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { getLocale, getT } from "@/i18n/server";
 import { longDate } from "@/lib/format";
+import { BackLink } from "@/components/ui/back-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -36,9 +36,7 @@ async function PayoutMethodView({ searchParams }: { searchParams: Promise<Record
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-      <Link href="/espace/profil?onglet=compte" className="text-sm font-semibold text-brand">
-        {t("← Compte")}
-      </Link>
+      <BackLink href="/espace/profil?onglet=compte" label={t("Compte")} />
       <h1 className="display mt-4 text-3xl sm:text-4xl">{t("Moyen de versement")}</h1>
       <p className="mt-2 text-ink-soft">
         {t("Vos gains de voyageur et vos primes sont versés ici, dans les jours qui suivent chaque livraison validée par le code du destinataire.")}

@@ -11,6 +11,7 @@ import { euros } from "@/lib/pricing";
 import { REFERRAL_REWARD_CENTS, referralLink } from "@/lib/referral";
 import { getUserId } from "@/lib/supabase/server";
 import { getLocale, getT } from "@/i18n/server";
+import { BackLink } from "@/components/ui/back-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -35,9 +36,7 @@ async function Referral() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <Link href="/espace" className="text-sm font-semibold text-brand">
-        {t("← Mon espace")}
-      </Link>
+      <BackLink href="/espace" label={t("Mon espace")} />
       <h1 className="display mt-4 text-3xl sm:text-4xl">{t("Parrainez vos proches")}</h1>
       <p className="mt-2 max-w-xl text-muted">
         {t("Partagez votre lien. Vos filleuls reçoivent {reward} sur les frais de leur premier envoi, et vous gagnez {reward} de crédit dès leur première livraison réussie.", { reward })}

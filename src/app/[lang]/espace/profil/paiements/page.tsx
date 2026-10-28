@@ -11,6 +11,7 @@ import { euros } from "@/lib/pricing";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import type { BookingStatus } from "@/lib/types";
 import { getLocale, getT } from "@/i18n/server";
+import { BackLink } from "@/components/ui/back-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -46,9 +47,7 @@ async function Payments() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-      <Link href="/espace/profil?onglet=compte" className="text-sm font-semibold text-brand">
-        {t("← Compte")}
-      </Link>
+      <BackLink href="/espace/profil?onglet=compte" label={t("Compte")} />
       <h1 className="display mt-4 text-3xl sm:text-4xl">{t("Paiements et remboursements")}</h1>
       <p className="mt-2 text-ink-soft">{t("Paiements par carte, sécurisés par Stripe. Le montant reste bloqué jusqu'à la livraison.")}</p>
 

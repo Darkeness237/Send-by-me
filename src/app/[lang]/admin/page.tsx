@@ -19,6 +19,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession } from "@/lib/supabase/server";
 import { REPORT_REASONS, type BookingStatus } from "@/lib/types";
 import { formatIban, operatorLabel, type PayoutMethod } from "@/lib/payout";
+import { BackLink } from "@/components/ui/back-link";
 
 export const metadata: Metadata = { title: "Administration", robots: { index: false } };
 
@@ -480,9 +481,9 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
           <nav className="space-y-1" aria-label="Sections">
             {TABS.map(([key, label]) => navItem(key, label))}
           </nav>
-          <Link href="/" className="mt-4 block rounded-xl px-3 py-2 text-sm text-white/60 hover:text-white">
-            ← Voir le site
-          </Link>
+          <div className="mt-4 px-1">
+            <BackLink href="/" label="Voir le site" tone="dark" />
+          </div>
         </div>
       </aside>
 

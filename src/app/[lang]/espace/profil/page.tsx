@@ -40,6 +40,7 @@ import { isStripeConfigured } from "@/lib/stripe";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { maskIban, maskPhone, operatorLabel, type PayoutMethod } from "@/lib/payout";
 import { getLocale, getT } from "@/i18n/server";
+import { BackLink } from "@/components/ui/back-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -183,9 +184,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-      <Link href="/espace" className="text-sm font-semibold text-brand">
-        {t("← Mon espace")}
-      </Link>
+      <BackLink href="/espace" label={t("Mon espace")} />
       <h1 className="sr-only">{t("Mon profil")}</h1>
 
       <section className="mt-4 rounded-3xl bg-white p-5 ring-1 ring-line sm:p-6">

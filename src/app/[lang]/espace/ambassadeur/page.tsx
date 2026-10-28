@@ -26,6 +26,7 @@ import { REFERRAL_REWARD_CENTS, referralLink } from "@/lib/referral";
 import { getUserId } from "@/lib/supabase/server";
 import { getLocale, getT } from "@/i18n/server";
 import { intlLocale } from "@/i18n/config";
+import { BackLink } from "@/components/ui/back-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -61,9 +62,7 @@ async function Ambassador() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <Link href="/espace" className="text-sm font-semibold text-brand">
-        {t("← Mon espace")}
-      </Link>
+      <BackLink href="/espace" label={t("Mon espace")} />
       <h1 className="display mt-4 flex flex-wrap items-center gap-3 text-3xl sm:text-4xl">
         {t("Programme Ambassadeur")}{" "}{a.since && <AmbassadorBadge size="md" />}
       </h1>

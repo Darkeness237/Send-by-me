@@ -1,6 +1,6 @@
 "use client";
 
-import { PlaneTakeoff } from "lucide-react";
+import { ArrowLeft, PlaneTakeoff } from "lucide-react";
 import { useActionState, useRef, useState } from "react";
 import { publishTrip } from "@/app/actions/trips";
 import { TripPreview } from "@/components/publish-previews";
@@ -613,6 +613,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
               size="lg"
               onClick={() => setStage((n) => n - 1)}
             >
+              <ArrowLeft className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
               {t("Retour")}
             </Button>
           )}

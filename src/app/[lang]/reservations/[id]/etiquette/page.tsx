@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import QRCode from "qrcode";
@@ -13,6 +12,7 @@ import { codeFor, tzFor } from "@/lib/places";
 import { getUserId } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/types";
 import { getLocale, getT } from "@/i18n/server";
+import { BackLink } from "@/components/ui/back-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -36,9 +36,7 @@ async function Label({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <Link href={`/reservations/${id}`} className="text-sm font-semibold text-brand">
-        {t("← Ma réservation")}
-      </Link>
+      <BackLink href={`/reservations/${id}`} label={t("Ma réservation")} />
       <h1 className="display mt-4 text-3xl sm:text-4xl">{t("Étiquette du colis")}</h1>
       <p className="mt-2 max-w-xl text-muted">
         {t("Imprimez-la, collez-la bien à plat sur le colis fermé, puis prenez la photo « colis emballé » avec l'étiquette visible. Le voyageur et votre destinataire retrouvent le même numéro dans le suivi.")}

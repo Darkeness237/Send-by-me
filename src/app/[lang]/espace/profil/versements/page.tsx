@@ -10,6 +10,7 @@ import { codeFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { getLocale, getT } from "@/i18n/server";
+import { BackLink } from "@/components/ui/back-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -50,9 +51,7 @@ async function Payouts() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-      <Link href="/espace/profil?onglet=compte" className="text-sm font-semibold text-brand">
-        {t("← Compte")}
-      </Link>
+      <BackLink href="/espace/profil?onglet=compte" label={t("Compte")} />
       <h1 className="display mt-4 text-3xl sm:text-4xl">{t("Versements reçus")}</h1>
 
       <dl className="mt-6 grid grid-cols-2 gap-3">

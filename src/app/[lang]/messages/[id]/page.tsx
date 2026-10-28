@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Avatar } from "@/components/avatar";
@@ -14,6 +13,7 @@ import { tzFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
 import { getUserId } from "@/lib/supabase/server";
 import { getLocale, getT } from "@/i18n/server";
+import { BackLink } from "@/components/ui/back-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -37,9 +37,7 @@ async function Conversation({ params }: { params: Promise<{ id: string }> }) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <LiveRefresh inquiryId={inquiry.id} />
-      <Link href="/messages" className="text-sm font-semibold text-brand">
-        {t("← Messages")}
-      </Link>
+      <BackLink href="/messages" label={t("Messages")} />
       <div className="mt-4 flex h-[75vh] flex-col rounded-3xl bg-white ring-1 ring-line">
         <div className="flex flex-wrap items-center gap-3 border-b border-line p-5">
           <Avatar name={other?.full_name || "Membre"} verified={other?.id_verified} certified={other?.certified} size={44} />
