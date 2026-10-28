@@ -10,6 +10,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession } from "@/lib/supabase/server";
 import type { FormState } from "./auth";
 import { payTraveler } from "@/lib/stripe-connect";
+import { EXPENSE_CATEGORIES, type ExpenseCategory } from "@/lib/finance";
 
 /** Chaque action admin revérifie le rôle côté serveur. */
 async function requireAdmin() {
@@ -194,4 +195,43 @@ export async function payoutViaStripe(_: FormState, formData: FormData): Promise
   const transferId = await payTraveler(bookingId);
   revalidatePath("/admin");
   return transferId ? { ok: `Virement Stripe envoyé (${transferId}).` } : { error: "Virement impossible : compte Stripe du voyageur inactif ou erreur Stripe (voir les journaux)." };
+}
+
+// ── Frais annexes ───────────────────────────────────────────────
+const expenseSchema = z.object({
+  spent_on: z.iso.date({ error: "Date invalide." }),
+  category: z.enum(EXPENSE_CATEGORIES.map(([k]) => k) as [ExpenseCategory, ...ExpenseCategory[]], { error: "Choisissez une catégorie." }),
+  label: z.string().trim().min(2, "Décrivez la dépense (2 caractères minimum).").max(140),
+  amount: z
+    .string()
+    .trim()
+    .transform((v) => Math.round(Number(v.replace(/\s/g, "").replace(",", ".")) * 100))
+    .refine((c) => Number.isFinite(c) && c >= 1 && c <= 10_000_000, "Montant invalide."),
+  tracking_code: z.string().trim().toUpperCase().max(40).optional(),
+});
+
+export async function addExpense(_: FormState, formData: FormData): Promise<FormState> {
+  const adminId = await requireAdmin();
+  const parsed = expenseSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const d = parsed.data;
+  const db = createAdminClient();
+  let bookingId: string | null = null;
+  if (d.tracking_code) {
+    const { data: b } = await db.from("bookings").select("id").eq("tracking_code", d.tracking_code).maybeSingle();
+    if (!b) return { error: "Aucune réservation avec ce numéro de suivi." };
+    bookingId = b.id as string;
+  }
+  const { error } = await db.from("admin_expenses").insert({ spent_on: d.spent_on, category: d.category, label: d.label, amount_cents: d.amount, booking_id: bookingId, created_by: adminId });
+  if (error) return { error: "Dépense non enregistrée. Réessayez." };
+  revalidatePath("/admin");
+  return { ok: "Dépense enregistrée." };
+}
+
+export async function deleteExpense(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("expense_id"));
+  if (!Number.isInteger(id) || id <= 0) return;
+  await createAdminClient().from("admin_expenses").delete().eq("id", id);
+  revalidatePath("/admin");
 }

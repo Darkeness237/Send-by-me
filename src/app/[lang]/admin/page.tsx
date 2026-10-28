@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { AlertTriangle, BadgeCheck, Banknote, Gift, LayoutDashboard, Package, Truck, Users, type LucideIcon } from "lucide-react";
+import { AlertTriangle, BadgeCheck, Banknote, Gift, LayoutDashboard, Package, PiggyBank, Truck, Users, type LucideIcon } from "lucide-react";
 import { AdminOverview, QUEUE_ICONS } from "@/components/admin-overview";
+import { AdminFinances } from "@/components/admin-finances";
+import { PERIODS, type Period } from "@/lib/finance";
 import { setVerified } from "@/app/actions/admin";
 import { completeHomeDelivery } from "@/app/actions/tracking";
 import { DELIVERY_STATUS_LABEL, type DeliveryStatus } from "@/lib/delivery";
@@ -25,6 +27,7 @@ export const metadata: Metadata = { title: "Administration", robots: { index: fa
 
 const TABS = [
   ["apercu", "Tableau de bord"],
+  ["finances", "Finances"],
   ["verifications", "Vérifications"],
   ["signalements", "Signalements"],
   ["livraisons", "Livraisons"],
@@ -36,6 +39,7 @@ const TABS = [
 type Tab = (typeof TABS)[number][0];
 const TAB_ICONS: Record<Tab, LucideIcon> = {
   apercu: LayoutDashboard,
+  finances: PiggyBank,
   verifications: BadgeCheck,
   signalements: AlertTriangle,
   livraisons: Truck,
@@ -48,7 +52,7 @@ const TAB_ICONS: Record<Tab, LucideIcon> = {
 type Row = Record<string, unknown>;
 const one = (v: unknown): Row | undefined => (Array.isArray(v) ? (v[0] as Row) : ((v as Row | null) ?? undefined));
 
-async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string; q?: string }> }) {
+async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string; q?: string; periode?: string }> }) {
   const { userId, isAdmin } = await getSession();
   if (!userId || !isAdmin) notFound(); // la page n'existe pas pour les autres membres
   const sp = await searchParams;
@@ -64,7 +68,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
     db.from("bookings").select("id", { count: "exact", head: true }).gt("delivery_cents", 0).in("status", ["paid", "picked_up"]),
     db.from("ambassador_rewards").select("id", { count: "exact", head: true }).is("paid_at", null),
   ]);
-  const counts: Record<Tab, number | null> = { apercu: null, verifications: (pendingIds ?? 0) + (pendingProofs ?? 0), signalements: openReports, livraisons: openDeliveries, versements: duePayouts, primes: dueRewards, membres: unverified, reservations: null };
+  const counts: Record<Tab, number | null> = { apercu: null, finances: null, verifications: (pendingIds ?? 0) + (pendingProofs ?? 0), signalements: openReports, livraisons: openDeliveries, versements: duePayouts, primes: dueRewards, membres: unverified, reservations: null };
 
   let content: React.ReactNode = null;
 
@@ -80,6 +84,11 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
         ]}
       />
     );
+  }
+
+  if (tab === "finances") {
+    const period = (PERIODS.find(([k]) => k === sp.periode)?.[0] ?? "30j") as Period;
+    content = <AdminFinances period={period} />;
   }
 
   if (tab === "verifications") {
@@ -321,7 +330,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
             <li key={b.id as string} className="flex flex-wrap items-center gap-4 rounded-2xl bg-white p-5 ring-1 ring-line">
               <div className="min-w-0 flex-1">
                 <p className="font-bold">
-                  {one(trip?.traveler)?.full_name as string} · <span className="tabular">{euros((b.base_cents as number) + ((b.delivery_cents as number) ?? 0) - boost)}</span>
+                  {one(trip?.traveler)?.full_name as string} · <span className="tabular">{euros((b.base_cents as number) - boost)}</span>
                   {boost > 0 && <span className="ml-2 text-sm font-normal text-muted">(mise en avant −{euros(boost)} retenue)</span>}
                 </p>
                 <p className="text-sm text-muted">

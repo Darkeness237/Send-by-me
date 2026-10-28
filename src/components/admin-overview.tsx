@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, BadgeCheck, Banknote, Euro, Gift, Package, Plane, Truck, UserPlus, Users, type LucideIcon } from "lucide-react";
+import { AlertTriangle, ArrowRight, BadgeCheck, Banknote, Euro, PiggyBank, Gift, Package, Plane, Truck, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import { dayLabel } from "@/lib/format";
 import { codeFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
+import { getFinances } from "@/lib/finance";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { STATUS_LABEL, type BookingStatus } from "@/lib/types";
 
@@ -16,15 +17,22 @@ const FUNNEL: BookingStatus[] = ["pending", "accepted", "paid", "picked_up", "de
 
 type Queue = { key: string; label: string; count: number; icon: LucideIcon; hint?: string };
 
-function Tile({ icon: Icon, label, value, sub }: { icon: LucideIcon; label: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-3xl bg-white p-5 ring-1 ring-line">
+function Tile({ icon: Icon, label, value, sub, href }: { icon: LucideIcon; label: string; value: string; sub?: string; href?: string }) {
+  const body = (
+    <>
       <p className="flex items-center gap-2 text-sm font-semibold text-muted">
         <Icon className="h-4 w-4 text-brand" aria-hidden="true" /> {label}
       </p>
       <p className="tabular mt-2 text-3xl font-extrabold tracking-tight">{value}</p>
       {sub && <p className="mt-1 text-sm text-muted">{sub}</p>}
-    </div>
+    </>
+  );
+  return href ? (
+    <Link href={href} className="group block rounded-3xl bg-white p-5 ring-1 ring-line hover:ring-brand">
+      {body}
+    </Link>
+  ) : (
+    <div className="rounded-3xl bg-white p-5 ring-1 ring-line">{body}</div>
   );
 }
 
@@ -70,8 +78,9 @@ export async function AdminOverview({ queues }: { queues: Queue[] }) {
   const db = createAdminClient();
   const now = nowMs();
   const since = new Date(now - 30 * DAY).toISOString();
+  const fin = await getFinances("30j", now);
   const [{ data: all }, { count: members }, { count: newMembers }, { count: verified }, { count: upcoming }, { data: recent }, { data: newcomers }, { data: dueRows }] = await Promise.all([
-    db.from("bookings").select("status, total_cents, fee_cents, delivery_cents, paid_at, trip:trips(from_city, to_city)").limit(5000),
+    db.from("bookings").select("status, total_cents, paid_at, trip:trips(from_city, to_city)").limit(5000),
     db.from("profiles").select("id", { count: "exact", head: true }),
     db.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since),
     db.from("profiles").select("id", { count: "exact", head: true }).eq("id_verified", true),
@@ -81,10 +90,9 @@ export async function AdminOverview({ queues }: { queues: Queue[] }) {
     db.from("bookings").select("base_cents").eq("payout_status", "due"),
   ]);
 
-  const rows = (all ?? []) as { status: BookingStatus; total_cents: number; fee_cents: number; delivery_cents: number | null; paid_at: string | null; trip: unknown }[];
+  const rows = (all ?? []) as { status: BookingStatus; total_cents: number; paid_at: string | null; trip: unknown }[];
   const paid30 = rows.filter((r) => r.paid_at && r.paid_at >= since && PAID.includes(r.status));
   const volume30 = paid30.reduce((a, r) => a + r.total_cents, 0);
-  const fees30 = paid30.reduce((a, r) => a + r.fee_cents + (r.delivery_cents ?? 0), 0);
   const delivered = rows.filter((r) => r.status === "delivered").length;
   const failed = rows.filter((r) => r.status === "refunded").length;
   const dueCents = (dueRows ?? []).reduce((a, r) => a + (r.base_cents as number), 0);
@@ -146,7 +154,13 @@ export async function AdminOverview({ queues }: { queues: Queue[] }) {
       {/* Chiffres clés */}
       <section aria-label="Chiffres clés" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Tile icon={Euro} label="Encaissé (30 jours)" value={euros(volume30)} sub={`${paid30.length} réservation${paid30.length > 1 ? "s" : ""} payée${paid30.length > 1 ? "s" : ""}`} />
-        <Tile icon={Banknote} label="Frais et livraisons (30 j)" value={euros(fees30)} sub="avant frais Stripe" />
+        <Tile
+          icon={PiggyBank}
+          label="Résultat net estimé (30 j)"
+          value={euros(fin.net)}
+          sub={`Revenus ${euros(fin.revenue)} − coûts ${euros(fin.stripe + fin.rewards + fin.expensesTotal)} · voir le détail →`}
+          href="/admin?onglet=finances"
+        />
         <Tile icon={Users} label="Membres" value={String(members ?? 0)} sub={`+${newMembers ?? 0} ce mois · ${verified ?? 0} vérifiés`} />
         <Tile icon={Plane} label="Trajets à venir" value={String(upcoming ?? 0)} sub={`${delivered} livraison${delivered > 1 ? "s" : ""} réussie${delivered > 1 ? "s" : ""}${failed ? ` · ${failed} remboursée${failed > 1 ? "s" : ""}` : ""}`} />
       </section>

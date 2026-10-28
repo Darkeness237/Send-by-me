@@ -1,9 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
-import { markPayoutPaid, markRewardsPaid, refundBooking, resolveReport, reviewIdentity, reviewTripProof, payoutViaStripe } from "@/app/actions/admin";
+import { useActionState, useEffect, useRef } from "react";
+import { addExpense, markPayoutPaid, markRewardsPaid, refundBooking, resolveReport, reviewIdentity, reviewTripProof, payoutViaStripe } from "@/app/actions/admin";
 import { Button } from "@/components/ui/button";
-import { FormMessage, Input } from "@/components/ui/field";
+import { Field, FormMessage, Input, Select } from "@/components/ui/field";
 
 export function ResolveReportForm({ reportId }: { reportId: number }) {
   const [state, action, pending] = useActionState(resolveReport, null);
@@ -110,6 +110,51 @@ export function ReviewForm({ kind, id }: { kind: "identity" | "trip"; id: string
         </Button>
       </div>
       {state?.error && <FormMessage state={state} />}
+    </form>
+  );
+}
+
+/** Saisie d'un frais annexe : il vient en déduction du résultat de Send By Me. */
+export function ExpenseForm({ categories, today }: { categories: readonly (readonly [string, string])[]; today: string }) {
+  const [state, action, pending] = useActionState(addExpense, null);
+  const ref = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (state?.ok) ref.current?.reset();
+  }, [state]);
+  return (
+    <form ref={ref} action={action} className="grid gap-4 sm:grid-cols-2">
+      <Field label="Montant (€)" htmlFor="exp-amount">
+        <Input id="exp-amount" name="amount" required inputMode="decimal" placeholder="12,50" className="tabular" />
+      </Field>
+      <Field label="Date" htmlFor="exp-date">
+        <Input id="exp-date" name="spent_on" type="date" required defaultValue={today} max="2100-12-31" />
+      </Field>
+      <Field label="Catégorie" htmlFor="exp-cat">
+        <Select id="exp-cat" name="category" required defaultValue="">
+          <option value="" disabled>
+            Choisir
+          </option>
+          {categories.map(([k, label]) => (
+            <option key={k} value={k}>
+              {label}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      <Field label="N° de suivi (facultatif)" htmlFor="exp-track" hint="Pour rattacher la dépense à un envoi.">
+        <Input id="exp-track" name="tracking_code" maxLength={40} placeholder="SBM-…" className="uppercase" />
+      </Field>
+      <div className="sm:col-span-2">
+        <Field label="Description" htmlFor="exp-label">
+          <Input id="exp-label" name="label" required maxLength={140} placeholder="Course livreur Douala, campagne Facebook, rouleau de scotch…" />
+        </Field>
+      </div>
+      <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
+        <Button type="submit" disabled={pending}>
+          {pending ? "Enregistrement…" : "Ajouter la dépense"}
+        </Button>
+        <FormMessage state={state} />
+      </div>
     </form>
   );
 }
