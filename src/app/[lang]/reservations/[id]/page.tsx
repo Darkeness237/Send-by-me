@@ -29,6 +29,7 @@ import { euros } from "@/lib/pricing";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { bookingStatusLabel, CATEGORIES } from "@/lib/types";
 import { getLocale, getT } from "@/i18n/server";
+import { confirmCheckout } from "@/lib/booking-payment";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -47,6 +48,10 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
   const trip = booking.trip;
   const isSender = booking.sender_id === userId;
   const isTraveler = trip.traveler_id === userId;
+  // Paiement fait chez Stripe mais pas encore reçu par le webhook : on le vérifie directement.
+  if ((isSender || isTraveler) && booking.status === "accepted" && (await confirmCheckout(booking.id))) {
+    redirect(`/reservations/${booking.id}`);
+  }
   // Le suivi passe seul « en transit » puis « arrivé » d'après les horaires du vol.
   if (booking.status === "picked_up") await advanceTransit(booking.id);
 
