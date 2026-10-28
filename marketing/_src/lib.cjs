@@ -161,13 +161,13 @@ function codeCard({ code = '482 913', size = 1, hidden = false } = {}) {
     <div style="display:flex;align-items:center;gap:.5em;font-weight:800">${icon('key', '1.3em', C.brand)} Code de remise</div>
     <p style="font-size:.85em;color:${C.muted};margin-top:.3em">À donner au voyageur à la réception du colis.</p>
     <div style="display:flex;gap:.45em;margin-top:1em">${digits.map((d) => `<span class="display tabular" style="flex:1;display:grid;place-items:center;height:2.4em;border-radius:.5em;background:${C.paper};border:2px solid ${C.line};font-size:1.7em">${hidden ? '•' : d}</span>`).join('')}</div>
-    <div style="display:flex;align-items:center;gap:.5em;margin-top:1.1em;background:#e6f4ec;color:${C.ok};border-radius:.8em;padding:.6em .8em;font-weight:800;font-size:.9em">${icon('lock', '1.2em', C.ok)} Paiement bloqué jusqu'à la remise</div>
+    <div style="display:flex;align-items:center;gap:.5em;margin-top:1.1em;background:#e6f4ec;color:${C.ok};border-radius:.8em;padding:.6em .8em;font-weight:800;font-size:.9em">${icon('lock', '1.2em', C.ok)} Seul votre destinataire le connaît</div>
   </div>`;
 }
 
 // Suivi d'envoi
 function timeline({ steps, active = 3, size = 1 } = {}) {
-  steps = steps || ['Demande acceptée', 'Paiement bloqué', 'Colis remis au voyageur', 'En vol', 'Arrivé à destination', 'Livré, code validé'];
+  steps = steps || ['Demande acceptée', 'Paiement confirmé', 'Colis remis au voyageur', 'En vol', 'Arrivé à destination', 'Livré, code validé'];
   return `<div style="font-size:${size}rem;width:22em;background:#fff;color:${C.ink};border-radius:1.6em;padding:1.4em 1.5em;box-shadow:0 2em 4em -1.6em rgb(14 48 76/.55)">
     <div style="display:flex;justify-content:space-between;align-items:center"><b>Suivi de votre colis</b><span class="wide" style="font-size:.75em;font-weight:800;color:${C.brand}">SBM-K7Q2M9XA</span></div>
     <ol style="list-style:none;margin-top:1em">${steps

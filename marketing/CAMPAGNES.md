@@ -16,7 +16,7 @@ Ce dossier contient **138 visuels** (`visuels/`) et **des vidéos MP4 avec voix 
 | **Indicateurs secondaires** | Comptes créés, demandes d'envoi publiées, envois livrés |
 | **Type de lancement** | Lancement par étapes : voyageurs (S1-S2), puis expéditeurs (S3-S4) |
 | **Plateformes** | Instagram + Facebook (Meta), TikTok, WhatsApp (statuts et groupes) |
-| **Message central** | *Vos colis voyagent dans la valise de quelqu'un, et le voyageur n'est payé que quand votre famille a le colis en main.* |
+| **Message central** | *Vos colis voyagent dans la valise de quelqu'un, avec des voyageurs vérifiés et un suivi à chaque étape.* |
 | **Appel à l'action unique par phase** | Teasing : « Suivez-nous » · Lancement voyageurs : « Proposer mes kilos » · Lancement expéditeurs : « Envoyer un colis » |
 
 ---
@@ -92,16 +92,16 @@ Les vidéos fournies ont une **voix off française** (synthèse vocale Piper, vo
 ## 4. Messages WhatsApp prêts à copier
 
 **1. Lancement (groupes famille, amis, communautés)**
-> Bonjour à tous 👋 On vient de lancer **Send By Me** : vous envoyez un colis au pays avec un voyageur vérifié, et vous payez en ligne. L'argent reste bloqué jusqu'à ce que votre famille ait le colis en main (elle donne un code au voyageur).
+> Bonjour à tous 👋 On vient de lancer **Send By Me** : vous envoyez un colis au pays avec un voyageur vérifié, et vous payez en ligne. Votre famille confirme la réception avec un code.
 > Vous voyagez bientôt ? Proposez vos kilos libres, c'est gratuit : https://www.send-by-me.com/publier
 > Vous avez un colis à envoyer ? https://www.send-by-me.com
 
 **2. Voyageurs**
-> Tu rentres au pays bientôt avec de la place dans ta valise ? Sur Send By Me tu proposes tes kilos libres, tu fixes ton prix et tu es payé à la remise du colis. Publier ton trajet prend 2 minutes : https://www.send-by-me.com/publier
+> Tu rentres au pays bientôt avec de la place dans ta valise ? Sur Send By Me tu proposes tes kilos libres, tu fixes ton prix et tu choisis les colis que tu prends. Publier ton trajet prend 2 minutes : https://www.send-by-me.com/publier
 
 **3. Trajet du jour (à adapter avec un vrai trajet publié)**
 > ✈️ **Paris → Douala** le [date] · [X] kg disponibles · [prix] €/kg
-> Voyageur vérifié, paiement bloqué jusqu'à la livraison.
+> Voyageur vérifié, suivi du colis à chaque étape.
 > Réserver : [lien du trajet]
 
 **4. Groupes « GP » (respecter les règles du groupe, pas de spam)**
@@ -126,7 +126,7 @@ Budget de départ conseillé : 5 à 10 € par jour et par ensemble pendant 7 jo
 ### Google Ads (recherche)
 Groupes de mots-clés : « envoyer colis Paris Douala », « colis Paris Dakar », « GP Paris Abidjan », « envoi colis Cameroun pas cher ».
 
-- **Titres** (30 caractères max) : `Envoyez un colis à Douala` · `Voyageurs vérifiés` · `Paiement bloqué à la livraison` · `Colis Paris → Dakar` · `Pas d'avance à un inconnu`
+- **Titres** (30 caractères max) : `Envoyez un colis à Douala` · `Voyageurs vérifiés` · `Prix négociable` · `Colis Paris → Dakar` · `Pas d'avance à un inconnu`
 - **Descriptions** (90 caractères max) : `Des voyageurs vérifiés transportent vos colis. Payé seulement à la remise.` · `Comparez prix au kilo, dates et avis. Votre famille valide avec un code.`
 - **Lien** : la page de la ligne, par exemple `https://www.send-by-me.com/envoyer-un-colis/paris-douala`
 

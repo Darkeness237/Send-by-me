@@ -1,4 +1,4 @@
 .tmp.html
-.tmp-video.html
-.tmp-silent.mp4
+.tmp-video*.html
+.tmp-silent*.mp4
 vo/

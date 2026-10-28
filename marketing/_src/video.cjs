@@ -127,11 +127,11 @@ const photoScene = (dur, { photo, pos = '50% 35%', eyebrow, title, text, chips, 
 const codeAnim = (at, start, digits = '482913') => `<div style="width:24rem;background:#fff;color:${C.ink};border-radius:1.8rem;padding:1.6rem;box-shadow:0 2rem 4rem -1.6rem rgb(0 0 0/.6)">
   <div style="display:flex;align-items:center;gap:.5rem;font-weight:900;font-size:1.3rem">${icon('key', '1.3em', C.brand)} Code de remise</div>
   <div style="display:flex;gap:.5rem;margin-top:1.1rem">${digits.split('').map((n, i) => `<span style="flex:1;height:4.2rem;border-radius:.7rem;background:${C.paper};border:2px solid ${C.line};display:grid;place-items:center"><b class="display pop tabular" style="font-size:2.4rem;${at(start + i * 0.22)}">${n}</b></span>`).join('')}</div>
-  <div class="up" style="display:flex;align-items:center;gap:.5rem;margin-top:1.1rem;background:#e6f4ec;color:${C.ok};border-radius:.9rem;padding:.7rem .9rem;font-weight:900;font-size:1.15rem;${at(start + 1.6)}">${icon('check', '1.2em', C.ok, 3)} Code validé, paiement libéré</div>
+  <div class="up" style="display:flex;align-items:center;gap:.5rem;margin-top:1.1rem;background:#e6f4ec;color:${C.ok};border-radius:.9rem;padding:.7rem .9rem;font-weight:900;font-size:1.15rem;${at(start + 1.6)}">${icon('check', '1.2em', C.ok, 3)} Code validé : colis réceptionné</div>
 </div>`;
 
 // Suivi qui avance étape par étape
-const trackAnim = (at, start, steps = ['Demande acceptée', 'Paiement bloqué', 'Colis remis au voyageur', 'En vol', 'Arrivé à destination', 'Livré, code validé']) => `<div style="width:26rem;background:#fff;color:${C.ink};border-radius:1.8rem;padding:1.6rem 1.7rem;box-shadow:0 2rem 4rem -1.6rem rgb(0 0 0/.55)">
+const trackAnim = (at, start, steps = ['Demande acceptée', 'Paiement confirmé', 'Colis remis au voyageur', 'En vol', 'Arrivé à destination', 'Livré, code validé']) => `<div style="width:26rem;background:#fff;color:${C.ink};border-radius:1.8rem;padding:1.6rem 1.7rem;box-shadow:0 2rem 4rem -1.6rem rgb(0 0 0/.55)">
   <div style="display:flex;justify-content:space-between;align-items:center;font-size:1.25rem"><b>Suivi de votre colis</b><span class="wide" style="font-size:.85rem;font-weight:900;color:${C.brand}">SBM-K7Q2M9XA</span></div>
   <ol style="list-style:none;margin-top:1.2rem">${steps.map((s, i) => `<li style="display:flex;gap:.9rem;align-items:center;padding-bottom:${i < steps.length - 1 ? '1rem' : 0}">
     <span style="width:1.5rem;height:1.5rem;border-radius:50%;border:2px solid ${C.line};background:#fff;display:grid;place-items:center;animation:check .4s ease both;${at(start + i * 0.55)}">${icon('check', '.9rem', '#fff', 4)}</span>
@@ -169,17 +169,17 @@ vid('02-compte-a-rebours', [V9], [
 
 vid('03-lancement-officiel', [V9, V1, V16], [
   photoScene(4.2, { photo: P.voy, pos: '50% 20%', eyebrow: 'C’est parti', title: 'Vos colis voyagent dans la <span class="hl">valise</span> de quelqu’un.' }),
-  photoScene(4.4, { photo: P.remise, pos: '55% 50%', eyebrow: 'Comment ?', title: 'Des voyageurs vérifiés proposent leurs kilos libres.', chips: [['badge', 'Identité vérifiée'], ['lock', 'Paiement bloqué'], ['key', 'Code de remise']] }),
-  photoScene(4, { photo: P.famille, pos: '50% 35%', eyebrow: 'À l’arrivée', title: 'Le voyageur n’est payé que quand votre famille a le colis.' }),
+  photoScene(4.4, { photo: P.remise, pos: '55% 50%', eyebrow: 'Comment ?', title: 'Des voyageurs vérifiés proposent leurs kilos libres.', chips: [['badge', 'Identité vérifiée'], ['route', 'Suivi du colis'], ['key', 'Code de remise']] }),
+  photoScene(4, { photo: P.famille, pos: '50% 35%', eyebrow: 'À l’arrivée', title: 'C’est votre famille qui confirme la réception.' }),
   endCard('Envoyez vos colis entre l’Europe et l’Afrique.'),
-], 'Vidéo de lancement (16 s). Légende : « Send By Me est en ligne ! Des voyageurs vérifiés, un paiement bloqué jusqu’à la livraison, un code que seule votre famille connaît. 👉 send-by-me.com »');
+], 'Vidéo de lancement (16 s). Légende : « Send By Me est en ligne ! Des voyageurs vérifiés, un suivi à chaque étape, et un code que seule votre famille connaît. 👉 send-by-me.com »');
 
 vid('04-comment-ca-marche', [V9, V1], [
   textScene(3, { eyebrow: 'Expéditeurs', title: 'Envoyer un colis avec un voyageur, comment ça marche ?', el: `<div style="font-size:1.2rem">${L.parcel({ size: 1.2 })}</div>` }),
   photoScene(3.6, { photo: P.sofa, pos: '50% 40%', eyebrow: 'Étape 1', title: 'Trouvez un trajet.', text: 'Comparez dates, prix au kilo et avis.' }),
   photoScene(3.6, { photo: P.carton, pos: '60% 40%', eyebrow: 'Étape 2', title: 'Demandez des kilos.', text: 'Décrivez votre colis, discutez avec le voyageur.' }),
-  { dur: 4, html: (at) => `${bg(C.paper)}${logoPill()}<div class="abs" style="left:3rem;right:3rem;top:12rem;color:${C.ink}"><div class="wide up" style="font-weight:900;font-size:1.3rem;color:${C.brand};${at(0.1)}">ÉTAPE 3</div><h1 class="display up" style="font-size:4.6rem;margin-top:1rem;${at(0.25)}">Payez en ligne.</h1><p class="up" style="font-size:1.7rem;color:${C.inkSoft};margin-top:1rem;${at(0.45)}">Le montant reste bloqué par Send By Me.</p></div>
-      <div class="abs pop" style="left:50%;bottom:16%;margin-left:-11rem;${at(0.8)}"><div style="width:22rem;background:${C.ink};color:#fff;border-radius:1.8rem;padding:2rem;text-align:center">${icon('lock', '6rem', C.signal, 1.8)}<div class="display" style="font-size:2.4rem;margin-top:1rem">Paiement bloqué</div><div style="font-size:1.2rem;opacity:.75;margin-top:.4rem">jusqu’à la remise du colis</div></div></div>` },
+  { dur: 4, html: (at) => `${bg(C.paper)}${logoPill()}<div class="abs" style="left:3rem;right:3rem;top:12rem;color:${C.ink}"><div class="wide up" style="font-weight:900;font-size:1.3rem;color:${C.brand};${at(0.1)}">ÉTAPE 3</div><h1 class="display up" style="font-size:4.6rem;margin-top:1rem;${at(0.25)}">Payez en ligne.</h1><p class="up" style="font-size:1.7rem;color:${C.inkSoft};margin-top:1rem;${at(0.45)}">Par carte, en toute sécurité.</p></div>
+      <div class="abs pop" style="left:50%;bottom:16%;margin-left:-11rem;${at(0.8)}"><div style="width:22rem;background:${C.ink};color:#fff;border-radius:1.8rem;padding:2rem;text-align:center">${icon('lock', '6rem', C.signal, 1.8)}<div class="display" style="font-size:2.4rem;margin-top:1rem">Paiement sécurisé</div><div style="font-size:1.2rem;opacity:.75;margin-top:.4rem">par carte, en ligne</div></div></div>` },
   { dur: 4.4, html: (at) => `${bg(C.ink)}${halo()}${logoPill()}<div class="abs" style="left:3rem;right:3rem;top:12rem;color:#fff"><div class="wide up" style="font-weight:900;font-size:1.3rem;color:${C.signal};${at(0.1)}">ÉTAPE 4</div><h1 class="display up" style="font-size:4.6rem;margin-top:1rem;${at(0.25)}">Remise avec un code.</h1></div><div class="abs" style="left:50%;bottom:14%;transform:translateX(-50%)">${codeAnim(at, 0.8)}</div>` },
   endCard('Inscription gratuite.'),
 ], 'Tuto « Comment ça marche » (22 s). Légende : « 4 étapes pour envoyer un colis avec un voyageur, et votre argent protégé du début à la fin. »');
@@ -188,7 +188,7 @@ vid('05-voyageur-kilos', [V9, V1], [
   photoScene(3.4, { photo: P.aero, pos: '50% 30%', eyebrow: 'Vous partez bientôt ?', title: 'Votre valise a de la place ?' }),
   { dur: 5, html: (at) => `${bg(C.signal)}${logoPill()}<div class="abs" style="left:3rem;right:3rem;top:12rem;color:${C.ink}"><h1 class="display up" style="font-size:4.6rem;${at(0.1)}">Vos kilos libres ont de la valeur.</h1><p class="up" style="font-size:1.6rem;margin-top:1rem;${at(0.3)}">Exemple : 23 kg à 9 € le kilo.</p></div>
       <div class="abs" style="left:0;right:0;bottom:12%;display:flex;justify-content:center"><div class="pop" style="${at(0.6)}">${countEarn(at, 1.4)}</div></div>` },
-  textScene(3.6, { eyebrow: 'Voyageurs', title: 'Publier votre trajet, c’est gratuit.', text: 'Vous fixez votre prix. Vous êtes payé à la remise, à coup sûr.', color: C.ink }),
+  textScene(3.6, { eyebrow: 'Voyageurs', title: 'Publier votre trajet, c’est gratuit.', text: 'Vous fixez votre prix, vous choisissez vos colis.', color: C.ink }),
   endCard('Proposez vos kilos en deux minutes.', 'send-by-me.com/publier'),
 ], 'Recrutement voyageurs (15 s). Légende : « Votre valise a de la place ? Exemple : 23 kg à 9 €/kg = 207 € si tout part. Publier est gratuit. 👉 send-by-me.com/publier »');
 
@@ -203,7 +203,7 @@ vid('06-plus-d-arnaque', [V9, V1], [
 
 vid('07-code-de-remise', [V9], [
   { dur: 5.2, html: (at) => `${bg(C.ink)}${halo()}${logoPill()}<div class="abs" style="left:3rem;right:3rem;top:12rem;color:#fff"><div class="wide up" style="font-weight:900;font-size:1.3rem;color:${C.signal};${at(0.1)}">LE CODE DE REMISE</div><h1 class="display up" style="font-size:4.4rem;margin-top:1rem;${at(0.25)}">6 chiffres que seule votre famille connaît.</h1></div><div class="abs" style="left:50%;bottom:14%;transform:translateX(-50%)">${codeAnim(at, 1)}</div>` },
-  textScene(3.4, { title: 'Sans le code, pas de livraison validée.', text: 'Et le voyageur n’est pas payé.', color: C.brand }),
+  textScene(3.4, { title: 'Sans le code, pas de livraison validée.', text: 'C’est la preuve que le colis est bien arrivé.', color: C.brand }),
   endCard('La sécurité, à chaque colis.', 'send-by-me.com/securite'),
 ], 'Explication du code de remise (12 s). Légende : « Le code de remise : 6 chiffres que seule votre famille connaît. Sans lui, pas de livraison validée. »');
 
@@ -272,7 +272,7 @@ const head = (at, { eyebrow, title, text, fg = '#fff', accent = C.signal }) => `
   ${eyebrow ? `<div class="wide up" style="font-weight:900;font-size:1.3rem;color:${accent};text-transform:uppercase;${at(0.1)}">${eyebrow}</div>` : ''}
   <h1 class="display up" style="font-size:4.4rem;margin-top:1rem;${at(0.25)}">${title}</h1>
   ${text ? `<p class="up" style="font-size:1.6rem;line-height:1.4;opacity:.85;margin-top:1rem;${at(0.45)}">${text}</p>` : ''}</div>`;
-const lockCard = (label = 'Paiement bloqué', sub = 'jusqu’à la remise du colis') => `<div style="width:22rem;background:#fff;color:${C.ink};border-radius:1.8rem;padding:2rem;text-align:center;box-shadow:0 2rem 4rem -1.6rem rgb(0 0 0/.6)">${icon('lock', '6rem', C.brand, 1.8)}<div class="display" style="font-size:2.3rem;margin-top:1rem">${label}</div><div style="font-size:1.2rem;opacity:.7;margin-top:.4rem">${sub}</div></div>`;
+const lockCard = (label = 'Paiement sécurisé', sub = 'par carte, en ligne') => `<div style="width:22rem;background:#fff;color:${C.ink};border-radius:1.8rem;padding:2rem;text-align:center;box-shadow:0 2rem 4rem -1.6rem rgb(0 0 0/.6)">${icon('lock', '6rem', C.brand, 1.8)}<div class="display" style="font-size:2.3rem;margin-top:1rem">${label}</div><div style="font-size:1.2rem;opacity:.7;margin-top:.4rem">${sub}</div></div>`;
 const S = {
   lock: (o) => ({ dur: 4, html: (at) => `${bg(o.bg || C.ink)}${halo()}${logoPill()}${head(at, o)}${centerEl(at, 0.8, lockCard(o.label, o.sub), '16%')}` }),
   code: (o) => ({ dur: 5, html: (at) => `${bg(C.ink)}${halo()}${logoPill()}${head(at, o)}<div class="abs" style="left:50%;bottom:13%;transform:translateX(-50%)">${codeAnim(at, 1)}</div>` }),
@@ -300,13 +300,13 @@ vid('20-presentation-complete', [V9, V16], [
   withVo(photoScene(4, { photo: P.voy, pos: '50% 20%', eyebrow: 'Send By Me', title: 'Vos colis voyagent dans la <span class="hl">valise</span> de quelqu’un.' }), 'Avec Send baille mi, vos colis voyagent dans la valise de voyageurs vérifiés, entre l’Europe et l’Afrique.'),
   withVo(photoScene(4, { photo: P.sofa, pos: '50% 40%', eyebrow: 'Étape 1', title: 'Trouvez un trajet.', text: 'Dates, prix au kilo, avis.' }), 'Vous cherchez un trajet vers la ville de votre destinataire. Vous comparez les dates, les prix au kilo, et les avis des voyageurs.'),
   withVo(photoScene(4, { photo: P.carton, pos: '60% 40%', eyebrow: 'Étape 2', title: 'Discutez avec le voyageur.', text: 'Sans donner votre numéro.' }), 'Vous décrivez votre colis, et vous discutez avec le voyageur dans la messagerie, sans donner votre numéro.'),
-  withVo(S.lock({ eyebrow: 'Étape 3', title: 'Payez en ligne.', text: 'Le montant reste bloqué.' }), 'Vous payez en ligne. Votre argent reste bloqué par Send baille mi : le voyageur ne le reçoit pas encore.'),
-  withVo(S.code({ eyebrow: 'Étape 4', title: 'Remise avec un code.' }), 'À l’arrivée, votre destinataire donne son code de remise à six chiffres au voyageur. C’est seulement là que le paiement est libéré.'),
+  withVo(S.lock({ eyebrow: 'Étape 3', title: 'Payez en ligne.', text: 'Par carte, en toute sécurité.' }), 'Vous payez en ligne, par carte, en toute sécurité.'),
+  withVo(S.code({ eyebrow: 'Étape 4', title: 'Remise avec un code.' }), 'À l’arrivée, votre destinataire, qui a reçu son code par e-mail, le donne au voyageur. La réception est validée.'),
   withVo(S.card({ eyebrow: 'Confiance', title: 'Des voyageurs vérifiés, des avis impossibles à effacer.' }, L.profileCard({ size: 1.3 })), 'Chaque voyageur fait vérifier son identité. Après chaque envoi, expéditeur et voyageur se notent, et ces avis ne peuvent pas être supprimés.'),
   withVo(S.track({ eyebrow: 'Suivi', title: 'Suivez votre colis jusqu’à la livraison.' }), 'Et vous suivez votre colis à chaque étape, jusqu’à la livraison. Votre famille peut le suivre aussi.'),
-  withVo(S.count({ eyebrow: 'Vous voyagez ?', title: 'Vos kilos libres ont de la valeur.', text: 'Exemple : 23 kg à 9 € le kilo.' }), 'Vous voyagez bientôt ? Proposez vos kilos libres. Vous fixez votre prix, et vous êtes payé à la remise. Publier un trajet, c’est gratuit.'),
+  withVo(S.count({ eyebrow: 'Vous voyagez ?', title: 'Vos kilos libres ont de la valeur.', text: 'Exemple : 23 kg à 9 € le kilo.' }), 'Vous voyagez bientôt ? Proposez vos kilos libres, et fixez votre prix. Publier un trajet, c’est gratuit.'),
   withVo(endCard('Vos colis voyagent dans la valise de quelqu’un.'), 'Send baille mi. Vos colis voyagent dans la valise de quelqu’un. Rendez-vous sur send baille mi point com.'),
-], 'Présentation complète (environ 1 min 20). Idéale en vidéo épinglée, sur YouTube, Facebook et en publicité. Légende : « Send By Me en 1 minute : voyageurs vérifiés, paiement bloqué, code de remise. »');
+], 'Présentation complète (environ 1 min 20). Idéale en vidéo épinglée, sur YouTube, Facebook et en publicité. Légende : « Send By Me en 1 minute : voyageurs vérifiés, prix négociable, code de remise. »');
 
 vid('21-voyageurs-rentabilisez', [V9], [
   withVo(photoScene(3.5, { photo: P.aero, pos: '50% 30%', eyebrow: 'Vous partez bientôt ?', title: 'Votre valise a de la place ?' }), 'Vous rentrez bientôt au pays ? Votre valise a sûrement de la place.'),
@@ -314,18 +314,18 @@ vid('21-voyageurs-rentabilisez', [V9], [
   withVo(S.count({ title: 'Vos kilos libres ont de la valeur.', text: 'Exemple : 23 kg à 9 € le kilo.' }), 'Avec Send baille mi, vous fixez votre prix au kilo. Par exemple, vingt-trois kilos à neuf euros, c’est deux cent sept euros si tout part.'),
   withVo(textScene(4, { color: C.brand, eyebrow: 'Deux minutes', title: 'Publier votre trajet, c’est gratuit.', text: 'Villes, date, vol, kilos et prix.' }), 'Publier votre trajet est gratuit, et ça prend deux minutes : les villes, la date, le numéro de vol, les kilos disponibles, et votre prix.'),
   withVo(photoScene(4, { photo: P.habits, pos: '50% 50%', eyebrow: 'Vous choisissez', title: 'Vous voyez ce que vous transportez.' }), 'Vous acceptez seulement les colis qui vous conviennent. L’expéditeur vous présente le colis ouvert : vous vérifiez, avant de le fermer.'),
-  withVo(S.lock({ eyebrow: 'Paiement garanti', title: 'Payé à coup sûr.', label: 'Paiement reçu', sub: 'avant même de prendre le colis' }), 'L’expéditeur paie en ligne avant que vous preniez le colis. Plus besoin de courir après l’argent.'),
-  withVo(S.code({ eyebrow: 'À l’arrivée', title: 'Le destinataire vous donne son code.' }), 'À l’arrivée, le destinataire vous donne son code. Vous le saisissez, et le paiement vous est versé.'),
+  withVo(textScene(4, { color: C.brand, eyebrow: 'Négociation', title: 'Le prix se discute.' }), 'L’expéditeur peut vous proposer un autre prix : vous acceptez, vous refusez, ou vous faites une contre-proposition.'),
+  withVo(S.code({ eyebrow: 'À l’arrivée', title: 'Le destinataire vous donne son code.' }), 'À l’arrivée, le destinataire vous donne son code. Vous le saisissez, et la réception est validée.'),
   withVo(S.card({ eyebrow: 'Réputation', title: 'Plus d’avis, plus de demandes.' }, L.profileCard({ size: 1.3 })), 'Après chaque voyage, les avis construisent votre réputation, et vous apportent encore plus de demandes.'),
   withVo(endCard('Proposez vos kilos en deux minutes.', 'send-by-me.com/publier'), 'Proposez vos kilos sur send baille mi point com, rubrique publier.'),
-], 'Voyageurs (environ 1 min). Légende : « Vous rentrez au pays ? Vos kilos libres ont de la valeur. Publier est gratuit, vous êtes payé à la remise. »');
+], 'Voyageurs (environ 1 min). Légende : « Vous rentrez au pays ? Vos kilos libres ont de la valeur. Publier est gratuit, et vous fixez votre prix. »');
 
 vid('22-expediteurs-sans-risque', [V9], [
   withVo(S.strike('Payer d’avance un inconnu…', 'et croiser les doigts ?'), 'Payer d’avance un inconnu, et croiser les doigts pour que le colis arrive ? C’est fini.'),
   withVo(photoScene(4, { photo: P.remise, pos: '55% 50%', eyebrow: 'Expéditeurs', title: 'Choisissez un voyageur vérifié.' }), 'Sur Send baille mi, vous choisissez un voyageur vérifié qui part vers la ville de votre destinataire, au jour qui vous convient.'),
   withVo(S.card({ eyebrow: 'Transparence', title: 'Le prix est affiché avant de réserver.' }, L.priceCard({ size: 1.3 })), 'Le prix est affiché avant de réserver. Le voyageur fixe son prix au kilo, et nos frais de service vont de quinze à huit pour cent, selon le poids.'),
-  withVo(S.lock({ eyebrow: 'Paiement', title: 'Votre argent reste bloqué.' }), 'Vous payez en ligne, et votre argent reste bloqué jusqu’à la livraison.'),
-  withVo(S.code({ eyebrow: 'À l’arrivée', title: 'Pas de code, pas de paiement.' }), 'Votre destinataire reçoit le colis en main propre, et donne son code au voyageur. Sans ce code, pas de paiement.'),
+  withVo(textScene(4, { color: C.brand, eyebrow: 'Négociation', title: 'Proposez votre prix.' }), 'Vous pouvez proposer votre prix au voyageur. Il accepte, il refuse, ou il vous fait une contre-proposition.'),
+  withVo(S.code({ eyebrow: 'À l’arrivée', title: 'Votre famille confirme la réception.' }), 'Votre destinataire reçoit le colis en main propre, et confirme la réception avec son code.'),
   withVo(S.stamp({ eyebrow: 'En option', title: 'Livré jusqu’à la porte.' }), 'Votre famille ne peut pas se déplacer ? Choisissez la livraison à domicile : un livreur apporte le colis jusqu’à sa porte.'),
   withVo(S.track({ eyebrow: 'Suivi', title: 'Suivez chaque étape.' }), 'Et vous suivez chaque étape, du départ jusqu’à la livraison.'),
   withVo(textScene(4, { color: C.brand, title: 'Colis non livré ? Vous êtes remboursé.' }), 'Et si le colis n’est pas livré, vous êtes remboursé, après examen du dossier.'),
@@ -346,7 +346,7 @@ vid('23-securite-confiance', [V9], [
 vid('24-nos-lignes', [V9], [
   withVo(textScene(3, { eyebrow: 'Nos lignes', title: 'Vers où envoyez-vous ?' }), 'Vers où envoyez-vous vos colis ? Voici nos lignes.'),
   withVo(S.line('CDG', 'Paris', 'DLA', 'Douala', P.aile, 'Vêtements, documents, cadeaux : envoyez au Cameroun avec un voyageur qui fait le trajet.'), 'Paris, Douala. Envoyez vêtements, documents et cadeaux au Cameroun, avec un voyageur qui fait le trajet.'),
-  withVo(S.line('CDG', 'Paris', 'DSS', 'Dakar', P.hublot, 'Remise en main propre à Dakar, paiement libéré avec le code.'), 'Paris, Dakar. Votre colis est remis en main propre à Dakar, et le paiement n’est libéré qu’avec le code.'),
+  withVo(S.line('CDG', 'Paris', 'DSS', 'Dakar', P.hublot, 'Remise en main propre à Dakar, au rendez-vous convenu.'), 'Paris, Dakar. Votre colis est remis en main propre, au rendez-vous convenu.'),
   withVo(S.line('CDG', 'Paris', 'ABJ', 'Abidjan', P.aero, 'Des voyageurs vérifiés vers la Côte d’Ivoire.'), 'Paris, Abidjan. Des voyageurs vérifiés vers la Côte d’Ivoire.'),
   withVo(S.line('CDG', 'Paris', 'NSI', 'Yaoundé', P.terminal, 'Comparez les dates et les prix au kilo.'), 'Paris, Yaoundé. Comparez les dates et les prix au kilo, et choisissez votre voyageur.'),
   withVo(S.line('BRU', 'Bruxelles', 'FIH', 'Kinshasa', P.aile, 'Depuis la Belgique, vers la République démocratique du Congo.'), 'Bruxelles, Kinshasa. Depuis la Belgique, vers la République démocratique du Congo.'),
@@ -361,7 +361,7 @@ vid('25-demande-et-suivi', [V9], [
   withVo(S.stamp({ eyebrow: 'En option', title: 'Livraison à domicile.' }), 'Vous pouvez même demander la livraison à domicile pour votre destinataire.'),
   withVo(photoScene(4, { photo: P.sofa, pos: '50% 40%', eyebrow: 'Messagerie', title: 'Discutez avant de choisir.' }), 'Avant de choisir, discutez dans la messagerie : photos du colis, lieu de rendez-vous. Votre numéro reste privé.'),
   withVo(textScene(4, { color: C.brand, title: 'Les voyageurs viennent à vous.', text: 'Ils sont prévenus et vous proposent leur trajet.' }), 'Les voyageurs qui partent sur votre ligne sont prévenus, et vous proposent leur trajet. Vous discutez, vous choisissez.'),
-  withVo(S.lock({ eyebrow: 'Paiement', title: 'Votre argent reste bloqué.' }), 'Une fois le voyageur choisi, vous payez en ligne. L’argent reste bloqué jusqu’à la réception du colis.'),
+  withVo(textScene(4, { color: C.paper, fg: C.ink, accent: C.brand, eyebrow: 'Négociation', title: 'Proposez votre prix.' }), 'Le prix se discute : proposez le vôtre au voyageur. Il accepte, ou il vous fait une contre-proposition.'),
   withVo(S.track({ eyebrow: 'Suivi', title: 'Suivez chaque étape.' }), 'Une fois le colis remis au voyageur, suivez chaque étape : en transit, arrivé, réceptionné.'),
   withVo(S.code({ eyebrow: 'Réception', title: 'Le code arrive par e-mail.' }), 'Votre destinataire reçoit son code de réception par e-mail. Il le donne au voyageur en recevant le colis, et la réception est validée.'),
   withVo(textScene(3.5, { color: C.paper, fg: C.ink, accent: C.brand, eyebrow: 'Numéro de suivi', title: 'Votre destinataire suit aussi.', text: 'Sans créer de compte.' }), 'Votre destinataire peut suivre le colis avec son numéro de suivi, sans créer de compte.'),
@@ -375,7 +375,7 @@ vid('26-fin-annee', [V9], [
   withVo(textScene(4, { color: C.paper, fg: C.ink, accent: C.brand, eyebrow: 'Négociation', title: 'Proposez votre prix au voyageur.' }), 'Vous pouvez proposer votre prix au voyageur : il accepte, il refuse, ou il vous fait une contre-proposition.'),
   withVo(S.track({ eyebrow: 'Suivi', title: 'Suivez le colis jusqu’à la famille.' }), 'Pendant le voyage, suivez votre colis étape par étape : en transit, arrivé, puis réceptionné.'),
   withVo(photoScene(4, { photo: P.remise, pos: '55% 50%', eyebrow: 'Remise', title: 'En main propre, au rendez-vous.' }), 'Le voyageur remet le colis en main propre à votre famille, au rendez-vous convenu.'),
-  withVo(S.code({ eyebrow: 'À l’arrivée', title: 'Votre famille valide la livraison.' }), 'À l’arrivée, c’est votre famille qui valide la livraison avec son code. Le voyageur n’est payé qu’à ce moment-là.'),
+  withVo(S.code({ eyebrow: 'À l’arrivée', title: 'Votre famille valide la livraison.' }), 'À l’arrivée, c’est votre famille qui valide la livraison avec son code. Vous êtes prévenu aussitôt.'),
   withVo(S.card({ eyebrow: 'Vous rentrez aussi ?', title: 'Proposez vos kilos de décembre.' }, L.ticket({ date: 'Sam. 19 déc.', size: 1.2 }), C.signal), 'Et si vous rentrez vous aussi pour les fêtes, proposez vos kilos libres : c’est le meilleur moment de l’année.'),
   withVo(endCard('Joyeuses fêtes !'), 'Joyeuses fêtes, avec Send baille mi.'),
 ], 'Fin d’année (environ 50 s). Légende : « 🎁 Les cadeaux arrivent avant les fêtes. Réservez tôt ! »');
@@ -394,10 +394,10 @@ vid('28-film-de-marque', [V16, V9], [
   withVo(photoScene(4, { photo: P.valise, pos: '50% 40%', title: 'Quelqu’un prépare sa valise.', kind: 'pan' }), 'Quelque part en Europe, quelqu’un prépare sa valise pour rentrer au pays. Il lui reste de la place.'),
   withVo(photoScene(4, { photo: P.habits, pos: '50% 50%', title: 'Quelqu’un prépare un colis.', kind: 'pan' }), 'Pas loin de là, quelqu’un prépare un colis pour sa famille : des vêtements, des cahiers, un téléphone.'),
   withVo(photoScene(4, { photo: P.sofa, pos: '50% 40%', title: 'Ils se trouvent.', kind: 'pan' }), 'Sur Send baille mi, ils se trouvent. Ils discutent, et se mettent d’accord.'),
-  withVo(photoScene(4, { photo: P.carton, pos: '60% 40%', title: 'Le prix est convenu, le paiement bloqué.', kind: 'pan' }), 'Ils conviennent du prix, et l’expéditeur paie en ligne. Le voyageur sait qu’il sera payé, l’expéditeur sait que son argent est protégé.'),
-  withVo(photoScene(4, { photo: P.aile, pos: '50% 50%', title: 'Le colis voyage avec lui.', kind: 'pan' }), 'Le colis voyage dans la valise. Pendant ce temps, l’argent reste bloqué, en sécurité.'),
+  withVo(photoScene(4, { photo: P.carton, pos: '60% 40%', title: 'Ils se mettent d’accord sur le prix.', kind: 'pan' }), 'Ils se mettent d’accord sur le prix, et l’expéditeur paie en ligne, en toute sécurité.'),
+  withVo(photoScene(4, { photo: P.aile, pos: '50% 50%', title: 'Le colis voyage avec lui.', kind: 'pan' }), 'Le colis voyage dans la valise, et l’expéditeur suit chaque étape.'),
   withVo(photoScene(4, { photo: P.remise, pos: '55% 50%', title: 'Il est remis en main propre.', kind: 'pan' }), 'À l’arrivée, il est remis en main propre.'),
-  withVo(photoScene(4, { photo: P.famille, pos: '50% 35%', title: 'Et c’est la famille qui valide.', kind: 'pan' }), 'Et c’est la famille qui valide, avec son code. Le voyageur est payé. Tout le monde y gagne.'),
+  withVo(photoScene(4, { photo: P.famille, pos: '50% 35%', title: 'Et c’est la famille qui valide.', kind: 'pan' }), 'Et c’est la famille qui valide la réception, avec son code. Tout le monde y gagne.'),
   withVo(textScene(4, { title: 'Chaque valise qui part avec de la place peut rapprocher deux familles.' }), 'Chaque jour, des valises partent vers l’Afrique avec de la place. Avec Send baille mi, cette place devient un lien entre les familles.'),
   withVo(endCard('Vos colis voyagent dans la valise de quelqu’un.', 'send-by-me.com', 4), 'Send baille mi. Vos colis voyagent dans la valise de quelqu’un.'),
 ], 'Film de marque (environ 50 s), pour YouTube, Facebook, LinkedIn et la page d’accueil.');
@@ -407,11 +407,11 @@ vid('28-film-de-marque', [V16, V9], [
 const VO = {
   '01-teaser-lancement': ['Quelque chose arrive pour vos colis.', 'Bientôt, vos colis voyageront autrement, avec des voyageurs vérifiés, entre l’Europe et l’Afrique.', 'Send baille mi. Suivez-nous pour ne pas rater le lancement.'],
   '02-compte-a-rebours': ['Trois.', 'Deux.', 'Un.', 'On décolle !', 'Send baille mi est en ligne.'],
-  '03-lancement-officiel': ['C’est parti ! Vos colis voyagent dans la valise de quelqu’un.', 'Des voyageurs vérifiés proposent leurs kilos libres. Identité vérifiée, paiement bloqué, code de remise.', 'À l’arrivée, le voyageur n’est payé que quand votre famille a le colis en main.', 'Send baille mi. Envoyez vos colis entre l’Europe et l’Afrique, sur send baille mi point com.'],
-  '04-comment-ca-marche': ['Envoyer un colis avec un voyageur, comment ça marche ?', 'Étape un : trouvez un trajet. Comparez les dates, les prix au kilo et les avis.', 'Étape deux : demandez des kilos. Décrivez votre colis, et discutez avec le voyageur.', 'Étape trois : payez en ligne. Le montant reste bloqué par Send baille mi.', 'Étape quatre : votre destinataire donne son code au voyageur. Le paiement est alors libéré.', 'Inscription gratuite, sur send baille mi point com.'],
-  '05-voyageur-kilos': ['Vous partez bientôt ? Votre valise a de la place ?', 'Vos kilos libres ont de la valeur. Par exemple, vingt-trois kilos à neuf euros le kilo, c’est deux cent sept euros si tout part.', 'Publier votre trajet est gratuit. Vous fixez votre prix, et vous êtes payé à la remise.', 'Proposez vos kilos en deux minutes, sur send baille mi point com.'],
+  '03-lancement-officiel': ['C’est parti ! Vos colis voyagent dans la valise de quelqu’un.', 'Des voyageurs vérifiés proposent leurs kilos libres. Identité vérifiée, suivi du colis, code de remise.', 'À l’arrivée, c’est votre famille qui confirme la réception.', 'Send baille mi. Envoyez vos colis entre l’Europe et l’Afrique, sur send baille mi point com.'],
+  '04-comment-ca-marche': ['Envoyer un colis avec un voyageur, comment ça marche ?', 'Étape un : trouvez un trajet. Comparez les dates, les prix au kilo et les avis.', 'Étape deux : demandez des kilos. Décrivez votre colis, et discutez avec le voyageur.', 'Étape trois : payez en ligne, par carte, en toute sécurité.', 'Étape quatre : votre destinataire donne son code au voyageur, et la réception est validée.', 'Inscription gratuite, sur send baille mi point com.'],
+  '05-voyageur-kilos': ['Vous partez bientôt ? Votre valise a de la place ?', 'Vos kilos libres ont de la valeur. Par exemple, vingt-trois kilos à neuf euros le kilo, c’est deux cent sept euros si tout part.', 'Publier votre trajet, c’est gratuit. Vous fixez votre prix, et vous choisissez vos colis.', 'Proposez vos kilos en deux minutes, sur send baille mi point com.'],
   '06-plus-d-arnaque': ['Payer d’avance un inconnu, et croiser les doigts ?', 'Avec Send baille mi, votre argent reste bloqué jusqu’à la livraison.', 'Votre famille donne le code au voyageur, et c’est seulement là qu’il est payé.', 'Send baille mi. Envoyez vos colis sans payer d’avance un inconnu.'],
-  '07-code-de-remise': ['Le code de remise : six chiffres que seule votre famille connaît.', 'Sans le code, pas de livraison validée. Et le voyageur n’est pas payé.', 'Send baille mi. La sécurité, à chaque colis.'],
+  '07-code-de-remise': ['Le code de remise : six chiffres que seule votre famille connaît.', 'Sans le code, pas de livraison validée.', 'Send baille mi. La sécurité, à chaque colis.'],
   '08-nos-lignes': ['Vers où envoyez-vous ?', 'Paris, Douala.', 'Paris, Dakar.', 'Paris, Abidjan.', 'Paris, Yaoundé.', 'Bruxelles, Kinshasa.', 'Lyon, Douala.', 'Trouvez les voyageurs de votre ligne, sur send baille mi point com.'],
   '09-suivi-colis': ['Suivez votre colis, étape par étape : accepté, payé, remis au voyageur, en vol, arrivé, livré.', 'Votre destinataire peut le suivre aussi, avec le numéro de suivi.', 'Send baille mi.'],
   '10-demande-envoi': ['Pas de trajet qui vous convient ?', 'Publiez votre colis : poids, contenu, photos, dates. Les voyageurs qui partent sur votre ligne viennent à vous.', 'Publiez votre demande, sur send baille mi point com.'],
@@ -430,7 +430,7 @@ for (const v of VIDEOS) {
 module.exports = { VIDEOS };
 
 // ─── Rendu ──────────────────────────────────────────────────────────────────
-const VO_DIR = path.join(__dirname, 'vo');
+const VO_DIR = path.join(__dirname, 'vo', 'kokoro');
 const VO_LEAD = 0.3; // la voix démarre 0,3 s après le début de la scène
 const keyOf = (text) => require('crypto').createHash('sha1').update(text).digest('hex').slice(0, 12);
 const run = (cmd, args) => new Promise((ok, ko) => { const p = spawn(cmd, args, { stdio: ['ignore', 'inherit', 'inherit'] }); p.on('close', (c) => (c ? ko(new Error(`${cmd} ${c}`)) : ok())); });
@@ -451,7 +451,7 @@ async function synthesize(list) {
 
 // Mixage : voix calée sur chaque scène + musique originale qui baisse sous la voix.
 async function mixAudio(silent, out, starts, vo, total) {
-  const music = path.join(VO_DIR, `music-${Math.ceil(total)}.wav`);
+  const music = path.join(VO_DIR, `music-${Math.ceil(total)}-${process.pid}.wav`);
   if (!fs.existsSync(music)) await run('python3', [path.join(__dirname, 'music.py'), music, String(Math.ceil(total) + 1)]);
   const inputs = ['-i', silent, '-i', music];
   const parts = [];
@@ -461,7 +461,7 @@ async function mixAudio(silent, out, starts, vo, total) {
     inputs.push('-i', path.join(VO_DIR, keyOf(text) + '.wav'));
     const ms = Math.round((starts[i] + VO_LEAD) * 1000);
     const idx = inputs.filter((x) => x === '-i').length - 1;
-    parts.push(`[${idx}:a]aformat=sample_rates=44100:channel_layouts=stereo,volume=1.6,adelay=${ms}|${ms}[v${i}]`);
+    parts.push(`[${idx}:a]aformat=sample_rates=44100:channel_layouts=stereo,volume=1.2,adelay=${ms}|${ms}[v${i}]`);
     labels.push(`[v${i}]`);
   });
   const fade = Math.max(0, total - 1.2).toFixed(2);
@@ -479,8 +479,11 @@ async function mixAudio(silent, out, starts, vo, total) {
 
 async function render() {
   fs.mkdirSync(OUT, { recursive: true });
-  const list = VIDEOS.filter((v) => !filter || v.file.includes(filter));
+  // Plusieurs filtres possibles, séparés par des virgules (rendus en parallèle dans des processus distincts).
+  const filters = filter ? filter.split(',') : null;
+  const list = VIDEOS.filter((v) => !filters || filters.some((f) => v.file.includes(f)));
   const durations = await synthesize(list);
+  if (process.env.SYNTH_ONLY) return;
   const browser = await chromium.launch();
   const page = await (await browser.newContext()).newPage();
   for (const v of list) {
@@ -491,10 +494,10 @@ async function render() {
       const fmt = W === H ? '1x1' : W > H ? '16x9' : '9x16';
       const out = path.join(OUT, `${v.file}-${fmt}.mp4`);
       if (process.env.RESUME && fs.existsSync(out) && fs.statSync(out).mtimeMs > Number(process.env.RESUME)) continue;
-      const silent = path.join(__dirname, '.tmp-silent.mp4');
+      const silent = path.join(__dirname, `.tmp-silent-${process.pid}.mp4`);
       const { html, total } = build({ W, H, scenes });
       await page.setViewportSize({ width: W, height: H });
-      const tmp = path.join(__dirname, '.tmp-video.html');
+      const tmp = path.join(__dirname, `.tmp-video-${process.pid}.html`);
       fs.writeFileSync(tmp, html);
       await page.goto('file://' + tmp, { waitUntil: 'load' });
       await page.evaluate(() => document.fonts.ready);
