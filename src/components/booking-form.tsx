@@ -5,7 +5,7 @@ import { requestBooking } from "@/app/actions/bookings";
 import { Field, FormMessage, Input, Select, Textarea } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { submitKeepingValues } from "@/components/ui/keep-form";
-import { COMMISSION_TIERS, euros, percent, quote } from "@/lib/pricing";
+import { COMMISSION_TIERS, euros, percent, quote, SECURITY_FEE_CENTS } from "@/lib/pricing";
 import { CATEGORIES } from "@/lib/types";
 
 type Props = {
@@ -157,7 +157,10 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
         <summary className="cursor-pointer font-semibold text-ink-soft">Comment sont calculés les frais ?</summary>
         <p className="mt-2">
           Le voyageur reçoit {euros(q.payoutCents)}. Les frais de service comprennent notre commission (
-          {percent(q.commissionRate)} pour ce poids) et les frais bancaires du paiement sécurisé. Plus le colis est lourd, plus le taux baisse :
+          {percent(q.commissionRate)} pour ce poids), un forfait de {euros(SECURITY_FEE_CENTS)} par envoi pour la sécurité et le suivi, et les
+          frais bancaires du paiement sécurisé. Le forfait couvre la vérification des profils, le code de réception envoyé à votre
+          destinataire, le suivi en temps réel, les photos de traçabilité et l&apos;assistance en cas de litige. Plus le colis est lourd, plus le
+          taux de commission baisse :
         </p>
         <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 tabular">
           {COMMISSION_TIERS.map((t, i) => (

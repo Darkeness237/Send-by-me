@@ -39,7 +39,9 @@ export default function HowItWorks() {
         <p>
           La publication de trajets est gratuite. L&apos;expéditeur paie le prix fixé par le voyageur, la livraison à domicile s&apos;il
           l&apos;a choisie, et des frais de service dégressifs selon le poids : 15 % jusqu&apos;à 5 kg, 12 % jusqu&apos;à 10 kg, 10 % jusqu&apos;à 20 kg
-          et 8 % au-delà, frais bancaires du paiement inclus (1,50 € net minimum). Ces frais financent la vérification des membres, le paiement sécurisé et le support.
+          et 8 % au-delà (1,50 € net minimum), plus un forfait de 2 € par envoi pour la sécurité et le suivi, frais bancaires du paiement inclus.
+          Ces frais financent la vérification des membres, le code de réception envoyé au destinataire, le suivi en temps réel, les photos
+          de traçabilité, le paiement sécurisé et l&apos;assistance en cas de litige.
         </p>
       </section>
       <div className="flex flex-wrap gap-3 pt-2">

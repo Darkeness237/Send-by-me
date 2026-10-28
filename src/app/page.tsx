@@ -180,7 +180,7 @@ export default function Home() {
           <div>
             <h2 className="display text-3xl sm:text-4xl">Le prix est affiché avant de réserver</h2>
             <p className="mt-4 max-w-md text-muted">
-              Le voyageur fixe son prix au kilo. On ajoute nos frais de service, de 15 % pour un petit colis à 8 % au-delà de 20 kg.
+              Le voyageur fixe son prix au kilo. On ajoute nos frais de service : de 15 % pour un petit colis à 8 % au-delà de 20 kg, plus 2 € par envoi pour la sécurité et le suivi.
               Pas de mauvaise surprise au moment de payer.
             </p>
           </div>

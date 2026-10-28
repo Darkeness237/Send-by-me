@@ -3,7 +3,8 @@
 // Le voyageur fixe son prix au kilo, qui lui revient intégralement. La livraison à domicile est un service
 // Send By Me (partenaire de livraison) facturé à part. L'expéditeur paie en plus des frais de service qui couvrent :
 //   1. la commission Send By Me, dégressive selon le poids (plus le colis est lourd, plus le taux baisse) ;
-//   2. les frais bancaires Stripe, estimés pour que la commission nette reste celle annoncée.
+//   2. un forfait fixe de sécurité et de suivi par envoi ;
+//   3. les frais bancaires Stripe, estimés pour que la commission nette reste celle annoncée.
 
 /** Commission selon le poids du colis. */
 export const COMMISSION_TIERS = [
@@ -15,6 +16,12 @@ export const COMMISSION_TIERS = [
 
 /** Commission nette minimale par envoi : un petit colis demande autant de suivi qu'un gros. */
 export const MIN_COMMISSION_CENTS = 150;
+
+/**
+ * Forfait par envoi, quel que soit le poids : vérification des profils, code de réception envoyé au destinataire,
+ * suivi et notifications, photos de traçabilité, assistance en cas de litige.
+ */
+export const SECURITY_FEE_CENTS = 200;
 
 /**
  * Frais Stripe pris en compte. Valeur prudente : carte émise hors Espace économique européen
@@ -29,7 +36,7 @@ export type Quote = {
   baseCents: number; // transport, revient au voyageur
   deliveryCents: number; // livraison à domicile, service Send By Me
   commissionRate: number;
-  commissionCents: number; // marge nette Send By Me
+  commissionCents: number; // marge nette Send By Me (commission + forfait sécurité et suivi)
   processingCents: number; // frais bancaires estimés
   feeCents: number; // frais de service affichés = commission + frais bancaires
   totalCents: number; // payé par l'expéditeur
@@ -51,7 +58,7 @@ export function quote(pricePerKgCents: number, weightKg: number, homeDeliveryCen
   const payoutCents = baseCents;
 
   const commissionRate = commissionRateFor(kg);
-  const commissionCents = Math.max(MIN_COMMISSION_CENTS, Math.round(baseCents * commissionRate));
+  const commissionCents = Math.max(MIN_COMMISSION_CENTS, Math.round(baseCents * commissionRate)) + SECURITY_FEE_CENTS;
 
   // Total tel que, une fois les frais Stripe prélevés sur le total, il reste voyageur + livraison + commission.
   const net = baseCents + deliveryCents + commissionCents;
