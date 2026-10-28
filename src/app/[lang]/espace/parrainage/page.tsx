@@ -42,7 +42,7 @@ async function Referral() {
         {t("Partagez votre lien. Vos filleuls reçoivent {reward} sur les frais de leur premier envoi, et vous gagnez {reward} de crédit dès leur première livraison réussie.", { reward })}
       </p>
 
-      <section className="mt-6 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+      <section className="mt-6 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8">
         <h2 className="mb-4 font-bold">{t("Votre code de parrainage")}</h2>
         <ShareReferral
           code={stats.code}
@@ -57,7 +57,7 @@ async function Referral() {
           { icon: PackageCheck, label: t("Premières livraisons"), value: String(rewarded) },
           { icon: Gift, label: t("Crédit disponible"), value: euros(Math.max(0, stats.balance)) },
         ].map(({ icon: Icon, label, value }) => (
-          <div key={label} className="rounded-2xl bg-white p-5 ring-1 ring-line">
+          <div key={label} className="rounded-2xl bg-card p-5 ring-1 ring-line">
             <Icon className="h-5 w-5 text-brand" aria-hidden="true" />
             <p className="wide tabular mt-3 text-2xl font-extrabold">{value}</p>
             <p className="text-sm text-muted">{label}</p>
@@ -94,7 +94,7 @@ async function Referral() {
       {stats.referrals.length > 0 && (
         <section className="mt-8">
           <h2 className="font-bold">{t("Vos filleuls")}</h2>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl bg-white ring-1 ring-line">
+          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl bg-card ring-1 ring-line">
             {stats.referrals.map((r, i) => (
               <li key={i} className="flex items-center justify-between gap-3 px-5 py-3">
                 <span className="font-semibold">{r.name}</span>
@@ -111,7 +111,7 @@ async function Referral() {
       {stats.credits.length > 0 && (
         <section className="mt-8">
           <h2 className="font-bold">{t("Historique du crédit")}</h2>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl bg-white ring-1 ring-line text-sm">
+          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl bg-card ring-1 ring-line text-sm">
             {stats.credits.map((c, i) => (
               <li key={i} className="flex justify-between gap-3 px-5 py-3">
                 <span>

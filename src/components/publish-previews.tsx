@@ -118,7 +118,7 @@ export function TripPreview({
   const Icon = MODE_ICON[mode];
   const total = Math.max(0, Math.round(kg * priceCents));
   return (
-    <div className="tag-notch overflow-hidden rounded-3xl bg-ink text-white shadow-[0_24px_60px_-30px_rgb(14_48_76/0.8)]">
+    <div className="tag-notch overflow-hidden rounded-3xl bg-night text-white shadow-[0_24px_60px_-30px_rgb(14_48_76/0.8)]">
       <div className="px-6 pt-5 pb-6">
         <div className="flex items-center justify-between text-sm text-white/65">
           <span className="font-semibold tracking-wide text-white uppercase">
@@ -162,7 +162,7 @@ export function TripPreview({
           </dd>
         </div>
       </dl>
-      <div className="bg-signal px-6 py-4 text-ink">
+      <div className="bg-signal px-6 py-4 text-navy">
         <p className="text-sm font-semibold">{t("Si tout part, vous gagnez")}</p>
         <p key={total} className="display pop-in text-3xl">
           {euros(total)}
@@ -208,7 +208,7 @@ export function ParcelPreview({
           className="absolute inset-x-0 top-1/2 h-8 -translate-y-1/2 bg-[#d9bb87]/70"
           aria-hidden="true"
         />
-        <div className="relative rounded-[20px] bg-white p-5">
+        <div className="relative rounded-[20px] bg-card p-5">
           <div className="flex items-center justify-between">
             <span className="text-sm font-bold tracking-wide uppercase">
               {t("Colis")}
@@ -247,7 +247,7 @@ export function ParcelPreview({
             {"2131231121322131121312".split("").map((w, i) => (
               <span
                 key={i}
-                className="bg-ink"
+                className="bg-night"
                 style={{ width: `${Number(w) * 1.5}px` }}
               />
             ))}
@@ -255,7 +255,7 @@ export function ParcelPreview({
         </div>
       </div>
       {homeDelivery && (
-        <span className="stamp-in absolute -top-3 -right-2 flex items-center gap-1.5 rounded-lg border-2 border-brand bg-white px-2.5 py-1 text-xs font-extrabold text-brand uppercase">
+        <span className="stamp-in absolute -top-3 -right-2 flex items-center gap-1.5 rounded-lg border-2 border-brand bg-card px-2.5 py-1 text-xs font-extrabold text-brand uppercase">
           <Home className="h-3.5 w-3.5" aria-hidden="true" />{" "}{t("À domicile")}
         </span>
       )}
@@ -264,7 +264,7 @@ export function ParcelPreview({
           {photos.slice(0, 4).map((src, i) => (
             <span
               key={src}
-              className="pop-in -ml-3 block h-20 w-20 overflow-hidden rounded-xl bg-white p-1 shadow-md ring-1 ring-line first:ml-0"
+              className="pop-in -ml-3 block h-20 w-20 overflow-hidden rounded-xl bg-card p-1 shadow-md ring-1 ring-line first:ml-0"
               style={{ transform: `rotate(${[-6, 4, -2, 7][i]}deg)` }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}

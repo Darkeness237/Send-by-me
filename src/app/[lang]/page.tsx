@@ -62,7 +62,7 @@ async function HomeProof() {
       <h2 className="display max-w-2xl text-3xl sm:text-4xl">{t("Des kilos libres près de chez vous, à prix connu d'avance")}</h2>
       <dl className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {tiles.map((tile) => (
-          <div key={tile.label} className="rounded-3xl bg-white p-6 ring-1 ring-line">
+          <div key={tile.label} className="rounded-3xl bg-card p-6 ring-1 ring-line">
             <dt className="sr-only">{tile.label}</dt>
             <dd className="wide tabular text-3xl font-extrabold text-ink sm:text-4xl">{tile.value}</dd>
             <dd className="mt-2 text-[15px] leading-snug text-muted">{tile.label}</dd>
@@ -75,7 +75,7 @@ async function HomeProof() {
           <h3 className="text-xl font-bold">{t("Ce qu'en disent nos membres")}</h3>
           <ul className="mt-5 grid gap-4 md:grid-cols-3">
             {reviews.slice(0, 3).map((r) => (
-              <li key={r.created_at + r.author} className="flex flex-col rounded-3xl bg-white p-6 ring-1 ring-line">
+              <li key={r.created_at + r.author} className="flex flex-col rounded-3xl bg-card p-6 ring-1 ring-line">
                 <p className="flex gap-0.5" aria-label={t("{n} sur 5", { n: r.rating })}>
                   {Array.from({ length: 5 }, (_, i) => (
                     <Star key={i} className={`h-4 w-4 ${i < r.rating ? "fill-signal text-signal" : "text-line"}`} aria-hidden="true" />
@@ -119,8 +119,8 @@ export default async function Home() {
           {/* Mobile : texte, recherche, tableau. Desktop : texte | tableau, puis recherche sur toute la largeur. */}
           <div className="mx-auto grid max-w-6xl gap-8 px-4 pt-10 pb-10 sm:px-6 md:pt-16 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-x-14 lg:gap-y-10 lg:pb-12">
             <div className="lg:col-start-1 lg:row-start-1">
-              <a href="#livraison" className="reveal mb-5 inline-flex items-center gap-2 rounded-full bg-ink py-1.5 pr-4 pl-1.5 text-sm font-bold text-white hover:bg-ink-soft">
-                <span className="rounded-full bg-signal px-2.5 py-0.5 text-xs font-extrabold text-ink">{t("Nouveau")}</span>
+              <a href="#livraison" className="reveal mb-5 inline-flex items-center gap-2 rounded-full bg-night py-1.5 pr-4 pl-1.5 text-sm font-bold text-white hover:bg-night-soft">
+                <span className="rounded-full bg-signal px-2.5 py-0.5 text-xs font-extrabold text-navy">{t("Nouveau")}</span>
                 <Truck className="h-4 w-4 text-signal" aria-hidden="true" /> {t("Livraison à domicile à l'arrivée")}
               </a>
               <h1 className="display reveal text-[40px] sm:text-[56px] lg:text-[64px]">
@@ -136,12 +136,12 @@ export default async function Home() {
               <ul className="reveal reveal-delay-1 mt-6 grid max-w-[34rem] grid-cols-3 gap-2 sm:gap-2.5">
                 {(
                   [
-                    [BadgeCheck, "Identités vérifiées", "bg-brand text-white"],
-                    [Lock, "Paiement sécurisé", "bg-ink text-white"],
-                    [KeyRound, "Code de remise", "bg-signal text-ink"],
+                    [BadgeCheck, "Identités vérifiées", "bg-brand-fill text-white"],
+                    [Lock, "Paiement sécurisé", "bg-night text-white"],
+                    [KeyRound, "Code de remise", "bg-signal text-navy"],
                   ] as const
                 ).map(([Icon, label, tone]) => (
-                  <li key={label} className="flex flex-col items-center gap-2 rounded-2xl bg-white px-2 py-3 text-center shadow-[0_10px_30px_-18px_rgb(14_48_76/0.45)] ring-1 ring-line sm:flex-row sm:gap-3 sm:px-3.5 sm:text-left">
+                  <li key={label} className="flex flex-col items-center gap-2 rounded-2xl bg-card px-2 py-3 text-center shadow-[0_10px_30px_-18px_rgb(14_48_76/0.45)] ring-1 ring-line sm:flex-row sm:gap-3 sm:px-3.5 sm:text-left">
                     <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${tone}`}>
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </span>
@@ -158,7 +158,7 @@ export default async function Home() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <Link
                   href="/demandes/nouvelle"
-                  className="group flex items-center gap-4 rounded-2xl bg-brand p-5 text-white shadow-[0_16px_40px_-24px_rgb(14_48_76/0.6)] transition hover:bg-brand-deep"
+                  className="group flex items-center gap-4 rounded-2xl bg-brand-fill p-5 text-white shadow-[0_16px_40px_-24px_rgb(14_48_76/0.6)] transition hover:bg-brand-strong"
                 >
                   <PackagePlus className="h-10 w-10 shrink-0 rounded-xl bg-white/15 p-2" aria-hidden="true" />
                   <span className="min-w-0">
@@ -169,7 +169,7 @@ export default async function Home() {
                 </Link>
                 <Link
                   href="/publier"
-                  className="group flex items-center gap-4 rounded-2xl bg-signal p-5 text-ink shadow-[0_16px_40px_-24px_rgb(14_48_76/0.6)] transition hover:brightness-95"
+                  className="group flex items-center gap-4 rounded-2xl bg-signal p-5 text-navy shadow-[0_16px_40px_-24px_rgb(14_48_76/0.6)] transition hover:brightness-95"
                 >
                   <Plane className="h-10 w-10 shrink-0 rounded-xl bg-white/30 p-2" aria-hidden="true" />
                   <span className="min-w-0">
@@ -209,10 +209,10 @@ export default async function Home() {
 
         {/* Calculateur et code de réception, dès l'arrivée sur le site */}
         <section id="prix" className="mx-auto grid scroll-mt-20 max-w-6xl gap-6 px-4 pt-12 sm:px-6 md:pt-16 lg:grid-cols-[1.25fr_1fr] lg:items-stretch">
-          <Suspense fallback={<div className="h-[320px] rounded-3xl bg-white ring-1 ring-line" />}>
+          <Suspense fallback={<div className="h-[320px] rounded-3xl bg-card ring-1 ring-line" />}>
             <Calculator />
           </Suspense>
-          <div className="rounded-3xl bg-ink p-6 text-white sm:p-8">
+          <div className="rounded-3xl bg-night p-6 text-white sm:p-8">
             <h2 className="flex items-center gap-2 text-xl font-bold">
               <KeyRound className="h-5 w-5 text-signal" aria-hidden="true" /> {t("Le code de réception")}
             </h2>
@@ -239,7 +239,7 @@ export default async function Home() {
 
         {/* Deux publics */}
         <section className="mx-auto grid max-w-6xl gap-5 px-4 py-16 sm:px-6 md:grid-cols-2 md:py-20">
-          <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-line">
+          <div className="overflow-hidden rounded-3xl bg-card ring-1 ring-line">
             <div className="relative aspect-[16/9]">
               <Image quality={90} src={remise} alt={t("Un colis passe de main en main")} fill placeholder="blur" sizes="(min-width: 768px) 560px, 100vw" className="object-cover" />
             </div>
@@ -272,7 +272,7 @@ export default async function Home() {
               <li>{t("Vous voyez le contenu avant de fermer le colis.")}</li>
               <li>{t("Publier votre trajet est gratuit.")}</li>
             </ul>
-            <ButtonLink href="/publier" variant="primary" className="mt-8 bg-ink hover:bg-ink-soft">
+            <ButtonLink href="/publier" variant="primary" className="mt-8 bg-night hover:bg-night-soft">
               {t("Proposer mes kilos")}
             </ButtonLink>
             </div>
@@ -280,7 +280,7 @@ export default async function Home() {
         </section>
 
         {/* Étapes */}
-        <section className="border-y border-line bg-white">
+        <section className="border-y border-line bg-card">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
             <h2 className="display max-w-xl text-3xl sm:text-4xl">{t("Un envoi en quatre étapes")}</h2>
             <ol className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -291,7 +291,7 @@ export default async function Home() {
                 ["Remise en main propre ou à domicile", "Votre destinataire donne son code de 6 chiffres au voyageur : la réception est validée. Ou faites livrer à domicile : notre livreur partenaire récupère le colis à l'arrivée."],
               ].map(([title, text], i) => (
                 <li key={title} className="relative">
-                  <span className="wide tabular flex h-10 w-10 items-center justify-center rounded-full bg-ink text-sm font-extrabold text-signal">
+                  <span className="wide tabular flex h-10 w-10 items-center justify-center rounded-full bg-night text-sm font-extrabold text-signal">
                     {i + 1}
                   </span>
                   <h3 className="mt-4 text-lg font-bold">{t(title)}</h3>
@@ -320,7 +320,7 @@ export default async function Home() {
               {t("Le voyageur fixe son prix au kilo. On ajoute nos frais de service : de 15 % pour un petit colis à 8 % au-delà de 20 kg, plus 2 € par envoi pour la sécurité et le suivi. Pas de mauvaise surprise au moment de payer.")}
             </p>
           </div>
-          <div className="tag-notch rounded-[var(--radius-tag)] bg-white p-6 shadow-[var(--shadow-tag)] ring-1 ring-line sm:p-8">
+          <div className="tag-notch rounded-[var(--radius-tag)] bg-card p-6 shadow-[var(--shadow-tag)] ring-1 ring-line sm:p-8">
             <p className="text-sm text-muted">{t("Exemple : 5 kg de Paris à Douala, à 9 € le kilo")}</p>
             <dl className="tabular mt-5 space-y-3 text-[15px]">
               <div className="flex justify-between">
@@ -343,7 +343,7 @@ export default async function Home() {
 
         {/* L'arrivée */}
         <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-20">
-          <div className="grid overflow-hidden rounded-3xl bg-ink text-white md:grid-cols-2">
+          <div className="grid overflow-hidden rounded-3xl bg-night text-white md:grid-cols-2">
             <div className="relative aspect-[4/3] md:aspect-auto md:min-h-[380px]">
               <Image quality={90} src={famille} alt={t("Une mère tend un cadeau à sa fille souriante")} fill placeholder="blur" sizes="(min-width: 768px) 560px, 100vw" className="object-cover" />
             </div>
@@ -360,7 +360,7 @@ export default async function Home() {
         </section>
 
         {/* Confiance */}
-        <section className="bg-ink text-white">
+        <section className="bg-night text-white">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
             <h2 className="display max-w-2xl text-3xl sm:text-4xl">{t("Confier un colis à un inconnu, oui, mais pas à n'importe qui")}</h2>
             <div className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -399,7 +399,7 @@ export default async function Home() {
                 <li key={a + b}>
                   <Link
                     href={`/envoyer-un-colis/${corridorSlug(a, b)}`}
-                    className="flex items-center justify-between rounded-2xl bg-white px-5 py-4 ring-1 ring-line hover:ring-brand/50"
+                    className="flex items-center justify-between rounded-2xl bg-card px-5 py-4 ring-1 ring-line hover:ring-brand/50"
                   >
                     <span>
                       <span className="block font-semibold">
@@ -418,7 +418,7 @@ export default async function Home() {
         </section>
 
         {/* FAQ */}
-        <section className="border-t border-line bg-white">
+        <section className="border-t border-line bg-card">
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-[1fr_1.6fr] md:py-20">
             <h2 className="display text-3xl sm:text-4xl">{t("Questions fréquentes")}</h2>
             <FAQ />
@@ -432,7 +432,7 @@ export default async function Home() {
               <h2 className="display text-3xl">{t("Vous partez bientôt ?")}</h2>
               <p className="mt-2 text-ink-soft">{t("Publiez votre trajet en deux minutes. C'est gratuit pour les voyageurs.")}</p>
             </div>
-            <ButtonLink href="/publier" size="lg" className="bg-ink hover:bg-ink-soft">
+            <ButtonLink href="/publier" size="lg" className="bg-night hover:bg-night-soft">
               {t("Proposer mes kilos")}
             </ButtonLink>
           </div>

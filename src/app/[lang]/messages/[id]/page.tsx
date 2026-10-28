@@ -38,7 +38,7 @@ async function Conversation({ params }: { params: Promise<{ id: string }> }) {
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <LiveRefresh inquiryId={inquiry.id} />
       <BackLink href="/messages" label={t("Messages")} />
-      <div className="mt-4 flex h-[75vh] flex-col rounded-3xl bg-white ring-1 ring-line">
+      <div className="mt-4 flex h-[75vh] flex-col rounded-3xl bg-card ring-1 ring-line">
         <div className="flex flex-wrap items-center gap-3 border-b border-line p-5">
           <Avatar name={other?.full_name || "Membre"} verified={other?.id_verified} certified={other?.certified} size={44} />
           <div className="min-w-0 flex-1">

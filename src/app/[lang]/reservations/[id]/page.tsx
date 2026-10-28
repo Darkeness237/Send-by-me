@@ -129,7 +129,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
         {step && <NextStepBanner step={step} />}
 
         {/* Actions selon le rôle et l'étape */}
-        <section id="actions" className="scroll-mt-20 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+        <section id="actions" className="scroll-mt-20 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8">
           {booking.status === "pending" && (isSender || isTraveler) && (
             <div className="mb-6">
               <OfferPanel
@@ -182,7 +182,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
             </Link>
           )}
           {isSender && code && (
-            <div className="rounded-2xl bg-ink p-5 text-white">
+            <div className="rounded-2xl bg-night p-5 text-white">
               <p className="flex items-center gap-2 text-sm text-white/70">
                 <KeyRound className="h-4 w-4 text-signal" aria-hidden="true" />{" "}{t("Code de remise à transmettre à {recipient_name}", { recipient_name: booking.recipient_name })}
               </p>
@@ -298,12 +298,12 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
           />
         )}
 
-        <section id="suivi" className="scroll-mt-20 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+        <section id="suivi" className="scroll-mt-20 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8">
           <div className="rounded-2xl bg-paper p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-bold">{t("Suivi de l'envoi")}</h2>
               {booking.tracking_code && (
-                <Link href={`/suivi/${booking.tracking_code}`} className="wide tabular rounded-full bg-white px-3 py-1 text-sm font-bold ring-1 ring-line hover:ring-brand">
+                <Link href={`/suivi/${booking.tracking_code}`} className="wide tabular rounded-full bg-card px-3 py-1 text-sm font-bold ring-1 ring-line hover:ring-brand">
                   {booking.tracking_code}
                 </Link>
               )}
@@ -353,7 +353,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
       </div>
 
       {/* Messagerie */}
-      <aside id="discussion" className="flex max-h-[80vh] scroll-mt-20 flex-col rounded-3xl bg-white ring-1 ring-line lg:sticky lg:top-6">
+      <aside id="discussion" className="flex max-h-[80vh] scroll-mt-20 flex-col rounded-3xl bg-card ring-1 ring-line lg:sticky lg:top-6">
         <div className="flex flex-wrap items-center gap-3 border-b border-line p-5">
           <Avatar name={other?.full_name || "Membre"} verified={other?.id_verified} certified={other?.certified} src={other?.avatar_url} size={40} />
           <div>

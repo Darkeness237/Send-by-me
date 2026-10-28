@@ -23,6 +23,15 @@
   --color-danger: #c62828;
   --color-danger-pale: #fdecec;
 
+  /* Aplats pleins (texte blanc dessus) et surfaces sombres : distincts des couleurs de texte pour le mode nuit. */
+  --color-brand-fill: #2f7a82;
+  --color-brand-strong: #22606a;
+  --color-ok-fill: #16a34a;
+  --color-danger-fill: #c62828;
+  --color-night: #0e304c;
+  --color-night-soft: #2b4964;
+  --color-navy: #0e304c; /* texte sur l'orange, quel que soit le thème */
+
   --font-sans: var(--font-nunito), ui-rounded, ui-sans-serif, system-ui, sans-serif;
 
   --radius-tag: 14px;
@@ -31,6 +40,49 @@
 
 :root {
   color-scheme: light;
+}
+
+/* ── Mode nuit ───────────────────────────────────────────────
+   Activé par data-theme="dark" sur <html> : réglage du membre, ou réglage du téléphone en mode automatique.
+   Marine très profond plutôt que noir, textes légèrement adoucis, couleurs éclaircies pour rester lisibles. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-ink: #e8eef4;
+  --color-ink-soft: #bccad6;
+  --color-muted: #8fa2b3;
+  --color-line: #283a4b;
+  --color-paper: #0c1620;
+  --color-card: #15232f;
+  --color-brand: #4fb0b8;
+  --color-brand-deep: #8fd3d8;
+  --color-brand-pale: #123238;
+  --color-brand-fill: #2f8189;
+  --color-brand-strong: #276e75;
+  --color-signal-deep: #f2a65a;
+  --color-ok: #4ade80;
+  --color-ok-pale: #10291b;
+  --color-warn: #f0b45b;
+  --color-warn-pale: #2e2210;
+  --color-danger: #f87171;
+  --color-danger-pale: #3a1717;
+  --color-night: #1a3651;
+  --color-night-soft: #24476a;
+  --shadow-tag: 0 1px 0 rgb(0 0 0 / 0.2), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+}
+/* Sur l'orange, le texte reste marine et les cartes restent blanches, de jour comme de nuit. */
+:root[data-theme="dark"] .bg-signal {
+  --color-ink: #0e304c;
+  --color-ink-soft: #2b4964;
+  --color-muted: #3d5670;
+  --color-card: #ffffff;
+  --color-line: #e8e1d3;
+  color: var(--color-ink);
+}
+/* Photos un peu adoucies la nuit pour ne pas éblouir. */
+:root[data-theme="dark"] img:not([src$=".svg"]) {
+  filter: brightness(0.9);
 }
 
 html {

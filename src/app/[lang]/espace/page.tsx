@@ -99,7 +99,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:py-10">
       {/* En-tête */}
-      <section className="reveal relative overflow-hidden rounded-[28px] bg-ink px-6 py-7 text-white sm:px-8">
+      <section className="reveal relative overflow-hidden rounded-[28px] bg-night px-6 py-7 text-white sm:px-8">
         <RouteArc className="float-y pointer-events-none absolute -top-3 right-[34%] hidden w-64 opacity-40 lg:block" />
         <div className="relative flex flex-wrap items-center gap-5">
           <Avatar name={profile?.full_name || "?"} src={profile?.avatar_url} verified={profile?.id_verified} certified={profile?.certified} size={64} />
@@ -124,14 +124,14 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
         <div className="min-w-0 space-y-6">
           {/* À faire */}
           {todo > 0 && (
-            <section className="reveal reveal-delay-1 rounded-3xl bg-white p-5 ring-1 ring-line sm:p-6" aria-labelledby="a-faire">
+            <section className="reveal reveal-delay-1 rounded-3xl bg-card p-5 ring-1 ring-line sm:p-6" aria-labelledby="a-faire">
               <h2 id="a-faire" className="flex items-center gap-2 text-lg font-bold">
                 <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-signal" aria-hidden="true" />{" "}{t("À faire")}
               </h2>
               <ul className="mt-4 space-y-3">
                 {pending.map((b) => (
                   <li key={b.id} className="flex flex-wrap items-center gap-3 rounded-2xl bg-paper p-4">
-                    <Package className="h-9 w-9 shrink-0 rounded-xl bg-white p-2 text-brand" aria-hidden="true" />
+                    <Package className="h-9 w-9 shrink-0 rounded-xl bg-card p-2 text-brand" aria-hidden="true" />
                     <Link href={`/reservations/${b.id}`} className="min-w-0 flex-1">
                       <p className="font-semibold">
                         {t("{v} veut envoyer {kg}", { v: b.sender?.full_name ?? t("Un expéditeur"), kg: kg(b.weight_kg) })}
@@ -157,7 +157,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
                 {toPay.map((b) => (
                   <li key={b.id}>
                     <Link href={`/reservations/${b.id}`} className="flex items-center gap-3 rounded-2xl bg-paper p-4 hover:ring-1 hover:ring-brand/40">
-                      <CreditCard className="h-9 w-9 shrink-0 rounded-xl bg-white p-2 text-signal-deep" aria-hidden="true" />
+                      <CreditCard className="h-9 w-9 shrink-0 rounded-xl bg-card p-2 text-signal-deep" aria-hidden="true" />
                       <span className="min-w-0 flex-1">
                         <span className="block font-semibold">{t("Votre demande est acceptée, il reste à payer")}</span>
                         <span className="block truncate text-sm text-muted">
@@ -171,7 +171,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
                 {unread > 0 && (
                   <li>
                     <Link href="/messages" className="flex items-center gap-3 rounded-2xl bg-paper p-4 hover:ring-1 hover:ring-brand/40">
-                      <MessageCircle className="h-9 w-9 shrink-0 rounded-xl bg-white p-2 text-brand" aria-hidden="true" />
+                      <MessageCircle className="h-9 w-9 shrink-0 rounded-xl bg-card p-2 text-brand" aria-hidden="true" />
                       <span className="flex-1 font-semibold">{unread > 1 ? t("{n} messages non lus", { n: unread }) : t("1 message non lu")}</span>
                       <ChevronRight className="h-5 w-5 text-muted" aria-hidden="true" />
                     </Link>
@@ -182,7 +182,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
           )}
 
           {/* Onglets */}
-          <nav className="reveal reveal-delay-2 grid grid-cols-3 gap-1 rounded-2xl bg-white p-1 ring-1 ring-line" aria-label={t("Sections")}>
+          <nav className="reveal reveal-delay-2 grid grid-cols-3 gap-1 rounded-2xl bg-card p-1 ring-1 ring-line" aria-label={t("Sections")}>
             {(
               [
                 ["envois", "envois", sendings.length, Package],
@@ -194,7 +194,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
                 key={key}
                 href={`/espace?onglet=${key}`}
                 aria-current={tab === key ? "page" : undefined}
-                className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-center text-sm font-semibold transition sm:flex-row sm:justify-center sm:gap-2 ${tab === key ? "bg-ink text-white" : "text-ink-soft hover:bg-paper"}`}
+                className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-center text-sm font-semibold transition sm:flex-row sm:justify-center sm:gap-2 ${tab === key ? "bg-night text-white" : "text-ink-soft hover:bg-paper"}`}
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
                 <span>
@@ -237,7 +237,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
                 </Empty>
               )}
               {sendings.map((b) => (
-                <Link key={b.id} href={`/reservations/${b.id}`} className="group block rounded-2xl bg-white p-4 ring-1 ring-line transition hover:ring-brand/50 sm:p-5">
+                <Link key={b.id} href={`/reservations/${b.id}`} className="group block rounded-2xl bg-card p-4 ring-1 ring-line transition hover:ring-brand/50 sm:p-5">
                   <div className="flex items-center justify-between gap-3">
                     <span className="wide tabular text-lg font-extrabold">
                       {codeFor(b.trip?.from_city ?? "")}
@@ -270,7 +270,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
               {trips.map((trip) => {
                 const filled = trip.capacity_kg ? Math.min(100, (trip.reserved_kg / trip.capacity_kg) * 100) : 0;
                 return (
-                  <article key={trip.id} className="overflow-hidden rounded-2xl bg-white ring-1 ring-line">
+                  <article key={trip.id} className="overflow-hidden rounded-2xl bg-card ring-1 ring-line">
                     <Link href={`/trajets/${trip.id}`} className="block p-4 hover:bg-paper/50 sm:p-5">
                       <div className="flex items-center gap-4">
                         <div className="wide tabular text-xl font-extrabold">
@@ -281,7 +281,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
                       </div>
                       <div className="mt-3 flex items-center gap-3">
                         <span className="h-2 flex-1 overflow-hidden rounded-full bg-line" aria-hidden="true">
-                          <span className="block h-full rounded-full bg-brand" style={{ width: `${filled}%` }} />
+                          <span className="block h-full rounded-full bg-brand-fill" style={{ width: `${filled}%` }} />
                         </span>
                         <span className="tabular text-sm font-semibold">
                           {t("{kg} / {kg2} réservés", { kg: kg(trip.reserved_kg), kg2: kg(trip.capacity_kg) })}
@@ -340,13 +340,13 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
         {/* Colonne compte */}
         <aside className="reveal reveal-delay-3 space-y-4">
           {progress < 100 && (
-            <section className="rounded-3xl bg-white p-5 ring-1 ring-line">
+            <section className="rounded-3xl bg-card p-5 ring-1 ring-line">
               <div className="flex items-baseline justify-between">
                 <h2 className="font-bold">{t("Votre profil")}</h2>
                 <span className="tabular text-sm font-bold text-brand">{progress} %</span>
               </div>
               <span className="mt-3 block h-2 overflow-hidden rounded-full bg-line" aria-hidden="true">
-                <span className="block h-full rounded-full bg-brand transition-all" style={{ width: `${progress}%` }} />
+                <span className="block h-full rounded-full bg-brand-fill transition-all" style={{ width: `${progress}%` }} />
               </span>
               <p className="mt-3 flex items-center gap-2 text-sm">
                 <CircleDashed className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
@@ -362,7 +362,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
           )}
 
           {alerts.length > 0 && (
-            <section className="rounded-3xl bg-white p-5 ring-1 ring-line" aria-labelledby="alertes">
+            <section className="rounded-3xl bg-card p-5 ring-1 ring-line" aria-labelledby="alertes">
               <h2 id="alertes" className="flex items-center gap-2 font-bold">
                 <Bell className="h-4 w-4 text-brand" aria-hidden="true" />{" "}{t("Mes lignes suivies")}
               </h2>
@@ -388,7 +388,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
             </section>
           )}
 
-          <nav className="overflow-hidden rounded-3xl bg-white ring-1 ring-line" aria-label={t("Mon compte")}>
+          <nav className="overflow-hidden rounded-3xl bg-card ring-1 ring-line" aria-label={t("Mon compte")}>
             {(
               [
                 ["/espace/profil", UserRound, t("Profil et vérification")],
@@ -421,7 +421,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
 
 function Empty({ icon: Icon, title, text, children }: { icon: typeof Package; title: string; text: string; children?: React.ReactNode }) {
   return (
-    <div className="rounded-3xl bg-white px-6 py-12 text-center ring-1 ring-line">
+    <div className="rounded-3xl bg-card px-6 py-12 text-center ring-1 ring-line">
       <Icon className="float-y mx-auto h-12 w-12 rounded-2xl bg-brand-pale p-2.5 text-brand" aria-hidden="true" />
       <h2 className="mt-4 text-lg font-bold">{title}</h2>
       <p className="mx-auto mt-1 max-w-sm text-muted">{text}</p>

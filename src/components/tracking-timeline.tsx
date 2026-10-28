@@ -32,7 +32,7 @@ export async function TrackingTimeline({
         return (
           <li key={s.kind} className="relative flex gap-3 pb-5 last:pb-0">
             {i < steps.length - 1 && (
-              <span className={`absolute top-6 left-[11px] h-[calc(100%-1.25rem)] w-0.5 ${i < lastDone ? "bg-brand" : "bg-line"}`} aria-hidden="true" />
+              <span className={`absolute top-6 left-[11px] h-[calc(100%-1.25rem)] w-0.5 ${i < lastDone ? "bg-brand-fill" : "bg-line"}`} aria-hidden="true" />
             )}
             {done ? (
               <CheckCircle2 className={`relative h-6 w-6 shrink-0 ${current ? "text-brand" : "text-ok"}`} aria-hidden="true" />

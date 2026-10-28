@@ -90,7 +90,7 @@ function FilePicker({
     <div>
       <input type="hidden" name={name} value={state.path ?? ""} />
       <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-dashed border-line bg-paper px-4 py-4 hover:border-brand">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-line">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-card ring-1 ring-line">
           {state.busy ? (
             <Loader2 className="h-5 w-5 animate-spin text-brand" aria-hidden="true" />
           ) : state.path ? (

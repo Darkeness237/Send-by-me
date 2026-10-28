@@ -28,7 +28,7 @@ async function List({ searchParams }: { searchParams: Promise<Record<string, str
       ))}
     </ul>
   ) : (
-    <p className="mt-8 rounded-3xl bg-white p-8 text-center text-muted ring-1 ring-line">{t("Aucune demande en cours pour cette ligne.")}</p>
+    <p className="mt-8 rounded-3xl bg-card p-8 text-center text-muted ring-1 ring-line">{t("Aucune demande en cours pour cette ligne.")}</p>
   );
 }
 
@@ -49,13 +49,13 @@ export default async function RequestsPage(props: PageProps<"/[lang]/demandes">)
           </ButtonLink>
         </div>
         <form className="mt-6 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-          <input name="from" placeholder={t("Départ (ex. Paris)")} className="rounded-xl border border-line bg-white px-3.5 py-3 text-[15px]" aria-label={t("Ville de départ")} />
-          <input name="to" placeholder={t("Arrivée (ex. Douala)")} className="rounded-xl border border-line bg-white px-3.5 py-3 text-[15px]" aria-label={t("Ville d'arrivée")} />
-          <button type="submit" className="rounded-xl bg-ink px-5 py-3 font-semibold text-white">
+          <input name="from" placeholder={t("Départ (ex. Paris)")} className="rounded-xl border border-line bg-card px-3.5 py-3 text-[15px]" aria-label={t("Ville de départ")} />
+          <input name="to" placeholder={t("Arrivée (ex. Douala)")} className="rounded-xl border border-line bg-card px-3.5 py-3 text-[15px]" aria-label={t("Ville d'arrivée")} />
+          <button type="submit" className="rounded-xl bg-night px-5 py-3 font-semibold text-white">
             {t("Filtrer")}
           </button>
         </form>
-        <Suspense fallback={<div className="mt-6 h-64 rounded-3xl bg-white ring-1 ring-line" />}>
+        <Suspense fallback={<div className="mt-6 h-64 rounded-3xl bg-card ring-1 ring-line" />}>
           <List searchParams={props.searchParams as Promise<Record<string, string | undefined>>} />
         </Suspense>
       </div>

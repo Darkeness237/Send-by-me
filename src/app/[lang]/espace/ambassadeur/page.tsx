@@ -77,7 +77,7 @@ async function Ambassador() {
             { icon: Wallet, label: t("Primes à recevoir"), value: euros(a.pendingCents) },
             { icon: Gift, label: t("Primes déjà versées"), value: euros(a.paidCents) },
           ].map(({ icon: Icon, label, value }) => (
-            <div key={label} className="rounded-2xl bg-white p-5 ring-1 ring-line">
+            <div key={label} className="rounded-2xl bg-card p-5 ring-1 ring-line">
               <Icon className="h-5 w-5 text-brand" aria-hidden="true" />
               <p className="wide tabular mt-3 text-2xl font-extrabold">{value}</p>
               <p className="text-sm text-muted">{label}</p>
@@ -85,13 +85,13 @@ async function Ambassador() {
           ))}
         </div>
       ) : (
-        <section className="mt-6 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+        <section className="mt-6 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8">
           <h2 className="font-bold">{t("Devenez Ambassadeur")}</h2>
           <p className="mt-1 text-sm text-muted">{t("Le statut s'active tout seul dès que les trois conditions sont remplies.")}</p>
           <ul className="mt-5 space-y-3">
             {steps.map((s) => (
               <li key={s.label} className="flex items-start gap-3">
-                <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${s.done ? "bg-ok text-white" : "bg-paper ring-1 ring-line"}`}>
+                <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${s.done ? "bg-ok-fill text-white" : "bg-paper ring-1 ring-line"}`}>
                   {s.done && <Check className="h-4 w-4" aria-hidden="true" />}
                 </span>
                 <div>
@@ -152,7 +152,7 @@ async function Ambassador() {
         </p>
       </section>
 
-      <section className="mt-8 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+      <section className="mt-8 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8">
         <h2 className="font-bold">{t("Votre lien et votre carte à accrocher à la valise")}</h2>
         <p className="mt-1 mb-5 text-sm text-muted">
           {t("Même lien que le parrainage. Imprimez la carte et glissez-la dans le porte-étiquette de votre bagage : en salle d'embarquement, les autres passagers vous demanderont comment ça marche.")}
@@ -164,7 +164,7 @@ async function Ambassador() {
         />
 
         <div className="mt-6 flex flex-wrap items-end gap-4">
-          <div className="print-area w-[340px] rounded-2xl bg-white p-5 shadow-[var(--shadow-tag)] ring-1 ring-line">
+          <div className="print-area w-[340px] rounded-2xl bg-card p-5 shadow-[var(--shadow-tag)] ring-1 ring-line">
             <div className="flex items-center justify-between">
               <Logo />
               <span className="inline-flex items-center gap-1 rounded-full bg-signal/15 px-2 py-0.5 text-xs font-semibold text-signal-deep">
@@ -190,7 +190,7 @@ async function Ambassador() {
       {a.rewards.length > 0 && (
         <section className="mt-8">
           <h2 className="font-bold">{t("Vos primes")}</h2>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl bg-white text-sm ring-1 ring-line">
+          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl bg-card text-sm ring-1 ring-line">
             {a.rewards.map((r) => (
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
                 <span>

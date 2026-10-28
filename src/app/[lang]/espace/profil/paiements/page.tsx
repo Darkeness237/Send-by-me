@@ -52,18 +52,18 @@ async function Payments() {
       <p className="mt-2 text-ink-soft">{t("Paiements par carte, sécurisés par Stripe. Le montant reste bloqué jusqu'à la livraison.")}</p>
 
       <dl className="mt-6 grid grid-cols-2 gap-3">
-        <div className="rounded-3xl bg-white p-5 ring-1 ring-line">
+        <div className="rounded-3xl bg-card p-5 ring-1 ring-line">
           <dt className="text-sm text-muted">{t("Payé")}</dt>
           <dd className="tabular mt-1 text-2xl font-extrabold">{euros(spent)}</dd>
         </div>
-        <div className="rounded-3xl bg-white p-5 ring-1 ring-line">
+        <div className="rounded-3xl bg-card p-5 ring-1 ring-line">
           <dt className="text-sm text-muted">{t("Remboursé")}</dt>
           <dd className="tabular mt-1 text-2xl font-extrabold">{euros(refunded)}</dd>
         </div>
       </dl>
 
       {list.length ? (
-        <ul className="mt-8 divide-y divide-line overflow-hidden rounded-3xl bg-white ring-1 ring-line">
+        <ul className="mt-8 divide-y divide-line overflow-hidden rounded-3xl bg-card ring-1 ring-line">
           {list.map((r) => {
             const trip = one(r.trip);
             const Icon = r.refunded_at ? RotateCcw : CreditCard;
@@ -91,7 +91,7 @@ async function Payments() {
           })}
         </ul>
       ) : (
-        <p className="mt-8 rounded-3xl bg-white p-6 text-muted ring-1 ring-line">{t("Aucun paiement pour l'instant.")}</p>
+        <p className="mt-8 rounded-3xl bg-card p-6 text-muted ring-1 ring-line">{t("Aucun paiement pour l'instant.")}</p>
       )}
     </div>
   );

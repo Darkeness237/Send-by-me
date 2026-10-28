@@ -39,7 +39,7 @@ async function Shipment({ params }: { params: Promise<{ code: string }> }) {
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
       <p className="wide tabular text-sm font-bold text-muted">{s.code}</p>
-      <section className="mt-2 overflow-hidden rounded-3xl bg-ink text-white">
+      <section className="mt-2 overflow-hidden rounded-3xl bg-night text-white">
         <div className="flex items-center justify-between gap-4 p-6">
           <div>
             <p className="display text-4xl text-signal">{codeFor(s.from_city)}</p>
@@ -56,7 +56,7 @@ async function Shipment({ params }: { params: Promise<{ code: string }> }) {
         </p>
       </section>
 
-      <section className="mt-6 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+      <section className="mt-6 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8">
         <h1 className="mb-5 text-lg font-bold">{t("Où en est le colis ?")}</h1>
         <TrackingTimeline events={s.events} homeDelivery={s.home_delivery} details={s.transport_ref ? { departed: `Vol ${s.transport_ref}` } : {}} />
         <p className="mt-6 flex items-start gap-2 rounded-2xl bg-paper p-4 text-sm text-ink-soft">

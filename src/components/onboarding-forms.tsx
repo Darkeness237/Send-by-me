@@ -28,7 +28,7 @@ export function AvatarUploader({ userId, current, name }: { userId: string; curr
         {pending && <Loader2 className="absolute inset-0 m-auto h-6 w-6 animate-spin text-brand" aria-hidden="true" />}
       </span>
       <div>
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold hover:border-ink/30">
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-sm font-semibold hover:border-ink/30">
           <Camera className="h-4 w-4" aria-hidden="true" /> {preview ? t("Changer de photo") : t("Ajouter une photo")}
           <input
             type="file"

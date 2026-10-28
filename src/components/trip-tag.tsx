@@ -79,7 +79,7 @@ export async function TripTag({ trip, goodPrice }: { trip: Trip; goodPrice?: boo
         <div className="w-28 shrink-0 text-right">
           <p className="tabular text-sm font-semibold text-ink">{t("{kg} libres", { kg: kg(left, lang) })}</p>
           <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-paper" aria-hidden="true">
-            <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
+            <div className="h-full rounded-full bg-brand-fill" style={{ width: `${pct}%` }} />
           </div>
         </div>
       </div>

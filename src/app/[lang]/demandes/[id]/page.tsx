@@ -50,8 +50,8 @@ async function RequestView({ params, searchParams }: { params: Promise<{ id: str
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.2fr_1fr] lg:items-start">
       <div className="space-y-6">
         {sp.publiee && <TakeoffBanner title={t("Demande publiée !")} text={t("Les voyageurs qui partent sur votre ligne sont prévenus.")} />}
-        <section className="overflow-hidden rounded-3xl bg-white ring-1 ring-line">
-          <div className="bg-ink p-6 text-white">
+        <section className="overflow-hidden rounded-3xl bg-card ring-1 ring-line">
+          <div className="bg-night p-6 text-white">
             <p className="display text-4xl text-signal">
               {codeFor(r.from_city)} → {codeFor(r.to_city)}
             </p>
@@ -144,7 +144,7 @@ async function RequestView({ params, searchParams }: { params: Promise<{ id: str
 
       <aside className="space-y-4 lg:sticky lg:top-6">
         {!isOwner && r.status === "open" && (
-          <section className="rounded-3xl bg-white p-6 ring-1 ring-line">
+          <section className="rounded-3xl bg-card p-6 ring-1 ring-line">
             <h2 className="text-lg font-bold">{t("Vous faites ce trajet ?")}</h2>
             {!userId ? (
               <>
@@ -192,7 +192,7 @@ async function RequestView({ params, searchParams }: { params: Promise<{ id: str
               ))}
             </ul>
           ) : (
-            <p className="rounded-3xl bg-white p-5 text-sm text-muted ring-1 ring-line">
+            <p className="rounded-3xl bg-card p-5 text-sm text-muted ring-1 ring-line">
               {isOwner ? t("Nous vous prévenons dès qu'un voyageur publie un trajet qui convient.") : t("Les trajets compatibles s'afficheront ici.")}{" "}
               <Link href={`/recherche?from=${encodeURIComponent(r.from_city)}&to=${encodeURIComponent(r.to_city)}`} className="font-semibold text-brand">
                 {t("Voir tous les trajets de la ligne")}

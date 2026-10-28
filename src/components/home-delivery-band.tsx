@@ -15,10 +15,10 @@ export async function HomeDeliveryBand() {
   const t = await getT();
   return (
     <section id="livraison" className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-12 sm:px-6 md:pt-16" aria-labelledby="livraison-title">
-      <div className="grid overflow-hidden rounded-[28px] bg-ink text-white md:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid overflow-hidden rounded-[28px] bg-night text-white md:grid-cols-[0.9fr_1.1fr]">
         <div className="relative min-h-[260px]">
           <Image quality={90} src={livraison} alt={t("Un livreur remet un colis en main propre")} fill placeholder="blur" sizes="(min-width: 768px) 480px, 100vw" className="object-cover" />
-          <span className="absolute top-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-signal px-3.5 py-1.5 text-sm font-extrabold text-ink shadow-lg">
+          <span className="absolute top-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-signal px-3.5 py-1.5 text-sm font-extrabold text-navy shadow-lg">
             <Truck className="h-4 w-4" aria-hidden="true" /> {t("Nouveau")}
           </span>
         </div>
@@ -35,7 +35,7 @@ export async function HomeDeliveryBand() {
               <li key={title} className="flex items-start gap-4">
                 <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-signal">
                   <Icon className="h-6 w-6" aria-hidden="true" />
-                  <span className="wide tabular absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-signal text-[11px] font-extrabold text-ink">
+                  <span className="wide tabular absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-signal text-[11px] font-extrabold text-navy">
                     {i + 1}
                   </span>
                 </span>

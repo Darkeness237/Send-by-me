@@ -7,7 +7,7 @@ export async function NextStepBanner({ step }: { step: NextStep }) {
   const t = await getT();
   const tone = {
     action: {
-      box: "bg-ink text-white",
+      box: "bg-night text-white",
       sub: "text-white/75",
       Icon: Sparkles,
       icon: "text-signal",
@@ -53,7 +53,7 @@ export async function NextStepBanner({ step }: { step: NextStep }) {
       {step.cta && (
         <a
           href={step.cta.href}
-          className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold ${step.tone === "action" ? "bg-signal text-ink hover:brightness-95" : "bg-white text-ink ring-1 ring-line hover:ring-brand"}`}
+          className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold ${step.tone === "action" ? "bg-signal text-navy hover:brightness-95" : "bg-card text-navy ring-1 ring-line hover:ring-brand"}`}
         >
           {step.cta.label} <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </a>

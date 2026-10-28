@@ -107,7 +107,7 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
               <span className="flex flex-wrap items-center gap-2 font-bold">
                 <Truck className="h-5 w-5 text-signal-deep" aria-hidden="true" />
                 {t("Livraison à domicile")}
-                <span className="rounded-full bg-signal px-2 py-0.5 text-xs font-extrabold text-ink">{t("Nouveau")}</span>
+                <span className="rounded-full bg-signal px-2 py-0.5 text-xs font-extrabold text-navy">{t("Nouveau")}</span>
               </span>
               <span className="block text-sm text-muted">
                 {t("Le destinataire ne peut pas aller au point de rendez-vous ? Notre partenaire de livraison récupère le colis auprès du voyageur à l'arrivée et l'apporte chez lui.")}

@@ -20,12 +20,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Step({ n, title, done, children }: { n: number; title: string; done?: boolean; children: ReactNode }) {
   return (
-    <section className="rounded-3xl bg-white p-6 ring-1 ring-line">
+    <section className="rounded-3xl bg-card p-6 ring-1 ring-line">
       <h2 className="flex items-center gap-3 font-bold">
         {done ? (
           <CheckCircle2 className="h-7 w-7 text-ok" aria-hidden="true" />
         ) : (
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-sm text-white">{n}</span>
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-night text-sm text-white">{n}</span>
         )}
         {title}
       </h2>

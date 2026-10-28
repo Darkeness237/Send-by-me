@@ -25,7 +25,7 @@ export function PayoutMethodForm({ current, holder }: { current: PayoutMethod | 
               ["mobile_money", Smartphone, "Mobile Money", "Orange, MTN, Wave, Moov…"],
             ] as const
           ).map(([v, Icon, label, hint]) => (
-            <label key={v} className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-line bg-white p-4 has-checked:border-brand has-checked:bg-brand-pale/40">
+            <label key={v} className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-line bg-card p-4 has-checked:border-brand has-checked:bg-brand-pale/40">
               <input type="radio" name="kind" value={v} checked={kind === v} onChange={() => setKind(v)} className="mt-1 h-4 w-4 accent-brand" />
               <span>
                 <span className="flex items-center gap-2 font-bold">

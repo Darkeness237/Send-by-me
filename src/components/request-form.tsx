@@ -95,7 +95,7 @@ export function RequestForm({
   );
 
   const section =
-    "reveal space-y-5 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8";
+    "reveal space-y-5 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8";
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
       <form
@@ -322,7 +322,7 @@ export function RequestForm({
                     onClick={() =>
                       setPhotos((all) => all.filter((x) => x.path !== p.path))
                     }
-                    className="absolute top-1 right-1 rounded-full bg-ink/70 p-1 text-white"
+                    className="absolute top-1 right-1 rounded-full bg-night/70 p-1 text-white"
                     aria-label={t("Retirer la photo")}
                   >
                     <X className="h-3.5 w-3.5" />
@@ -389,7 +389,7 @@ export function RequestForm({
 function Step({ n }: { n: number }) {
   return (
     <span
-      className="wide tabular flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-extrabold text-signal"
+      className="wide tabular flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-night text-sm font-extrabold text-signal"
       aria-hidden="true"
     >
       {n}

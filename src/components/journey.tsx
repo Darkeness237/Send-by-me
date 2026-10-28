@@ -77,7 +77,7 @@ export function JourneyHero({
   position?: string;
 }) {
   return (
-    <section className="relative isolate overflow-hidden rounded-[28px] bg-ink text-white">
+    <section className="relative isolate overflow-hidden rounded-[28px] bg-night text-white">
       <Image quality={90}
         src={image}
         alt={alt}
@@ -88,7 +88,7 @@ export function JourneyHero({
         className="ken-burns -z-10 object-cover"
         style={{ objectPosition: position }}
       />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-ink via-ink/85 to-ink/25 max-md:bg-gradient-to-t max-md:via-ink/80" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-night via-night/85 to-night/25 max-md:bg-gradient-to-t max-md:via-night/80" />
       <RouteArc className="float-y absolute top-8 right-6 hidden w-72 md:block lg:right-16 lg:w-96" />
       <div className="max-w-xl px-6 pt-28 pb-8 sm:px-10 md:py-14">
         <p className="reveal text-sm font-bold tracking-wide text-signal uppercase">
@@ -118,11 +118,11 @@ export function JourneyHero({
 
 const CONFETTI = [
   ["-90px", "70px", "0s", "bg-signal"],
-  ["-40px", "90px", "0.1s", "bg-white"],
-  ["30px", "80px", "0.05s", "bg-brand"],
+  ["-40px", "90px", "0.1s", "bg-card"],
+  ["30px", "80px", "0.05s", "bg-brand-fill"],
   ["80px", "60px", "0.15s", "bg-signal"],
-  ["120px", "95px", "0.2s", "bg-white"],
-  ["-130px", "100px", "0.25s", "bg-brand"],
+  ["120px", "95px", "0.2s", "bg-card"],
+  ["-130px", "100px", "0.25s", "bg-brand-fill"],
 ];
 
 /** Message de réussite après une publication : l'avion décolle. */
@@ -138,7 +138,7 @@ export function TakeoffBanner({
   return (
     <section
       role="status"
-      className="pop-in relative mb-6 overflow-hidden rounded-3xl bg-ink px-6 py-6 text-white sm:px-8"
+      className="pop-in relative mb-6 overflow-hidden rounded-3xl bg-night px-6 py-6 text-white sm:px-8"
     >
       <div
         className="pointer-events-none absolute top-10 left-24"

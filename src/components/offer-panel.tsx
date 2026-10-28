@@ -62,7 +62,7 @@ export function OfferPanel({
       )}
 
       {open && (
-        <div className="mt-4 rounded-xl bg-white p-4 ring-1 ring-line">
+        <div className="mt-4 rounded-xl bg-card p-4 ring-1 ring-line">
           <p className="font-semibold">
             {mine ? t("Votre proposition : {euros} le kilo", { euros: euros(open.price_per_kg_cents) }) : t("Proposition de {otherName} : {euros} le kilo", { otherName, euros: euros(open.price_per_kg_cents) })}
           </p>

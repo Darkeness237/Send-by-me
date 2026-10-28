@@ -33,7 +33,7 @@ async function Inbox() {
       <p className="mt-2 text-muted">{t("Vos discussions avec les voyageurs et les expéditeurs, avant et après réservation.")}</p>
 
       {threads.length === 0 ? (
-        <div className="mt-8 rounded-3xl bg-white p-8 text-center ring-1 ring-line">
+        <div className="mt-8 rounded-3xl bg-card p-8 text-center ring-1 ring-line">
           <MessageCircle className="mx-auto h-10 w-10 text-brand" aria-hidden="true" />
           <p className="mt-3 font-semibold">{t("Aucune discussion pour l'instant")}</p>
           <p className="mt-1 text-sm text-muted">{t("Ouvrez un trajet et cliquez sur « Poser une question » pour écrire au voyageur.")}</p>
@@ -42,7 +42,7 @@ async function Inbox() {
           </ButtonLink>
         </div>
       ) : (
-        <ul className="mt-6 divide-y divide-line overflow-hidden rounded-3xl bg-white ring-1 ring-line">
+        <ul className="mt-6 divide-y divide-line overflow-hidden rounded-3xl bg-card ring-1 ring-line">
           {threads.map((th) => (
             <li key={th.id}>
               <Link href={th.href} className="flex items-center gap-4 px-5 py-4 hover:bg-paper">
@@ -61,7 +61,7 @@ async function Inbox() {
                     {new Date(th.lastAt).toDateString() === today ? timeLabel(th.lastAt, undefined, lang) : dayLabel(th.lastAt, undefined, lang)}
                   </span>
                   {th.unread > 0 && (
-                    <span className="tabular min-w-5 rounded-full bg-brand px-1.5 text-center text-xs font-bold text-white" aria-label={`${th.unread} non lus`}>
+                    <span className="tabular min-w-5 rounded-full bg-brand-fill px-1.5 text-center text-xs font-bold text-white" aria-label={`${th.unread} non lus`}>
                       {th.unread}
                     </span>
                   )}

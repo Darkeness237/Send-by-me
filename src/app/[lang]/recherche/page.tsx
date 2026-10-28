@@ -67,7 +67,7 @@ async function Results({ searchParams }: { searchParams: Promise<SP> }) {
           ))}
         </ul>
       ) : (
-        <div className="mt-8 rounded-3xl bg-white px-6 py-12 text-center ring-1 ring-line">
+        <div className="mt-8 rounded-3xl bg-card px-6 py-12 text-center ring-1 ring-line">
           <PackageSearch className="mx-auto h-10 w-10 text-muted" aria-hidden="true" />
           <h2 className="mt-4 text-lg font-bold">{t("Aucun voyageur sur ce trajet pour l'instant")}</h2>
           <p className="mx-auto mt-2 max-w-md text-muted">
@@ -101,14 +101,14 @@ export default function SearchPage(props: PageProps<"/[lang]/recherche">) {
   return (
     <PageShell>
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <Suspense fallback={<div className="h-[66px] rounded-2xl bg-white ring-1 ring-line" />}>
+        <Suspense fallback={<div className="h-[66px] rounded-2xl bg-card ring-1 ring-line" />}>
           <Form searchParams={searchParams} />
         </Suspense>
         <Suspense
           fallback={
             <div className="mt-16 space-y-4">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="h-36 animate-pulse rounded-2xl bg-white ring-1 ring-line" />
+                <div key={i} className="h-36 animate-pulse rounded-2xl bg-card ring-1 ring-line" />
               ))}
             </div>
           }

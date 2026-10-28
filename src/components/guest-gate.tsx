@@ -11,7 +11,7 @@ export async function GuestGate({ next, title, reasons }: { next: string; title:
   const t = await getT();
   const suite = encodeURIComponent(next);
   return (
-    <section className="grid gap-6 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8 md:grid-cols-[1.2fr_1fr]">
+    <section className="grid gap-6 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8 md:grid-cols-[1.2fr_1fr]">
       <div>
         <h2 className="text-2xl font-bold">{title}</h2>
         <p className="mt-2 text-ink-soft">{t("Un compte gratuit est demandé à cette étape, pour que chacun sache à qui il a affaire.")}</p>

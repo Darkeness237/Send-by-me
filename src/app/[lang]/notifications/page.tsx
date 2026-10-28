@@ -45,7 +45,7 @@ async function Notifications() {
         )}
       </div>
 
-      <section className="mt-6 space-y-4 rounded-3xl bg-white p-6 ring-1 ring-line">
+      <section className="mt-6 space-y-4 rounded-3xl bg-card p-6 ring-1 ring-line">
         <div>
           <p className="flex items-center gap-2 font-semibold">
             <Bell className="h-4 w-4 text-brand" aria-hidden="true" />{" "}{t("Sur ce téléphone ou cet ordinateur")}
@@ -86,9 +86,9 @@ async function Notifications() {
       </section>
 
       {items.length === 0 ? (
-        <p className="mt-8 rounded-3xl bg-white p-8 text-center text-muted ring-1 ring-line">{t("Aucune notification pour l'instant.")}</p>
+        <p className="mt-8 rounded-3xl bg-card p-8 text-center text-muted ring-1 ring-line">{t("Aucune notification pour l'instant.")}</p>
       ) : (
-        <ul className="mt-6 divide-y divide-line overflow-hidden rounded-3xl bg-white ring-1 ring-line">
+        <ul className="mt-6 divide-y divide-line overflow-hidden rounded-3xl bg-card ring-1 ring-line">
           {items.map((n) => (
             <li key={n.id}>
               <Link href={n.href ?? "/espace"} className={`flex gap-3 px-5 py-4 hover:bg-paper ${n.read_at ? "" : "bg-brand-pale/40"}`}>

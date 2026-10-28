@@ -14,7 +14,7 @@ export async function ChatMessages({ messages, myId, empty }: { messages: Messag
         const mine = m.author_id === myId;
         return (
           <li key={m.id} className={`flex ${mine ? "justify-end" : ""}`}>
-            <p className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] whitespace-pre-line ${mine ? "bg-brand text-white" : "bg-paper"}`}>
+            <p className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] whitespace-pre-line ${mine ? "bg-brand-fill text-white" : "bg-paper"}`}>
               {m.body}
               <span className={`mt-1 block text-[11px] ${mine ? "text-white/70" : "text-muted"}`}>{timeLabel(m.created_at, undefined, lang)}</span>
             </p>

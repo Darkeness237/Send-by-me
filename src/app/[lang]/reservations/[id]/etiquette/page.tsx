@@ -43,14 +43,14 @@ async function Label({ params }: { params: Promise<{ id: string }> }) {
       </p>
 
       <div className="mt-6 flex flex-wrap items-end gap-4">
-        <div className="print-area w-[420px] max-w-full rounded-xl border-2 border-dashed border-ink bg-white p-5">
+        <div className="print-area w-[420px] max-w-full rounded-xl border-2 border-dashed border-ink bg-card p-5">
           <div className="flex items-center justify-between border-b border-line pb-3">
             <Logo />
             <span className="text-xs font-semibold tracking-wide text-muted uppercase">{t("Colis voyageur")}</span>
           </div>
           <div className="mt-4 flex items-center gap-3">
             <span className="wide tabular text-4xl font-extrabold text-ink">{codeFor(trip.from_city)}</span>
-            <span className="h-0.5 flex-1 bg-ink" aria-hidden="true" />
+            <span className="h-0.5 flex-1 bg-night" aria-hidden="true" />
             <span className="wide tabular text-4xl font-extrabold text-ink">{codeFor(trip.to_city)}</span>
           </div>
           <p className="mt-1 flex justify-between text-sm text-ink-soft">

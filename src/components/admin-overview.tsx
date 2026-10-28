@@ -28,11 +28,11 @@ function Tile({ icon: Icon, label, value, sub, href }: { icon: LucideIcon; label
     </>
   );
   return href ? (
-    <Link href={href} className="group block rounded-3xl bg-white p-5 ring-1 ring-line hover:ring-brand">
+    <Link href={href} className="group block rounded-3xl bg-card p-5 ring-1 ring-line hover:ring-brand">
       {body}
     </Link>
   ) : (
-    <div className="rounded-3xl bg-white p-5 ring-1 ring-line">{body}</div>
+    <div className="rounded-3xl bg-card p-5 ring-1 ring-line">{body}</div>
   );
 }
 
@@ -128,7 +128,7 @@ export async function AdminOverview({ queues }: { queues: Queue[] }) {
           <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {todo.map((q) => (
               <li key={q.key}>
-                <Link href={`/admin?onglet=${q.key}`} className="group flex items-center gap-4 rounded-3xl bg-white p-5 ring-1 ring-line hover:ring-brand">
+                <Link href={`/admin?onglet=${q.key}`} className="group flex items-center gap-4 rounded-3xl bg-card p-5 ring-1 ring-line hover:ring-brand">
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-signal/15 text-signal-deep">
                     <q.icon className="h-6 w-6" aria-hidden="true" />
                   </span>
@@ -166,7 +166,7 @@ export async function AdminOverview({ queues }: { queues: Queue[] }) {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <section className="rounded-3xl bg-white p-5 ring-1 ring-line sm:p-6" aria-labelledby="chart">
+        <section className="rounded-3xl bg-card p-5 ring-1 ring-line sm:p-6" aria-labelledby="chart">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="chart" className="font-bold">
               Paiements par jour
@@ -178,7 +178,7 @@ export async function AdminOverview({ queues }: { queues: Queue[] }) {
           </div>
         </section>
 
-        <section className="rounded-3xl bg-white p-5 ring-1 ring-line sm:p-6" aria-labelledby="funnel">
+        <section className="rounded-3xl bg-card p-5 ring-1 ring-line sm:p-6" aria-labelledby="funnel">
           <h2 id="funnel" className="font-bold">
             Réservations par étape
           </h2>
@@ -187,7 +187,7 @@ export async function AdminOverview({ queues }: { queues: Queue[] }) {
               <li key={status} className="grid grid-cols-[7.5rem_1fr_2.5rem] items-center gap-3 text-sm">
                 <span className="truncate text-ink-soft">{STATUS_LABEL[status]}</span>
                 <span className="h-2.5 rounded-full bg-paper" aria-hidden="true">
-                  {n > 0 && <span className="block h-2.5 rounded-full bg-brand" style={{ width: `${Math.max(3, (n / maxStatus) * 100)}%` }} />}
+                  {n > 0 && <span className="block h-2.5 rounded-full bg-brand-fill" style={{ width: `${Math.max(3, (n / maxStatus) * 100)}%` }} />}
                 </span>
                 <span className="tabular text-right font-bold">{n}</span>
               </li>
@@ -203,7 +203,7 @@ export async function AdminOverview({ queues }: { queues: Queue[] }) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="rounded-3xl bg-white ring-1 ring-line lg:col-span-2" aria-labelledby="recent">
+        <section className="rounded-3xl bg-card ring-1 ring-line lg:col-span-2" aria-labelledby="recent">
           <div className="flex items-center justify-between px-5 pt-5 sm:px-6">
             <h2 id="recent" className="font-bold">
               Dernières réservations
@@ -232,7 +232,7 @@ export async function AdminOverview({ queues }: { queues: Queue[] }) {
         </section>
 
         <div className="space-y-6">
-          <section className="rounded-3xl bg-white p-5 ring-1 ring-line sm:p-6" aria-labelledby="lines">
+          <section className="rounded-3xl bg-card p-5 ring-1 ring-line sm:p-6" aria-labelledby="lines">
             <h2 id="lines" className="font-bold">
               Lignes les plus réservées
             </h2>
@@ -251,7 +251,7 @@ export async function AdminOverview({ queues }: { queues: Queue[] }) {
               <p className="mt-3 text-sm text-muted">Pas encore d&apos;envoi payé.</p>
             )}
           </section>
-          <section className="rounded-3xl bg-white p-5 ring-1 ring-line sm:p-6" aria-labelledby="new">
+          <section className="rounded-3xl bg-card p-5 ring-1 ring-line sm:p-6" aria-labelledby="new">
             <div className="flex items-center justify-between">
               <h2 id="new" className="font-bold">
                 Nouveaux membres

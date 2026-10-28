@@ -53,7 +53,7 @@ export default async function NewRequestPage(props: PageProps<"/[lang]/demandes/
           ]}
         />
         <div className="mt-8">
-          <Suspense fallback={<div className="h-[80vh] rounded-3xl bg-white ring-1 ring-line" />}>
+          <Suspense fallback={<div className="h-[80vh] rounded-3xl bg-card ring-1 ring-line" />}>
             <Form searchParams={props.searchParams as Promise<Record<string, string | undefined>>} />
           </Suspense>
         </div>

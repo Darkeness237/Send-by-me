@@ -70,7 +70,7 @@ function StepUpload({ bookingId, kind }: { bookingId: string; kind: PhotoKind })
 
   return (
     <div>
-      <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-deep has-[:disabled]:opacity-60">
+      <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-brand-fill px-4 py-2 text-sm font-semibold text-white hover:bg-brand-strong has-[:disabled]:opacity-60">
         {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Camera className="h-4 w-4" aria-hidden="true" />}
         {busy ? t("Envoi…") : t("Ajouter une photo")}
         <input
@@ -117,7 +117,7 @@ export function ParcelPhotos({
   const open = ["accepted", "paid", "picked_up", "delivered"].includes(status);
   if (!open && !photos.length) return null;
   return (
-    <section id="photos" className="scroll-mt-20 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8" aria-labelledby="photos-title">
+    <section id="photos" className="scroll-mt-20 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8" aria-labelledby="photos-title">
       <h2 id="photos-title" className="text-lg font-bold">
         {t("Photos du colis")}
       </h2>
@@ -138,7 +138,7 @@ export function ParcelPhotos({
                     {list.length ? (
                       <CheckCircle2 className="h-4 w-4 text-ok" aria-label={t("Fait")} />
                     ) : (
-                      <span className="grid h-5 w-5 place-items-center rounded-full bg-white text-xs ring-1 ring-line">{i + 1}</span>
+                      <span className="grid h-5 w-5 place-items-center rounded-full bg-card text-xs ring-1 ring-line">{i + 1}</span>
                     )}
                     {t(step.label)}
                   </p>

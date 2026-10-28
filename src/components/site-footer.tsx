@@ -3,15 +3,19 @@ import { Logo } from "@/components/logo";
 import { CORRIDORS, corridorSlug, findPlace } from "@/lib/places";
 import { getT } from "@/i18n/server";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export async function SiteFooter() {
   const t = await getT();
   return (
-    <footer className="bg-ink text-white/75">
+    <footer className="bg-night text-white/75">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="space-y-4">
           <Logo tone="light" />
-          <LanguageSwitcher className="text-white ring-white/30" />
+          <div className="flex flex-wrap items-center gap-3">
+            <LanguageSwitcher className="text-white ring-white/30" />
+            <ThemeToggle />
+          </div>
           <p className="max-w-xs text-sm leading-relaxed">
             {t("Des voyageurs vérifiés transportent vos colis dans leurs kilos libres, entre l'Europe et l'Afrique.")}
           </p>

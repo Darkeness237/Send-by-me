@@ -55,11 +55,11 @@ async function Payouts() {
       <h1 className="display mt-4 text-3xl sm:text-4xl">{t("Versements reçus")}</h1>
 
       <dl className="mt-6 grid grid-cols-2 gap-3">
-        <div className="rounded-3xl bg-white p-5 ring-1 ring-line">
+        <div className="rounded-3xl bg-card p-5 ring-1 ring-line">
           <dt className="text-sm text-muted">{t("À recevoir")}</dt>
           <dd className="tabular mt-1 text-2xl font-extrabold">{euros(due)}</dd>
         </div>
-        <div className="rounded-3xl bg-white p-5 ring-1 ring-line">
+        <div className="rounded-3xl bg-card p-5 ring-1 ring-line">
           <dt className="text-sm text-muted">{t("Déjà versé")}</dt>
           <dd className="tabular mt-1 text-2xl font-extrabold text-ok">{euros(paid)}</dd>
         </div>
@@ -77,7 +77,7 @@ async function Payouts() {
       <section className="mt-8">
         <h2 className="text-lg font-bold">{t("Vos trajets")}</h2>
         {list.length ? (
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-3xl bg-white ring-1 ring-line">
+          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-3xl bg-card ring-1 ring-line">
             {list.map((r) => {
               const trip = one(r.trip);
               return (
@@ -106,14 +106,14 @@ async function Payouts() {
             })}
           </ul>
         ) : (
-          <p className="mt-3 rounded-3xl bg-white p-6 text-muted ring-1 ring-line">{t("Aucun versement pour l'instant. Ils apparaissent ici dès qu'une livraison est validée.")}</p>
+          <p className="mt-3 rounded-3xl bg-card p-6 text-muted ring-1 ring-line">{t("Aucun versement pour l'instant. Ils apparaissent ici dès qu'une livraison est validée.")}</p>
         )}
       </section>
 
       {(rewards ?? []).length > 0 && (
         <section className="mt-8">
           <h2 className="text-lg font-bold">{t("Primes Ambassadeur")}</h2>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-3xl bg-white ring-1 ring-line">
+          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-3xl bg-card ring-1 ring-line">
             {(rewards ?? []).map((r) => (
               <li key={r.id} className="flex items-center gap-4 px-5 py-4">
                 <Award className="h-5 w-5 shrink-0 text-signal-deep" aria-hidden="true" />

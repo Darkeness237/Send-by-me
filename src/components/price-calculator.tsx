@@ -23,7 +23,7 @@ export function PriceCalculator({ market }: { market: MarketPrice[] }) {
   const href = `/recherche?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&kg=${kg}`;
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-[var(--shadow-tag)] ring-1 ring-line sm:p-8">
+    <div className="rounded-3xl bg-card p-6 shadow-[var(--shadow-tag)] ring-1 ring-line sm:p-8">
       <h2 className="flex items-center gap-2 text-xl font-bold">
         <Calculator className="h-5 w-5 text-brand" aria-hidden="true" /> {t("Combien coûte mon envoi ?")}
       </h2>

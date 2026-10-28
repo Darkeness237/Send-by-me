@@ -8,11 +8,11 @@ const base =
   "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-brand text-white hover:bg-brand-deep",
-  signal: "bg-signal text-ink hover:bg-signal-deep",
+  primary: "bg-brand-fill text-white hover:bg-brand-strong",
+  signal: "bg-signal text-navy hover:bg-signal-deep",
   ghost: "text-ink hover:bg-ink/5",
-  outline: "border border-line bg-white text-ink hover:border-ink/30",
-  danger: "border border-danger/30 bg-white text-danger hover:bg-danger-pale",
+  outline: "border border-line bg-card text-ink hover:border-ink/30",
+  danger: "border border-danger/30 bg-card text-danger hover:bg-danger-pale",
 };
 
 const sizes: Record<Size, string> = {

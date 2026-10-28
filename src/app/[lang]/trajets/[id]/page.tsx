@@ -61,7 +61,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
       <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-start">
         <div className="space-y-6">
           {/* Carte d'embarquement */}
-          <section className="tag-notch overflow-hidden rounded-3xl bg-ink text-white">
+          <section className="tag-notch overflow-hidden rounded-3xl bg-night text-white">
             <div className="px-6 pt-6 pb-7 sm:px-8">
               <p className="flex items-center gap-2 text-sm text-white/60 capitalize">
                 <CalendarDays className="h-4 w-4" aria-hidden="true" />
@@ -74,7 +74,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
                 </div>
                 <div className="relative flex flex-1 items-center" aria-hidden="true">
                   <span className="h-px w-full border-t border-dashed border-white/30" />
-                  <Plane className="absolute left-1/2 h-6 w-6 -translate-x-1/2 rotate-45 bg-ink text-white" />
+                  <Plane className="absolute left-1/2 h-6 w-6 -translate-x-1/2 rotate-45 bg-night text-white" />
                 </div>
                 <div className="text-right">
                   <p className="display text-5xl text-signal sm:text-6xl">{codeFor(trip.to_city)}</p>
@@ -110,7 +110,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
 
           {/* Voyageur */}
           {traveler && (
-            <section className="rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+            <section className="rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8">
               <div className="flex items-center gap-4">
                 <Avatar name={traveler.full_name || t("Voyageur")} verified={traveler.id_verified} certified={traveler.certified} src={traveler.avatar_url} size={56} />
                 <div>
@@ -152,7 +152,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
 
           {/* Transport */}
           {trip.carrier && (
-            <section className="rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+            <section className="rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-lg font-bold">{t(trip.mode === "plane" ? "Le vol" : "Le transport")}</h2>
                 {trip.mode === "plane" && trip.transport_check && trip.transport_check !== "unchecked" && (
@@ -206,7 +206,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
           )}
 
           {/* Détails */}
-          <section className="rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+          <section className="rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8">
             <h2 className="text-lg font-bold">{t("Remise et récupération")}</h2>
             <dl className="mt-4 space-y-4 text-[15px]">
               {trip.pickup_note && (
@@ -259,7 +259,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
         </div>
 
         {/* Réservation */}
-        <aside className="rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8 lg:sticky lg:top-6">
+        <aside className="rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8 lg:sticky lg:top-6">
           <h2 className="wide text-xl font-extrabold">{t("Réserver des kilos")}</h2>
           <div className="mt-5">
             {isOwner ? (

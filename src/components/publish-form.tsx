@@ -27,12 +27,12 @@ import { useT } from "@/i18n/client";
 const LEVEL = {
   attractive: {
     label: "Prix attractif : vous recevrez plus de demandes",
-    bar: "bg-ok",
+    bar: "bg-ok-fill",
     text: "text-ok",
   },
   fair: {
     label: "Prix juste, dans la moyenne de la ligne",
-    bar: "bg-ok",
+    bar: "bg-ok-fill",
     text: "text-ok",
   },
   high: {
@@ -43,7 +43,7 @@ const LEVEL = {
   },
   over: {
     label: "Trop élevé : le prix maximum sur cette ligne est dépassé",
-    bar: "bg-danger",
+    bar: "bg-danger-fill",
     text: "text-danger",
   },
 } as const;
@@ -132,7 +132,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
   );
 
   const section =
-    "reveal space-y-5 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8";
+    "reveal space-y-5 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8";
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
       <form
@@ -164,7 +164,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
           {STAGE_LABELS.map((label, i) => (
             <li key={label} className="flex-1">
               <span
-                className={`block h-1.5 rounded-full ${i <= stage ? "bg-brand" : "bg-line"}`}
+                className={`block h-1.5 rounded-full ${i <= stage ? "bg-brand-fill" : "bg-line"}`}
                 aria-hidden="true"
               />
               <span
@@ -509,7 +509,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                   }}
                 />
                 <span
-                  className={`absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white ${LEVEL[level].bar}`}
+                  className={`absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card ${LEVEL[level].bar}`}
                   style={{
                     left: `${Math.min(100, (priceCents / guide.maxCents) * 100)}%`,
                   }}
@@ -650,7 +650,7 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
 function Step({ n }: { n: number }) {
   return (
     <span
-      className="wide tabular flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-extrabold text-signal"
+      className="wide tabular flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-night text-sm font-extrabold text-signal"
       aria-hidden="true"
     >
       {n}

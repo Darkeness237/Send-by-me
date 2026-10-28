@@ -60,7 +60,7 @@ export async function AdminFinances({ period }: { period: Period }) {
             key={k}
             href={`/admin?onglet=finances&periode=${k}`}
             aria-current={k === period ? "page" : undefined}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ring-1 ${k === period ? "bg-ink text-white ring-ink" : "bg-white text-ink-soft ring-line hover:ring-brand"}`}
+            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ring-1 ${k === period ? "bg-night text-white ring-night" : "bg-card text-ink-soft ring-line hover:ring-brand"}`}
           >
             {label}
           </Link>
@@ -68,7 +68,7 @@ export async function AdminFinances({ period }: { period: Period }) {
       </nav>
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        <section className="rounded-3xl bg-white p-5 ring-1 ring-line sm:p-6" aria-labelledby="ledger">
+        <section className="rounded-3xl bg-card p-5 ring-1 ring-line sm:p-6" aria-labelledby="ledger">
           <h2 id="ledger" className="font-bold">
             Comment se calcule le résultat
           </h2>
@@ -82,7 +82,7 @@ export async function AdminFinances({ period }: { period: Period }) {
         </section>
 
         <div className="space-y-6">
-          <section className="rounded-3xl bg-white p-5 ring-1 ring-line sm:p-6" aria-labelledby="add-exp">
+          <section className="rounded-3xl bg-card p-5 ring-1 ring-line sm:p-6" aria-labelledby="add-exp">
             <h2 id="add-exp" className="font-bold">
               Ajouter un frais annexe
             </h2>
@@ -91,7 +91,7 @@ export async function AdminFinances({ period }: { period: Period }) {
           </section>
 
           {byCategory.length > 0 && (
-            <section className="rounded-3xl bg-white p-5 ring-1 ring-line sm:p-6" aria-labelledby="by-cat">
+            <section className="rounded-3xl bg-card p-5 ring-1 ring-line sm:p-6" aria-labelledby="by-cat">
               <h2 id="by-cat" className="font-bold">
                 Frais annexes par catégorie
               </h2>
@@ -100,7 +100,7 @@ export async function AdminFinances({ period }: { period: Period }) {
                   <li key={c.k} className="grid grid-cols-[9rem_1fr_auto] items-center gap-3 text-sm">
                     <span className="truncate text-ink-soft">{c.label}</span>
                     <span className="h-2.5 rounded-full bg-paper" aria-hidden="true">
-                      <span className="block h-2.5 rounded-full bg-brand" style={{ width: `${Math.max(3, (c.cents / f.expensesTotal) * 100)}%` }} />
+                      <span className="block h-2.5 rounded-full bg-brand-fill" style={{ width: `${Math.max(3, (c.cents / f.expensesTotal) * 100)}%` }} />
                     </span>
                     <span className="tabular text-right font-bold">{euros(c.cents)}</span>
                   </li>
@@ -111,7 +111,7 @@ export async function AdminFinances({ period }: { period: Period }) {
         </div>
       </div>
 
-      <section className="rounded-3xl bg-white ring-1 ring-line" aria-labelledby="exp-list">
+      <section className="rounded-3xl bg-card ring-1 ring-line" aria-labelledby="exp-list">
         <h2 id="exp-list" className="px-5 pt-5 font-bold sm:px-6">
           Frais annexes saisis
         </h2>

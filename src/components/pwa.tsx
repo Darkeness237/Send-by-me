@@ -60,7 +60,7 @@ export function PwaInstall() {
 
   if (hidden) return null;
   return (
-    <div role="dialog" aria-label={t("Installer l'application")} className="fixed inset-x-3 bottom-20 z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl bg-ink p-4 text-white shadow-2xl ring-1 ring-white/10 md:bottom-5">
+    <div role="dialog" aria-label={t("Installer l'application")} className="fixed inset-x-3 bottom-20 z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl bg-night p-4 text-white shadow-2xl ring-1 ring-white/10 md:bottom-5">
       <Image src="/icons/icon-192.png" alt="" width={44} height={44} className="rounded-xl" />
       <div className="min-w-0 flex-1 text-sm">
         <p className="font-bold">{t("Installer Send By Me")}</p>
@@ -73,7 +73,7 @@ export function PwaInstall() {
         )}
       </div>
       {!ios && (
-        <button type="button" onClick={install} className="flex items-center gap-1.5 rounded-full bg-signal px-4 py-2 text-sm font-bold text-ink">
+        <button type="button" onClick={install} className="flex items-center gap-1.5 rounded-full bg-signal px-4 py-2 text-sm font-bold text-navy">
           <Download className="h-4 w-4" aria-hidden="true" />{" "}{t("Installer")}
         </button>
       )}

@@ -43,7 +43,7 @@ async function PayoutMethodView({ searchParams }: { searchParams: Promise<Record
       </p>
 
       {isStripeConfigured && (
-        <section className={`mt-6 rounded-3xl p-6 sm:p-8 ${connect?.transfers_active ? "bg-ok-pale ring-1 ring-ok/30" : "bg-white ring-2 ring-brand"}`} aria-labelledby="auto">
+        <section className={`mt-6 rounded-3xl p-6 sm:p-8 ${connect?.transfers_active ? "bg-ok-pale ring-1 ring-ok/30" : "bg-card ring-2 ring-brand"}`} aria-labelledby="auto">
           <p className="flex items-center gap-2 text-sm font-extrabold tracking-wide text-brand uppercase">
             <Zap className="h-4 w-4" aria-hidden="true" /> {t("Recommandé")}
           </p>
@@ -101,7 +101,7 @@ async function PayoutMethodView({ searchParams }: { searchParams: Promise<Record
       )}
 
       {current && (
-        <div className="mt-6 flex flex-wrap items-center gap-4 rounded-3xl bg-ink p-5 text-white">
+        <div className="mt-6 flex flex-wrap items-center gap-4 rounded-3xl bg-night p-5 text-white">
           <div className="min-w-0 flex-1">
             <p className="text-sm text-white/70">{t("Moyen enregistré")}</p>
             <p className="tabular mt-1 text-lg font-bold">
@@ -119,7 +119,7 @@ async function PayoutMethodView({ searchParams }: { searchParams: Promise<Record
         </div>
       )}
 
-      <section className="mt-6 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+      <section className="mt-6 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8">
         <h2 className="mb-1 text-lg font-bold">{current ? t("Modifier mon moyen de versement") : t("Ajouter un moyen de versement")}</h2>
         <p className="mb-5 text-sm text-muted">
           {isStripeConfigured

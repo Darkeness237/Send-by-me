@@ -25,6 +25,7 @@ import {
   UserX,
   Wallet,
   type LucideIcon,
+  Moon,
 } from "lucide-react";
 import { signOut } from "@/app/actions/auth";
 import { AmbassadorBadge } from "@/components/ambassador-badge";
@@ -41,6 +42,7 @@ import { createClient, getUserId } from "@/lib/supabase/server";
 import { maskIban, maskPhone, operatorLabel, type PayoutMethod } from "@/lib/payout";
 import { getLocale, getT } from "@/i18n/server";
 import { BackLink } from "@/components/ui/back-link";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -53,7 +55,7 @@ async function Step({ id, done, pending, title, children }: { id?: string; done:
   const t = await getT();
   const Icon = done ? CheckCircle2 : pending ? Clock : Circle;
   return (
-    <li id={id} className="scroll-mt-24 rounded-2xl bg-white p-5 ring-1 ring-line">
+    <li id={id} className="scroll-mt-24 rounded-2xl bg-card p-5 ring-1 ring-line">
       <p className="flex items-center gap-2 font-semibold">
         <Icon className={`h-5 w-5 ${done ? "text-ok" : pending ? "text-signal-deep" : "text-muted"}`} aria-hidden="true" />
         {title}
@@ -105,7 +107,7 @@ async function MenuRow({ href, icon: Icon, label, hint, tone }: { href: string; 
 }
 
 const MenuGroup = ({ children }: { children: ReactNode }) => (
-  <ul className="divide-y divide-line overflow-hidden rounded-3xl bg-white ring-1 ring-line">{children}</ul>
+  <ul className="divide-y divide-line overflow-hidden rounded-3xl bg-card ring-1 ring-line">{children}</ul>
 );
 
 async function AccountTab({ payout, autoPayout }: { payout: PayoutMethod | null; autoPayout: boolean }) {
@@ -128,6 +130,14 @@ async function AccountTab({ payout, autoPayout }: { payout: PayoutMethod | null;
         <MenuRow href="/notifications" icon={Bell} label={t("Préférences de notification")} hint={t("E-mail, téléphone, WhatsApp")} />
         <MenuRow href="/nouveau-mot-de-passe" icon={KeyRound} label={t("Mot de passe")} />
         <MenuRow href="/espace/profil#adresse" icon={MapPin} label={t("Adresse postale")} />
+        <li className="flex flex-wrap items-center gap-4 px-5 py-4">
+          <Moon className="h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold">{t("Affichage")}</span>
+            <span className="block text-sm text-muted">{t("« Auto » passe en mode nuit quand votre téléphone le fait.")}</span>
+          </span>
+          <ThemeToggle />
+        </li>
       </MenuGroup>
       <MenuGroup>
         <MenuRow href="/espace/parrainage" icon={Gift} label={t("Parrainage")} hint={t("5 € pour vous, 5 € pour eux")} />
@@ -138,7 +148,7 @@ async function AccountTab({ payout, autoPayout }: { payout: PayoutMethod | null;
         <MenuRow href="/cgu" icon={FileText} label={t("Conditions d'utilisation")} />
         <MenuRow href="/confidentialite" icon={ShieldCheck} label={t("Protection des données")} />
       </MenuGroup>
-      <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-line">
+      <div className="overflow-hidden rounded-3xl bg-card ring-1 ring-line">
         <form action={signOut}>
           <button type="submit" className="flex w-full items-center gap-4 px-5 py-4 text-left font-semibold text-brand hover:bg-paper">
             <LogOut className="h-5 w-5" aria-hidden="true" /> {t("Se déconnecter")}
@@ -187,7 +197,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
       <BackLink href="/espace" label={t("Mon espace")} />
       <h1 className="sr-only">{t("Mon profil")}</h1>
 
-      <section className="mt-4 rounded-3xl bg-white p-5 ring-1 ring-line sm:p-6">
+      <section className="mt-4 rounded-3xl bg-card p-5 ring-1 ring-line sm:p-6">
         <div className="flex items-center gap-4">
           <Avatar name={profile.full_name || "?"} src={profile.avatar_url} verified={profile.id_verified} certified={profile.certified} size={72} />
           <div className="min-w-0 flex-1">
@@ -205,7 +215,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
               [Star, profile.rating_count ? (profile.rating_avg ?? 0).toLocaleString(lang === "en" ? "en-GB" : "fr-FR", { maximumFractionDigits: 1 }) : "—", t("{n} avis", { n: profile.rating_count ?? 0 })],
             ] as const
           ).map(([Icon, value, label]) => (
-            <div key={label} className="rounded-xl bg-white px-2 py-3">
+            <div key={label} className="rounded-xl bg-card px-2 py-3">
               <Icon className="mx-auto h-5 w-5 text-brand" aria-hidden="true" />
               <dd className="tabular mt-1 text-xl font-extrabold">{value}</dd>
               <dt className="text-xs text-muted">{label}</dt>
@@ -214,7 +224,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
         </dl>
       </section>
 
-      <nav className="mt-5 grid grid-cols-2 rounded-2xl bg-white p-1 ring-1 ring-line" aria-label={t("Sections du profil")}>
+      <nav className="mt-5 grid grid-cols-2 rounded-2xl bg-card p-1 ring-1 ring-line" aria-label={t("Sections du profil")}>
         {(
           [
             ["apropos", t("À propos de vous")],
@@ -225,7 +235,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
             key={key}
             href={key === "apropos" ? "/espace/profil" : "/espace/profil?onglet=compte"}
             aria-current={tab === key ? "page" : undefined}
-            className={`rounded-xl px-3 py-2.5 text-center font-semibold transition ${tab === key ? "bg-ink text-white" : "text-ink-soft hover:bg-paper"}`}
+            className={`rounded-xl px-3 py-2.5 text-center font-semibold transition ${tab === key ? "bg-night text-white" : "text-ink-soft hover:bg-paper"}`}
           >
             {label}
           </Link>
@@ -236,7 +246,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
         <AccountTab payout={payout as PayoutMethod | null} autoPayout={autoPayout} />
       ) : (
       <>
-      <section className="mt-6 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8" aria-labelledby="verifie">
+      <section className="mt-6 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8" aria-labelledby="verifie">
         <h2 id="verifie" className="text-lg font-bold">
           {profile.id_verified ? t("Vous avez un profil vérifié") : t("Votre profil")}
         </h2>
@@ -258,7 +268,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
         </ul>
       </section>
 
-      <section className="mt-6 space-y-5 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+      <section className="mt-6 space-y-5 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8">
         <AvatarUploader userId={userId} current={profile.avatar_url} name={profile.full_name || t("vous")} />
         <div className="border-t border-line pt-5">
           <h2 className="mb-3 font-bold">{t("Téléphone")}</h2>
@@ -268,8 +278,8 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
 
       <section className="mt-6" aria-labelledby="certif">
         {profile.certified ? (
-          <div className="flex items-center gap-4 rounded-3xl bg-ink p-6 text-white">
-            <ShieldCheck className="h-12 w-12 shrink-0 rounded-full bg-signal p-2 text-ink" aria-hidden="true" />
+          <div className="flex items-center gap-4 rounded-3xl bg-night p-6 text-white">
+            <ShieldCheck className="h-12 w-12 shrink-0 rounded-full bg-signal p-2 text-navy" aria-hidden="true" />
             <div>
               <h2 id="certif" className="text-lg font-bold">
                 {t("Compte certifié")}
@@ -338,7 +348,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
         </ol>
       </section>
 
-      <div className="mt-8 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+      <div className="mt-8 rounded-3xl bg-card p-6 ring-1 ring-line sm:p-8">
         <h2 className="mb-1 text-lg font-bold">{t("Profil public")}</h2>
         <p className="mb-5 text-sm text-muted">{t("Ces informations sont visibles par les autres membres.")}</p>
         <ProfileForm profile={profile} />

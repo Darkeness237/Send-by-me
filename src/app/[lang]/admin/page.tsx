@@ -141,7 +141,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
               <h2 className="mb-3 font-bold">Pièces d&apos;identité</h2>
               <ul className="space-y-3">
                 {idRows.map(({ v, files }) => (
-                  <li key={v.id as number} className="rounded-2xl bg-white p-5 ring-1 ring-line">
+                  <li key={v.id as number} className="rounded-2xl bg-card p-5 ring-1 ring-line">
                     <p className="font-bold">
                       {(one(v.user)?.full_name as string) || "Membre"} · {DOC[v.document_type as string]}
                     </p>
@@ -185,7 +185,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
                 {proofRows.map(({ p, url }) => {
                   const trip = one(p.trip);
                   return (
-                    <li key={p.trip_id as string} className="rounded-2xl bg-white p-5 ring-1 ring-line">
+                    <li key={p.trip_id as string} className="rounded-2xl bg-card p-5 ring-1 ring-line">
                       <p className="font-bold">
                         {(one(p.traveler)?.full_name as string) || "Voyageur"} · {codeFor((trip?.from_city as string) ?? "")} ›{" "}
                         {codeFor((trip?.to_city as string) ?? "")}
@@ -226,7 +226,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
     content = (data ?? []).length ? (
       <ul className="space-y-3">
         {(data as Row[]).map((r) => (
-          <li key={r.id as number} className="rounded-2xl bg-white p-5 ring-1 ring-line">
+          <li key={r.id as number} className="rounded-2xl bg-card p-5 ring-1 ring-line">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <p className="font-bold">{REPORT_REASONS.find((x) => x.id === r.reason)?.label}</p>
               <p className="text-sm text-muted">
@@ -268,7 +268,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
           const trip = one(b.trip);
           const id = b.id as string;
           return (
-            <li key={id} className="rounded-2xl bg-white p-5 ring-1 ring-line">
+            <li key={id} className="rounded-2xl bg-card p-5 ring-1 ring-line">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="font-bold">
                   <span className="wide tabular">{b.tracking_code as string}</span> · {trip?.to_city as string} · {b.weight_kg as number} kg
@@ -327,7 +327,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
           const boost = trip && (trip.boost_fee_cents as number) > 0 && !trip.boost_settled_booking && !boostShown.has(trip.id as string) ? (trip.boost_fee_cents as number) : 0;
           if (boost) boostShown.add(trip!.id as string);
           return (
-            <li key={b.id as string} className="flex flex-wrap items-center gap-4 rounded-2xl bg-white p-5 ring-1 ring-line">
+            <li key={b.id as string} className="flex flex-wrap items-center gap-4 rounded-2xl bg-card p-5 ring-1 ring-line">
               <div className="min-w-0 flex-1">
                 <p className="font-bold">
                   {one(trip?.traveler)?.full_name as string} · <span className="tabular">{euros((b.base_cents as number) - boost)}</span>
@@ -376,7 +376,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
     content = byTraveler.size ? (
       <ul className="space-y-3">
         {[...byTraveler].map(([travelerId, t]) => (
-          <li key={travelerId} className="flex flex-wrap items-center gap-4 rounded-2xl bg-white p-5 ring-1 ring-line">
+          <li key={travelerId} className="flex flex-wrap items-center gap-4 rounded-2xl bg-card p-5 ring-1 ring-line">
             <div className="min-w-0 flex-1">
               <p className="font-bold">
                 {t.name} · <span className="tabular">{euros(t.total)}</span>
@@ -406,12 +406,12 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
           <label htmlFor="q" className="sr-only">
             Rechercher un membre
           </label>
-          <input id="q" name="q" defaultValue={q} placeholder="Rechercher par nom" className="w-full max-w-sm rounded-full border border-line bg-white px-4 py-2" />
+          <input id="q" name="q" defaultValue={q} placeholder="Rechercher par nom" className="w-full max-w-sm rounded-full border border-line bg-card px-4 py-2" />
           <button type="submit" className={buttonClass("outline", "md")}>
             Rechercher
           </button>
         </form>
-        <ul className="divide-y divide-line rounded-2xl bg-white ring-1 ring-line">
+        <ul className="divide-y divide-line rounded-2xl bg-card ring-1 ring-line">
           {(data as Row[] | null)?.map((p) => (
             <li key={p.id as string} className="flex items-center gap-3 px-4 py-3">
               <Avatar name={(p.full_name as string) || "?"} verified={p.id_verified as boolean} size={36} />
@@ -438,7 +438,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
       .order("created_at", { ascending: false })
       .limit(50);
     content = (
-      <ul className="divide-y divide-line rounded-2xl bg-white ring-1 ring-line">
+      <ul className="divide-y divide-line rounded-2xl bg-card ring-1 ring-line">
         {(data as Row[] | null)?.map((b) => {
           const trip = one(b.trip);
           return (
@@ -470,13 +470,13 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
         aria-current={active ? "page" : undefined}
         className={
           compact
-            ? `inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${active ? "bg-ink text-white" : "bg-white text-ink-soft ring-1 ring-line"}`
+            ? `inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${active ? "bg-night text-white" : "bg-card text-ink-soft ring-1 ring-line"}`
             : `flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-semibold transition ${active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"}`
         }
       >
         <Icon className={`h-4.5 w-4.5 shrink-0 ${active && !compact ? "text-signal" : ""}`} aria-hidden="true" />
         <span className="flex-1">{label}</span>
-        {counts[key] ? <span className="tabular rounded-full bg-signal px-2 text-xs font-extrabold text-ink">{counts[key]}</span> : null}
+        {counts[key] ? <span className="tabular rounded-full bg-signal px-2 text-xs font-extrabold text-navy">{counts[key]}</span> : null}
       </Link>
     );
   };
@@ -485,7 +485,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
     <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[15rem_1fr] lg:py-8">
       {/* Navigation : barre latérale sur ordinateur, onglets défilants sur mobile */}
       <aside className="hidden lg:block">
-        <div className="sticky top-20 rounded-3xl bg-ink p-4 text-white">
+        <div className="sticky top-20 rounded-3xl bg-night p-4 text-white">
           <p className="px-3 pb-3 text-xs font-extrabold tracking-wide text-white/50 uppercase">Send By Me · Admin</p>
           <nav className="space-y-1" aria-label="Sections">
             {TABS.map(([key, label]) => navItem(key, label))}
@@ -513,7 +513,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
 }
 
 function Empty({ text }: { text: string }) {
-  return <p className="rounded-2xl bg-white px-6 py-10 text-center text-muted ring-1 ring-line">{text}</p>;
+  return <p className="rounded-2xl bg-card px-6 py-10 text-center text-muted ring-1 ring-line">{text}</p>;
 }
 
 export default function AdminPage(props: PageProps<"/[lang]/admin">) {

@@ -30,8 +30,8 @@ export async function TrustBand({ id = "protection" }: { id?: string }) {
         {/* Fil du parcours, derrière les pastilles (grand écran) */}
         <span className="pointer-events-none absolute top-7 right-[10%] left-[10%] hidden border-t-2 border-dashed border-brand/30 lg:block" aria-hidden="true" />
         {STEPS.map(([Icon, when, title, text], i) => (
-          <li key={title} className="relative rounded-3xl bg-white p-5 ring-1 ring-line">
-            <span className={`relative flex h-14 w-14 items-center justify-center rounded-2xl ${i % 2 ? "bg-ink text-signal" : "bg-signal text-ink"}`}>
+          <li key={title} className="relative rounded-3xl bg-card p-5 ring-1 ring-line">
+            <span className={`relative flex h-14 w-14 items-center justify-center rounded-2xl ${i % 2 ? "bg-night text-signal" : "bg-signal text-navy"}`}>
               <Icon className="h-7 w-7" aria-hidden="true" />
             </span>
             <p className="mt-4 text-xs font-extrabold tracking-wide text-muted uppercase">

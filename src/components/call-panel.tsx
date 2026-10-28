@@ -311,7 +311,7 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
       <audio ref={remoteAudio} autoPlay className="hidden" />
 
       {inCall && (
-        <div role="dialog" aria-modal="true" aria-label={t("Appel avec {otherName}", { otherName })} className="fixed inset-0 z-[60] flex flex-col bg-ink text-white">
+        <div role="dialog" aria-modal="true" aria-label={t("Appel avec {otherName}", { otherName })} className="fixed inset-0 z-[60] flex flex-col bg-night text-white">
           {kind === "video" && (
             <>
               <video ref={remoteVideo} autoPlay playsInline className="absolute inset-0 h-full w-full object-cover" />
@@ -321,7 +321,7 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
           <div className="relative flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
             {(kind === "audio" || phase !== "live") && (
               <>
-                <span className="wide flex h-24 w-24 items-center justify-center rounded-full bg-signal text-3xl font-extrabold text-ink">
+                <span className="wide flex h-24 w-24 items-center justify-center rounded-full bg-signal text-3xl font-extrabold text-navy">
                   {otherName.slice(0, 1).toUpperCase()}
                 </span>
                 <p className="display text-2xl">{otherName}</p>
@@ -337,10 +337,10 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
           <div className="relative flex items-center justify-center gap-5 pb-[max(2rem,env(safe-area-inset-bottom))]">
             {phase === "incoming" ? (
               <>
-                <button type="button" onClick={decline} className="flex h-16 w-16 items-center justify-center rounded-full bg-danger" aria-label={t("Refuser l'appel")}>
+                <button type="button" onClick={decline} className="flex h-16 w-16 items-center justify-center rounded-full bg-danger-fill" aria-label={t("Refuser l'appel")}>
                   <PhoneOff className="h-7 w-7" aria-hidden="true" />
                 </button>
-                <button type="button" onClick={accept} className="flex h-16 w-16 items-center justify-center rounded-full bg-ok" aria-label={t("Décrocher")}>
+                <button type="button" onClick={accept} className="flex h-16 w-16 items-center justify-center rounded-full bg-ok-fill" aria-label={t("Décrocher")}>
                   {kind === "video" ? <Video className="h-7 w-7" aria-hidden="true" /> : <Phone className="h-7 w-7" aria-hidden="true" />}
                 </button>
               </>
@@ -354,7 +354,7 @@ export function CallPanel({ bookingId, myId, otherName }: { bookingId: string; m
                     {camOff ? <VideoOff className="h-6 w-6" aria-hidden="true" /> : <Video className="h-6 w-6" aria-hidden="true" />}
                   </button>
                 )}
-                <button type="button" onClick={hangup} className="flex h-16 w-16 items-center justify-center rounded-full bg-danger" aria-label={t("Raccrocher")}>
+                <button type="button" onClick={hangup} className="flex h-16 w-16 items-center justify-center rounded-full bg-danger-fill" aria-label={t("Raccrocher")}>
                   <PhoneOff className="h-7 w-7" aria-hidden="true" />
                 </button>
               </>

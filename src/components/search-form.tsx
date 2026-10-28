@@ -17,7 +17,7 @@ export async function SearchForm({ defaults = {}, compact = false }: Props) {
     <form
       action="/recherche"
       method="get"
-      className={`flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-line md:flex-row md:items-stretch ${compact ? "" : "shadow-[0_20px_50px_-24px_rgb(15_30_61/0.45)]"}`}
+      className={`flex flex-col overflow-hidden rounded-2xl bg-card ring-1 ring-line md:flex-row md:items-stretch ${compact ? "" : "shadow-[0_20px_50px_-24px_rgb(15_30_61/0.45)]"}`}
     >
       <datalist id="places">
         {PLACES.map((p) => (
@@ -57,7 +57,7 @@ export async function SearchForm({ defaults = {}, compact = false }: Props) {
       </div>
       <button
         type="submit"
-        className="flex h-14 items-center justify-center gap-2 bg-signal px-7 font-bold text-ink transition-colors hover:bg-signal-deep md:h-auto"
+        className="flex h-14 items-center justify-center gap-2 bg-signal px-7 font-bold text-navy transition-colors hover:bg-signal-deep md:h-auto"
       >
         <Search className="h-5 w-5" aria-hidden="true" />
         {t("Rechercher")}

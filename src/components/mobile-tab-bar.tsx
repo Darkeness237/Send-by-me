@@ -33,7 +33,7 @@ function TabBar({ path }: { path: string }) {
   return (
     <nav
       aria-label={t("Navigation principale")}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
     >
       <ul className="mx-auto grid max-w-md grid-cols-5">
         {TABS.map(({ href, label, icon: Icon, primary }) => {
@@ -42,7 +42,7 @@ function TabBar({ path }: { path: string }) {
             <li key={href}>
               <Link href={href} className="flex flex-col items-center gap-0.5 py-2 text-[11px] font-semibold" aria-current={active ? "page" : undefined}>
                 {primary ? (
-                  <span className="-mt-6 flex h-12 w-12 items-center justify-center rounded-full bg-brand text-white shadow-lg ring-4 ring-white">
+                  <span className="-mt-6 flex h-12 w-12 items-center justify-center rounded-full bg-brand-fill text-white shadow-lg ring-4 ring-card">
                     <Icon className="h-6 w-6" aria-hidden="true" />
                   </span>
                 ) : (

@@ -35,7 +35,7 @@ async function Trips({ from, to }: { from: string; to: string }) {
   const trips = await searchTrips({ from, to }, 10);
   if (!trips.length) {
     return (
-      <div className="rounded-3xl bg-white p-8 text-center ring-1 ring-line">
+      <div className="rounded-3xl bg-card p-8 text-center ring-1 ring-line">
         <p className="font-semibold">{t("Aucun départ publié pour le moment sur cette ligne.")}</p>
         <p className="mt-1 text-muted">{t("Vous partez bientôt ? Soyez le premier à proposer vos kilos.")}</p>
         <ButtonLink href="/publier" variant="signal" className="mt-5">
@@ -82,9 +82,9 @@ export default async function CorridorPage(props: PageProps<"/[lang]/envoyer-un-
   return (
     <PageShell>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <section className="relative overflow-hidden bg-ink text-white">
+      <section className="relative overflow-hidden bg-night text-white">
         <Image quality={90} src={terminal} alt="" fill priority placeholder="blur" sizes="100vw" className="object-cover object-[50%_30%] opacity-35" />
-        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/40" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-r from-night via-night/85 to-night/40" aria-hidden="true" />
         <div className="relative mx-auto max-w-4xl px-4 py-12 sm:px-6 md:py-16">
           <p className="wide tabular text-lg font-bold text-signal">
             {from.code} › {to.code}
@@ -102,7 +102,7 @@ export default async function CorridorPage(props: PageProps<"/[lang]/envoyer-un-
       </section>
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
         <h2 className="wide mb-5 text-2xl font-extrabold">{t("Prochains départs")}</h2>
-        <Suspense fallback={<div className="h-40 animate-pulse rounded-2xl bg-white ring-1 ring-line" />}>
+        <Suspense fallback={<div className="h-40 animate-pulse rounded-2xl bg-card ring-1 ring-line" />}>
           <Trips from={from.city} to={to.city} />
         </Suspense>
 

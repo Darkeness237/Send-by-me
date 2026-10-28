@@ -35,13 +35,13 @@ export async function Avatar({
       )}
       {certified ? (
         <ShieldCheck
-          className="absolute -right-1 -bottom-1 rounded-full bg-signal p-[2px] text-ink"
+          className="absolute -right-1 -bottom-1 rounded-full bg-signal p-[2px] text-navy"
           style={{ width: size * 0.48, height: size * 0.48 }}
           aria-label={t("Compte certifié")}
         />
       ) : verified && (
         <BadgeCheck
-          className="absolute -right-1 -bottom-1 rounded-full bg-white text-brand"
+          className="absolute -right-1 -bottom-1 rounded-full bg-card text-brand"
           style={{ width: size * 0.45, height: size * 0.45 }}
           aria-label={t("Identité vérifiée")}
         />

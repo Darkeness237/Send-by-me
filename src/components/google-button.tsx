@@ -21,7 +21,7 @@ export async function GoogleButton({ next, referral }: { next?: string; referral
       {referral && <input type="hidden" name="parrain" value={referral} />}
       <button
         type="submit"
-        className="flex h-13 w-full items-center justify-center gap-3 rounded-full border border-line bg-white text-[15px] font-semibold text-ink hover:border-ink/30"
+        className="flex h-13 w-full items-center justify-center gap-3 rounded-full border border-line bg-card text-[15px] font-semibold text-ink hover:border-ink/30"
       >
         <GoogleLogo />
         {t("Continuer avec Google")}
@@ -49,7 +49,7 @@ export async function FacebookButton({ next, referral }: { next?: string; referr
       {referral && <input type="hidden" name="parrain" value={referral} />}
       <button
         type="submit"
-        className="flex h-13 w-full items-center justify-center gap-3 rounded-full border border-line bg-white text-[15px] font-semibold text-ink hover:border-ink/30"
+        className="flex h-13 w-full items-center justify-center gap-3 rounded-full border border-line bg-card text-[15px] font-semibold text-ink hover:border-ink/30"
       >
         <FacebookLogo />
         {t("Continuer avec Facebook")}

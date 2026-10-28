@@ -18,7 +18,7 @@ export async function RequestCard({ r }: { r: ShipmentRequest }) {
   const t = await getT();
   const lang = await getLocale();
   return (
-    <Link href={`/demandes/${r.id}`} className="flex gap-4 rounded-3xl bg-white p-4 ring-1 ring-line transition hover:ring-brand/50 sm:p-5">
+    <Link href={`/demandes/${r.id}`} className="flex gap-4 rounded-3xl bg-card p-4 ring-1 ring-line transition hover:ring-brand/50 sm:p-5">
       <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-paper">
         {r.photos[0] ? (
           // eslint-disable-next-line @next/next/no-img-element

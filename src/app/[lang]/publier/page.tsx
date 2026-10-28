@@ -56,7 +56,7 @@ export default async function PublishPage() {
           ]}
         />
         <div className="mt-8">
-          <Suspense fallback={<div className="h-[120vh] animate-pulse rounded-3xl bg-white ring-1 ring-line" />}>
+          <Suspense fallback={<div className="h-[120vh] animate-pulse rounded-3xl bg-card ring-1 ring-line" />}>
             <FormWithPrices />
           </Suspense>
         </div>

@@ -158,7 +158,7 @@ export function SignUpForm({ next, referral }: { next?: string; referral?: strin
               <span
                 key={i}
                 className={`h-1.5 rounded-full ${
-                  strength.level >= i ? (strength.level === 1 ? "bg-danger" : strength.level === 2 ? "bg-signal" : "bg-ok") : "bg-line"
+                  strength.level >= i ? (strength.level === 1 ? "bg-danger-fill" : strength.level === 2 ? "bg-signal" : "bg-ok-fill") : "bg-line"
                 }`}
               />
             ))}

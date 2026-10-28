@@ -22,7 +22,7 @@ async function AccountLinks({ dark }: { dark: boolean }) {
         >
           <Bell className="h-5 w-5" aria-hidden="true" />
           {alerts > 0 && (
-            <span className="tabular absolute -top-0.5 -right-0.5 min-w-4.5 rounded-full bg-signal px-1 text-center text-[11px] leading-4.5 font-bold text-ink">
+            <span className="tabular absolute -top-0.5 -right-0.5 min-w-4.5 rounded-full bg-signal px-1 text-center text-[11px] leading-4.5 font-bold text-navy">
               {alerts > 9 ? "9+" : alerts}
             </span>
           )}
@@ -34,7 +34,7 @@ async function AccountLinks({ dark }: { dark: boolean }) {
         >
           <MessageCircle className="h-5 w-5" aria-hidden="true" />
           {unread > 0 && (
-            <span className="tabular absolute -top-0.5 -right-0.5 min-w-4.5 rounded-full bg-signal px-1 text-center text-[11px] leading-4.5 font-bold text-ink">
+            <span className="tabular absolute -top-0.5 -right-0.5 min-w-4.5 rounded-full bg-signal px-1 text-center text-[11px] leading-4.5 font-bold text-navy">
               {unread > 9 ? "9+" : unread}
             </span>
           )}
@@ -61,7 +61,7 @@ export async function SiteHeader({ tone = "light" }: { tone?: "light" | "dark" }
   const dark = tone === "dark";
   const t = await getT();
   return (
-    <header className={dark ? "bg-ink text-white" : "border-b border-line bg-white"}>
+    <header className={dark ? "bg-night text-white" : "border-b border-line bg-card"}>
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
         <Link href="/" aria-label={t("Send By Me, accueil")} className="shrink-0">
           <Logo tone={dark ? "light" : "dark"} />

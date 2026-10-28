@@ -17,7 +17,7 @@ export function ShareReferral({ link, code, text }: { link: string; code: string
     } catch {}
   };
   const message = `${text} ${link}`;
-  const channel = "inline-flex h-11 items-center justify-center gap-2 rounded-full border border-line bg-white px-4 text-sm font-semibold hover:border-ink/30";
+  const channel = "inline-flex h-11 items-center justify-center gap-2 rounded-full border border-line bg-card px-4 text-sm font-semibold hover:border-ink/30";
 
   return (
     <div className="space-y-4">
