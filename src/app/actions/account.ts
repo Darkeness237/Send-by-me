@@ -7,7 +7,8 @@ import { isSupabaseConfigured, SITE_URL } from "@/lib/env";
 import { findPlace } from "@/lib/places";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { cleanIban, isValidIban, MOBILE_OPERATORS } from "@/lib/payout";
-import { CONNECT_COUNTRIES, ensureConnectAccount, expressDashboardUrl, getConnectAccount, onboardingUrl } from "@/lib/stripe-connect";
+import { CONNECT_COUNTRIES, ensureConnectAccount, expressDashboardUrl, getConnectAccount, isConnectCountry, onboardingUrl } from "@/lib/stripe-connect";
+import { isStripeConfigured } from "@/lib/stripe";
 import { REPORT_REASONS } from "@/lib/types";
 import type { FormState } from "./auth";
 
@@ -148,6 +149,23 @@ export async function savePayoutMethod(_: FormState, formData: FormData): Promis
   const { error } = await supabase.from("payout_methods").upsert({ user_id: userId, ...row, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
   if (error) return { error: "Moyen de versement non enregistré. Réessayez." };
   revalidatePath("/espace/profil");
+
+  // IBAN d'un pays couvert par Stripe : virements automatiques. Le compte Stripe est créé prérempli,
+  // puis le voyageur est envoyé chez Stripe pour confirmer son identité (si ce n'est pas déjà fait).
+  const country = row.country ?? "";
+  if (d.kind === "iban" && isStripeConfigured && isConnectCountry(country)) {
+    let url: string | null = null;
+    try {
+      const [{ data: user }, existing] = await Promise.all([supabase.auth.getUser(), getConnectAccount(userId)]);
+      const accountId = await ensureConnectAccount(userId, country, user.user?.email ?? null, d.holder_name, { iban: d.iban, holder: d.holder_name });
+      if (!existing?.transfers_active) url = await onboardingUrl(accountId);
+      else return { ok: "IBAN mis à jour. Vos prochains virements automatiques y seront envoyés." };
+    } catch (e) {
+      console.error("Virements automatiques à l'enregistrement de l'IBAN", e instanceof Error ? e.message : e);
+      return { ok: "IBAN enregistré. Les virements automatiques n'ont pas pu être activés pour l'instant : nous vous verserons vos gains à la main." };
+    }
+    redirect(url);
+  }
   return { ok: "Moyen de versement enregistré. Vos prochains gains y seront versés." };
 }
 

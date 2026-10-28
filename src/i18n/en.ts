@@ -1336,4 +1336,9 @@ export const en: Record<string, string> = {
   "Autriche": "Austria",
   "Luxembourg": "Luxembourg",
   "Les virements automatiques ne sont pas encore ouverts. Enregistrez votre IBAN ou votre Mobile Money ci-dessous : nous vous versons vos gains à la main en attendant.": "Automatic transfers aren't open yet. Save your IBAN or Mobile Money below: we'll pay your earnings manually in the meantime.",
+  "Votre part est virée sur votre compte bancaire dès que la livraison est validée, sans attendre. Enregistrez votre IBAN ci-dessous : vous passez ensuite 2 minutes chez notre partenaire de paiement Stripe pour confirmer votre identité, c'est tout.": "Your share is transferred to your bank account as soon as the delivery is confirmed, with no wait. Save your IBAN below, then spend 2 minutes with our payment partner Stripe to confirm your identity. That's it.",
+  "Comptes bancaires acceptés : {pays}. Ailleurs, ou en Mobile Money, nous vous versons vos gains à la main.": "Bank accounts accepted in: {pays}. Elsewhere, or with Mobile Money, we pay your earnings manually.",
+  "IBAN d'un pays accepté : virements automatiques après une vérification rapide chez Stripe. Mobile Money ou autre pays : versement à la main dans les jours qui suivent la livraison.": "IBAN from an accepted country: automatic transfers after a quick check with Stripe. Mobile Money or another country: manual payment in the days following delivery.",
+  "IBAN mis à jour. Vos prochains virements automatiques y seront envoyés.": "IBAN updated. Your next automatic transfers will go there.",
+  "IBAN enregistré. Les virements automatiques n'ont pas pu être activés pour l'instant : nous vous verserons vos gains à la main.": "IBAN saved. Automatic transfers couldn't be activated for now: we'll pay your earnings manually.",
 };

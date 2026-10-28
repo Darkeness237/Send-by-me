@@ -30,7 +30,7 @@ const log = (...a) => console.log('✔', ...a);
     log('IBAN faux refusé');
     await p.fill('#iban', 'FR76 3000 6000 0112 3456 7890 189');
     await p.click('button:has-text("Enregistrer mon moyen de versement")');
-    await p.waitForSelector('text=Moyen de versement enregistré');
+    await p.waitForSelector('text=/Moyen de versement enregistré|IBAN enregistré/');
     const uid = sql(`select id from auth.users where email='pay${run}@test.fr'`);
     log('IBAN valide enregistré →', sql(`select kind || ' ' || iban || ' ' || country from payout_methods where user_id='${uid}'`));
 

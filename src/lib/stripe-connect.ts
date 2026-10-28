@@ -34,15 +34,41 @@ export async function getConnectAccount(userId: string): Promise<ConnectAccount 
   return data as ConnectAccount | null;
 }
 
-/** Crée (une seule fois) le compte connecté du voyageur. */
-export async function ensureConnectAccount(userId: string, country: string, email: string | null, name: string) {
+export const isConnectCountry = (country: string) => CONNECT_COUNTRIES.some(([c]) => c === country);
+
+/** Devise du compte bancaire selon le pays de l'IBAN (Stripe convertit les virements en euros). */
+const bankCurrency = (country: string) => (country === "GB" ? "gbp" : country === "CH" ? "chf" : "eur");
+
+export type BankDetails = { iban: string; holder: string };
+
+const bankAccount = (country: string, bank: BankDetails) => ({
+  object: "bank_account" as const,
+  country,
+  currency: bankCurrency(country),
+  account_number: bank.iban,
+  account_holder_name: bank.holder.slice(0, 100),
+  account_holder_type: "individual" as const,
+});
+
+/**
+ * Crée (une seule fois) le compte connecté du voyageur, prérempli avec son nom, son e-mail et son IBAN :
+ * Stripe ne lui demande plus que de confirmer son identité. Compte existant : l'IBAN y est mis à jour.
+ */
+export async function ensureConnectAccount(userId: string, country: string, email: string | null, name: string, bank?: BankDetails) {
   const existing = await getConnectAccount(userId);
-  if (existing) return existing.account_id;
+  if (existing) {
+    if (bank && existing.country === country) {
+      await stripe().accounts.createExternalAccount(existing.account_id, { external_account: bankAccount(country, bank), default_for_currency: true });
+    }
+    return existing.account_id;
+  }
+  const [first, ...rest] = (bank?.holder || name).trim().split(/\s+/);
   const account = await stripe().accounts.create(
     {
       country,
       email: email ?? undefined,
       business_type: "individual",
+      individual: { email: email ?? undefined, first_name: first || undefined, last_name: rest.join(" ") || undefined },
       controller: {
         fees: { payer: "application" },
         losses: { payments: "application" },
@@ -52,10 +78,11 @@ export async function ensureConnectAccount(userId: string, country: string, emai
       capabilities: { transfers: { requested: true } },
       // Le voyageur ne fait que recevoir des virements : contrat « destinataire ».
       tos_acceptance: { service_agreement: "recipient" },
-      business_profile: { product_description: `Voyageur Send By Me${name ? ` : ${name.slice(0, 60)}` : ""}` },
+      business_profile: { product_description: "Voyageur Send By Me : transport de colis entre particuliers" },
+      external_account: bank ? bankAccount(country, bank) : undefined,
       metadata: { user_id: userId },
     },
-    { idempotencyKey: `connect-account-v1-${userId}` },
+    { idempotencyKey: `connect-account-${userId}-${country}-${bank?.iban.slice(-6) ?? "sans-iban"}` },
   );
   await createAdminClient().from("stripe_connect_accounts").insert({ user_id: userId, account_id: account.id, country });
   return account.id;

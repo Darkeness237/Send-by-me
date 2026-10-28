@@ -5,7 +5,6 @@ import { Suspense } from "react";
 import { CheckCircle2, ExternalLink, Lock, Trash2, Zap } from "lucide-react";
 import { deletePayoutMethod, openStripeDashboard, startStripeOnboarding } from "@/app/actions/account";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/field";
 import { CONNECT_COUNTRIES, syncConnectAccount } from "@/lib/stripe-connect";
 import { isStripeConfigured } from "@/lib/stripe";
 import { PageShell } from "@/components/page-shell";
@@ -76,24 +75,13 @@ async function PayoutMethodView({ searchParams }: { searchParams: Promise<Record
           ) : (
             <>
               <p className="mt-2 text-ink-soft">
-                {t("Votre part est virée sur votre compte bancaire dès que la livraison est validée, sans attendre. Notre partenaire de paiement Stripe vérifie votre identité et enregistre votre IBAN en quelques minutes.")}
+                {t("Votre part est virée sur votre compte bancaire dès que la livraison est validée, sans attendre. Enregistrez votre IBAN ci-dessous : vous passez ensuite 2 minutes chez notre partenaire de paiement Stripe pour confirmer votre identité, c'est tout.")}
               </p>
-              <form action={startStripeOnboarding} className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end">
-                <label className="w-full sm:min-w-0 sm:flex-1">
-                  <span className="mb-1.5 block text-sm font-semibold">{t("Pays de votre compte bancaire")}</span>
-                  <Select name="country" defaultValue="FR">
-                    {CONNECT_COUNTRIES.map(([code, name]) => (
-                      <option key={code} value={code}>
-                        {t(name)}
-                      </option>
-                    ))}
-                  </Select>
-                </label>
-                <Button type="submit" size="lg" className="w-full sm:w-auto">
-                  {t("Activer les virements automatiques")}
-                </Button>
-              </form>
-              <p className="mt-3 text-sm text-muted">{t("Compte bancaire hors de ces pays, ou Mobile Money ? Utilisez le formulaire ci-dessous : nous vous versons vos gains à la main.")}</p>
+              <p className="mt-3 text-sm text-muted">
+                {t("Comptes bancaires acceptés : {pays}. Ailleurs, ou en Mobile Money, nous vous versons vos gains à la main.", {
+                  pays: CONNECT_COUNTRIES.map(([, name]) => t(name)).join(", "),
+                })}
+              </p>
             </>
           )}
           {sp.stripe === "erreur" && (
@@ -134,8 +122,12 @@ async function PayoutMethodView({ searchParams }: { searchParams: Promise<Record
       )}
 
       <section className="mt-6 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
-        <h2 className="mb-1 text-lg font-bold">{current ? t("Modifier mon moyen de versement") : isStripeConfigured ? t("Ou : versement manuel (Mobile Money, autre banque)") : t("Ajouter un moyen de versement")}</h2>
-        <p className="mb-5 text-sm text-muted">{t("Nous vous versons vos gains à la main, dans les jours qui suivent la livraison.")}</p>
+        <h2 className="mb-1 text-lg font-bold">{current ? t("Modifier mon moyen de versement") : t("Ajouter un moyen de versement")}</h2>
+        <p className="mb-5 text-sm text-muted">
+          {isStripeConfigured
+            ? t("IBAN d'un pays accepté : virements automatiques après une vérification rapide chez Stripe. Mobile Money ou autre pays : versement à la main dans les jours qui suivent la livraison.")
+            : t("Nous vous versons vos gains à la main, dans les jours qui suivent la livraison.")}
+        </p>
         <PayoutMethodForm current={current} holder={profile?.full_name ?? ""} />
       </section>
 
