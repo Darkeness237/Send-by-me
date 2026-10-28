@@ -7,6 +7,8 @@ import { PublishForm } from "@/components/publish-form";
 import { getMarketPrices } from "@/lib/data";
 import aeroport from "../../../../public/images/aeroport-depart.jpg";
 import { getT } from "@/i18n/server";
+import { GuestGate } from "@/components/guest-gate";
+import { getUserId } from "@/lib/supabase/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -17,6 +19,21 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 async function FormWithPrices() {
+  if (!(await getUserId())) {
+    const t = await getT();
+    return (
+      <GuestGate
+        next="/publier"
+        title={t("Publiez votre trajet gratuitement")}
+        reasons={[
+          t("Vous fixez votre prix au kilo et choisissez les colis acceptés."),
+          t("Chaque colis vous est montré ouvert avant d'être fermé."),
+          t("Vous êtes payé après la remise, validée par le code du destinataire."),
+          t("Vos 3 premiers trajets sont mis en avant gratuitement."),
+        ]}
+      />
+    );
+  }
   return <PublishForm market={await getMarketPrices()} />;
 }
 

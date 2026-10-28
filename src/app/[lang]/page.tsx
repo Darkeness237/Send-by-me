@@ -19,6 +19,7 @@ import remise from "../../../public/images/remise-colis.jpg";
 import valise from "../../../public/images/preparer-valise.jpg";
 import famille from "../../../public/images/cadeau-famille.jpg";
 import { getLocale, getT } from "@/i18n/server";
+import { TrustBand } from "@/components/trust-band";
 
 async function LiveBoard() {
   const trips = await searchTrips({}, 6).catch(() => []);
@@ -127,7 +128,7 @@ export default async function Home() {
               <p className="reveal reveal-delay-1 mt-5 max-w-[34rem] text-lg leading-relaxed text-ink-soft">
                 {t("Des voyageurs vérifiés proposent leurs kilos libres entre l'Europe et l'Afrique. Vous choisissez votre voyageur, et vous suivez votre colis jusqu'à ce qu'il arrive chez vos proches.")}
               </p>
-              <ul className="mt-6 hidden flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-ink-soft sm:flex">
+              <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-ink-soft">
                 <li className="flex items-center gap-2">
                   <BadgeCheck className="h-4 w-4 text-brand" aria-hidden="true" /> {t("Identités vérifiées")}
                 </li>
@@ -141,6 +142,9 @@ export default async function Home() {
             </div>
             <div className="reveal reveal-delay-2 space-y-4 lg:col-span-2 lg:row-start-2">
               <SearchForm />
+              <p className="text-sm text-ink-soft">
+                {t("Recherche, prix et trajets consultables sans inscription : le compte n'est demandé qu'au moment de réserver ou de publier.")}
+              </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Link
                   href="/demandes/nouvelle"
@@ -187,8 +191,11 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* Ce qui protège l'expéditeur, juste sous l'accueil : la première question d'un visiteur */}
+        <TrustBand />
+
         {/* Calculateur et code de réception, dès l'arrivée sur le site */}
-        <section className="mx-auto grid max-w-6xl gap-6 px-4 pt-12 sm:px-6 md:pt-16 lg:grid-cols-[1.25fr_1fr] lg:items-stretch">
+        <section id="prix" className="mx-auto grid scroll-mt-20 max-w-6xl gap-6 px-4 pt-12 sm:px-6 md:pt-16 lg:grid-cols-[1.25fr_1fr] lg:items-stretch">
           <Suspense fallback={<div className="h-[320px] rounded-3xl bg-white ring-1 ring-line" />}>
             <Calculator />
           </Suspense>

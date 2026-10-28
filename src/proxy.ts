@@ -2,7 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isLocale, LOCALE_COOKIE } from "@/i18n/config";
 
-const PROTECTED = ["/espace", "/publier", "/reservations", "/admin", "/messages", "/bienvenue", "/notifications", "/demandes/nouvelle"];
+// /publier et /demandes/nouvelle restent ouverts : un visiteur voit ce qui est demandé avant de créer son compte.
+const PROTECTED = ["/espace", "/reservations", "/admin", "/messages", "/bienvenue", "/notifications"];
 
 // Langue : cookie (choix du membre), sinon langue du navigateur. L'adresse ne change pas :
 // la page est servie depuis le segment /fr ou /en, rendu à l'avance pour chaque langue.

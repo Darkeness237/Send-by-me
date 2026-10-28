@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Bell, Camera, Users } from "lucide-react";
 import { JourneyHero } from "@/components/journey";
@@ -8,6 +7,7 @@ import { RequestForm } from "@/components/request-form";
 import { getUserId } from "@/lib/supabase/server";
 import remise from "../../../../../public/images/remise-colis.jpg";
 import { getT } from "@/i18n/server";
+import { GuestGate } from "@/components/guest-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -16,8 +16,22 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function Form({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const userId = await getUserId();
-  if (!userId) redirect("/connexion?suite=/demandes/nouvelle");
   const sp = await searchParams;
+  if (!userId) {
+    const t = await getT();
+    const next = `/demandes/nouvelle${sp.from || sp.to ? `?from=${encodeURIComponent(sp.from ?? "")}&to=${encodeURIComponent(sp.to ?? "")}` : ""}`;
+    return (
+      <GuestGate
+        next={next}
+        title={t("Publiez votre demande en deux minutes")}
+        reasons={[
+          t("Les voyageurs voient votre demande et vous écrivent dans la messagerie."),
+          t("Vous êtes prévenu dès qu'un trajet compatible est publié."),
+          t("Vous ne payez rien tant qu'un voyageur n'a pas accepté."),
+        ]}
+      />
+    );
+  }
   return <RequestForm userId={userId} defaults={{ from: sp.from, to: sp.to }} />;
 }
 

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CalendarDays, CheckCircle2, MessageCircle, MapPin, Plane, ShieldCheck, Star, TicketCheck } from "lucide-react";
@@ -25,6 +24,7 @@ import { getUserId } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/types";
 import { getLocale, getT } from "@/i18n/server";
 import { translateNote } from "@/i18n/patterns";
+import { TripQuote } from "@/components/trip-quote";
 
 export async function generateMetadata(props: PageProps<"/[lang]/trajets/[id]">): Promise<Metadata> {
   const { id } = await props.params;
@@ -337,18 +337,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
             ) : !bookable ? (
               <p className="text-muted">{t("Ce trajet n'accepte plus de réservations.")}</p>
             ) : !userId ? (
-              <div className="space-y-4">
-                <p className="text-muted">{t("Connectez-vous pour envoyer une demande au voyageur. C'est gratuit et sans engagement.")}</p>
-                <ButtonLink href={`/connexion?suite=/trajets/${trip.id}`} className="w-full">
-                  {t("Se connecter pour réserver")}
-                </ButtonLink>
-                <p className="text-center text-sm text-muted">
-                  {t("Pas de compte ?")}{" "}
-                  <Link href={`/inscription?suite=/trajets/${trip.id}`} className="font-semibold text-brand">
-                    {t("Inscrivez-vous")}
-                  </Link>
-                </p>
-              </div>
+              <TripQuote tripId={trip.id} pricePerKgCents={trip.price_per_kg_cents} maxKg={left} homeDeliveryCents={homeDeliveryFor(trip.to_country)} />
             ) : (
               <BookingForm
                 tripId={trip.id}
