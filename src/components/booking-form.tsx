@@ -8,6 +8,7 @@ import { submitKeepingValues } from "@/components/ui/keep-form";
 import { COMMISSION_TIERS, euros, percent, quote, SECURITY_FEE_CENTS } from "@/lib/pricing";
 import { CATEGORIES, groupedCategories } from "@/lib/types";
 import { useT } from "@/i18n/client";
+import { Truck } from "lucide-react";
 
 type Props = {
   tripId: string;
@@ -93,8 +94,8 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
       </details>
 
       {homeDeliveryCents > 0 ? (
-        <div className="rounded-2xl border border-line p-4 has-checked:border-brand has-checked:bg-brand-pale/40">
-          <label className="flex items-start gap-3">
+        <div className="rounded-2xl border-2 border-signal/50 bg-signal/5 p-4 has-checked:border-brand has-checked:bg-brand-pale/40">
+          <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
               name="home_delivery"
@@ -103,7 +104,11 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
               className="mt-1 h-4 w-4 accent-brand"
             />
             <span>
-              <span className="block font-semibold">{t("Livraison à domicile · +{euros}", { euros: euros(homeDeliveryCents) })}</span>
+              <span className="flex flex-wrap items-center gap-2 font-bold">
+                <Truck className="h-5 w-5 text-signal-deep" aria-hidden="true" />
+                {t("Livraison à domicile")}
+                <span className="rounded-full bg-signal px-2 py-0.5 text-xs font-extrabold text-ink">{t("Nouveau")}</span>
+              </span>
               <span className="block text-sm text-muted">
                 {t("Le destinataire ne peut pas aller au point de rendez-vous ? Notre partenaire de livraison récupère le colis auprès du voyageur à l'arrivée et l'apporte chez lui.")}
               </span>

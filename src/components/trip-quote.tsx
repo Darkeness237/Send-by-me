@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BadgeCheck, KeyRound, Lock } from "lucide-react";
+import { BadgeCheck, KeyRound, Lock, Truck } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { euros, quote } from "@/lib/pricing";
@@ -43,9 +43,15 @@ export function TripQuote({
         </div>
       </Field>
       {homeDeliveryCents > 0 && (
-        <label className="flex items-center gap-3 text-[15px]">
-          <input type="checkbox" checked={delivery} onChange={(e) => setDelivery(e.target.checked)} className="h-4 w-4 accent-brand" />
-          {t("Livraison à domicile · +{euros}", { euros: euros(homeDeliveryCents) })}
+        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-signal/50 bg-signal/5 p-4 has-checked:border-brand has-checked:bg-brand-pale/40">
+          <input type="checkbox" checked={delivery} onChange={(e) => setDelivery(e.target.checked)} className="mt-1 h-4 w-4 accent-brand" />
+          <span>
+            <span className="flex flex-wrap items-center gap-2 font-bold">
+              <Truck className="h-5 w-5 text-signal-deep" aria-hidden="true" />
+              {t("Livraison à domicile")}
+            </span>
+            <span className="block text-sm text-muted">{t("Notre livreur récupère le colis à l'arrivée et l'apporte chez votre proche.")}</span>
+          </span>
         </label>
       )}
       <dl className="tabular space-y-2 rounded-2xl bg-paper p-4 text-[15px]">

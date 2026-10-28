@@ -20,7 +20,7 @@ import valise from "../../../public/images/preparer-valise.jpg";
 import famille from "../../../public/images/cadeau-famille.jpg";
 import { getLocale, getT } from "@/i18n/server";
 import { TrustBand } from "@/components/trust-band";
-import { HOME_DELIVERY_CENTS } from "@/lib/delivery";
+import { HomeDeliveryBand } from "@/components/home-delivery-band";
 
 async function LiveBoard() {
   const trips = await searchTrips({}, 6).catch(() => []);
@@ -119,6 +119,10 @@ export default async function Home() {
           {/* Mobile : texte, recherche, tableau. Desktop : texte | tableau, puis recherche sur toute la largeur. */}
           <div className="mx-auto grid max-w-6xl gap-8 px-4 pt-10 pb-10 sm:px-6 md:pt-16 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-x-14 lg:gap-y-10 lg:pb-12">
             <div className="lg:col-start-1 lg:row-start-1">
+              <a href="#livraison" className="reveal mb-5 inline-flex items-center gap-2 rounded-full bg-ink py-1.5 pr-4 pl-1.5 text-sm font-bold text-white hover:bg-ink-soft">
+                <span className="rounded-full bg-signal px-2.5 py-0.5 text-xs font-extrabold text-ink">{t("Nouveau")}</span>
+                <Truck className="h-4 w-4 text-signal" aria-hidden="true" /> {t("Livraison à domicile à l'arrivée")}
+              </a>
               <h1 className="display reveal text-[40px] sm:text-[56px] lg:text-[64px]">
                 {t("Vos colis")} <span className="text-brand">{t("voyagent")}</span> {t("dans la valise de")}{" "}
                 <span className="relative whitespace-nowrap">
@@ -199,6 +203,9 @@ export default async function Home() {
 
         {/* Ce qui protège l'expéditeur, juste sous l'accueil : la première question d'un visiteur */}
         <TrustBand />
+
+        {/* Option livraison à domicile : un vrai plus, montré tôt */}
+        <HomeDeliveryBand />
 
         {/* Calculateur et code de réception, dès l'arrivée sur le site */}
         <section id="prix" className="mx-auto grid scroll-mt-20 max-w-6xl gap-6 px-4 pt-12 sm:px-6 md:pt-16 lg:grid-cols-[1.25fr_1fr] lg:items-stretch">
@@ -291,7 +298,7 @@ export default async function Home() {
                   <p className="mt-2 text-[15px] leading-relaxed text-muted">{t(text)}</p>
                   {i === 3 && (
                     <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-signal/15 px-3 py-1 text-sm font-bold text-signal-deep">
-                      <Truck className="h-4 w-4" aria-hidden="true" /> {t("Livraison à domicile : +{euros}", { euros: euros(HOME_DELIVERY_CENTS) })}
+                      <Truck className="h-4 w-4" aria-hidden="true" /> {t("Option livraison à domicile")}
                     </span>
                   )}
                 </li>
