@@ -362,7 +362,6 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
             <Award className="h-10 w-10 shrink-0 rounded-xl bg-signal/15 p-2 text-signal-deep" aria-hidden="true" />
             <span className="min-w-0 flex-1">
               <span className="block font-bold">Programme Ambassadeur</span>
-              <span className="block text-sm text-muted">Primes en argent et annonces en tête pour les voyageurs réguliers</span>
             </span>
             <ChevronRight className="h-5 w-5" aria-hidden="true" />
           </Link>
