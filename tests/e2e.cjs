@@ -136,8 +136,8 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   await addPhotos(ta, bookingUrl, ['pickup']);
   log('le voyageur voit le code ?', (await ta.textContent('main')).includes(code) ? 'OUI (KO)' : 'non (OK)');
   await ta.click('button:has-text("J\'ai reçu le colis")');
-  await ta.waitForSelector('text=Photos attendues');
-  await addPhotos(ta, bookingUrl, ['arrival_packed', 'arrival_opened']);
+  await ta.waitForSelector('text=Photo attendue');
+  await addPhotos(ta, bookingUrl, ['arrival_packed']);
   log('photos du colis →', sql(`select string_agg(kind, ', ' order by created_at) from booking_photos where booking_id='${bookingId}'`));
   await ta.waitForSelector('#code');
   await ta.fill('#code', code === '000000' ? '111111' : '000000');

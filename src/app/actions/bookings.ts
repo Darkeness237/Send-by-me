@@ -216,7 +216,7 @@ export async function confirmDelivery(_: FormState, formData: FormData): Promise
   const admin = createAdminClient();
   const { data: photos } = await admin.from("booking_photos").select("kind").eq("booking_id", bookingId);
   if (missingPhotos(photos ?? [], REQUIRED_BEFORE_DELIVERY).length) {
-    return { error: "Ajoutez d'abord les photos du colis à l'arrivée : encore emballé, puis ouvert." };
+    return { error: "Ajoutez d'abord la photo du colis à l'arrivée, toujours fermé." };
   }
   const { data: secret } = await admin
     .from("booking_secrets")

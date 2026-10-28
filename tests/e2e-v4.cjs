@@ -135,7 +135,7 @@ async function signup(b, first, last, email, next) {
 
   // 7. Réception : le destinataire donne son code, messages de fin
   const code = sql(`select delivery_code from booking_secrets where booking_id='${bid}'`);
-  await addPhotos(t, bookingUrl, ['arrival_packed', 'arrival_opened']);
+  await addPhotos(t, bookingUrl, ['arrival_packed']);
   await t.fill('#code', code);
   await t.click('button:has-text("Valider")');
   await t.waitForSelector('text=Colis réceptionné');

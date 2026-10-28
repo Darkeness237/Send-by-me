@@ -271,7 +271,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
                   <Action text="Colis remis au livreur partenaire." />
                 ) : null
               ) : missingForDelivery.length ? (
-                <Action text={`À la remise, photographiez le colis encore emballé puis ouvert devant ${booking.recipient_name}. Photos attendues : ${stepLabels(missingForDelivery)}. Vous pourrez ensuite saisir son code.`} />
+                <Action text={`À la remise, photographiez le colis toujours fermé, pour montrer qu'il n'a pas été ouvert en route. Photo attendue : ${stepLabels(missingForDelivery)}. Vous pourrez ensuite saisir le code de ${booking.recipient_name}.`} />
               ) : (
                 <DeliveryCodeForm bookingId={booking.id} />
               )}

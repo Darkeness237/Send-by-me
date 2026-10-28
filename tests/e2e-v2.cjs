@@ -108,8 +108,8 @@ async function signup(ctx, name, email, next = '/espace') {
   await addPhotos(sb, bk1, ['contents', 'packed']);
   await addPhotos(ta, bk1, ['pickup']);
   await ta.click('button:has-text("J\'ai reçu le colis")');
-  await ta.waitForSelector('text=Photos attendues');
-  await addPhotos(ta, bk1, ['arrival_packed', 'arrival_opened']);
+  await ta.waitForSelector('text=Photo attendue');
+  await addPhotos(ta, bk1, ['arrival_packed']);
   await ta.waitForSelector('#code');
   await ta.fill('#code', code);
   await ta.click('button:has-text("Valider la réception")');
