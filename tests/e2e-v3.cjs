@@ -1,6 +1,7 @@
 // Demandes d'envoi et correspondances, notifications, livraison à domicile Send By Me, suivi d'envoi,
 // écran de bienvenue. Prérequis identiques à tests/e2e.cjs. Lancer : node tests/e2e-v3.cjs
 const { chromium } = require('playwright');
+const pubForm = require('./publish.cjs');
 const addPhotos = require('./photos.cjs');
 const Stripe = require('stripe');
 const { execSync } = require('child_process');
@@ -45,10 +46,12 @@ async function signup(b, first, last, email, next) {
   // 2. Voyageur : publie un trajet compatible → l'expéditeur est notifié
   const t = await signup(b, 'Serge', 'Ekane', `trv${run}@test.fr`, '/publier');
   const tid = sql(`select id from auth.users where email='trv${run}@test.fr'`);
+  await pubForm.openAll(t);
   await t.fill('#from_city', 'Lyon'); await t.fill('#to_city', 'Abidjan');
   await t.fill('#departure_date', day(10)); await t.fill('#departure_time', '09:00');
   await t.selectOption('#mode', 'car');
   await t.fill('#capacity_kg', '20'); await t.fill('#price_per_kg', '7');
+  await pubForm.next(t);
   await Promise.all([t.waitForURL('**/trajets/**'), t.click('button:has-text("Publier mon trajet")')]);
   const tripUrl = t.url().split('?')[0];
   const tripId = tripUrl.split('/').pop();

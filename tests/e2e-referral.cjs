@@ -1,6 +1,7 @@
 // Parrainage, prix conseillé et livraison à domicile. Prérequis identiques à tests/e2e.cjs.
 // Lancer : node tests/e2e-referral.cjs
 const { chromium } = require('playwright');
+const pubForm = require('./publish.cjs');
 const { execSync } = require('child_process');
 const BASE = 'http://localhost:3000';
 const sql = (q) => execSync(`psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -X -t -A -c ${JSON.stringify(q)}`).toString().trim();
@@ -30,6 +31,7 @@ async function signup(b, first, last, email, path) {
   // Prix conseillé et plafond à la publication
   await a.goto(BASE + '/publier');
   const d = new Date(Date.now() + 8 * 864e5).toISOString().slice(0, 10);
+  await pubForm.openAll(a);
   await a.fill('#from_city', 'Lyon'); await a.fill('#to_city', 'Abidjan');
   await a.fill('#departure_date', d);
   await a.selectOption('#mode', 'car');
@@ -39,10 +41,12 @@ async function signup(b, first, last, email, path) {
   log('le voyageur voit-il le total expéditeur ?', (await a.textContent('[aria-live=polite]')).includes("l'expéditeur paie") ? 'OUI (KO)' : 'non (OK)');
   log('le navigateur bloque le champ :', await a.evaluate(() => !document.querySelector('#price_per_kg').checkValidity()));
   await a.evaluate(() => document.querySelector('#price_per_kg').removeAttribute('max')); // contourne le contrôle du navigateur
+  await pubForm.next(a);
   await a.click('button:has-text("Publier mon trajet")');
   await a.waitForSelector('text=Prix trop élevé pour cette ligne');
   log('prix au-dessus du plafond → refusé par le serveur');
   await a.fill('#price_per_kg', '5');
+  await pubForm.next(a);
   await Promise.all([a.waitForURL('**/trajets/**'), a.click('button:has-text("Publier mon trajet")')]);
   const tripUrl = a.url().split('?')[0];
   log('trajet de 150 kg publié, forfait livraison →', sql(`select home_delivery_cents from trips where id='${tripUrl.split('/').pop()}'`));

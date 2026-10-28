@@ -112,7 +112,7 @@ export function ParcelPhotos({
   const open = ["accepted", "paid", "picked_up", "delivered"].includes(status);
   if (!open && !photos.length) return null;
   return (
-    <section className="rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8" aria-labelledby="photos-title">
+    <section id="photos" className="scroll-mt-20 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8" aria-labelledby="photos-title">
       <h2 id="photos-title" className="text-lg font-bold">
         Photos du colis
       </h2>

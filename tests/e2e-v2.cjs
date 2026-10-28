@@ -1,6 +1,7 @@
 // Fonctions v2 : temps réel, signalement, profil, alertes, annulation, administration.
 // Prérequis identiques à tests/e2e.cjs. Lancer : node tests/e2e-v2.cjs
 const { chromium } = require('playwright');
+const pubForm = require('./publish.cjs');
 const addPhotos = require('./photos.cjs');
 const { execSync } = require('child_process');
 const Stripe = require('stripe');
@@ -46,10 +47,12 @@ async function signup(ctx, name, email, next = '/espace') {
   const publish = async (cap) => {
     await ta.goto(BASE + '/publier');
     const d = new Date(Date.now() + 5 * 864e5).toISOString().slice(0, 10);
+    await pubForm.openAll(ta);
     await ta.fill('#from_city', 'Paris'); await ta.fill('#to_city', 'Dakar');
     await ta.fill('#departure_date', d); await ta.fill('#departure_time', '14:00');
     await ta.fill('#capacity_kg', String(cap)); await ta.fill('#price_per_kg', '8');
     await ta.selectOption('#mode', 'car');
+    await pubForm.next(ta);
     await Promise.all([ta.waitForURL('**/trajets/**'), ta.click('button:has-text("Publier mon trajet")')]);
     return ta.url().split('?')[0];
   };

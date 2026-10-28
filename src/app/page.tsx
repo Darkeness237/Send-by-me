@@ -8,7 +8,8 @@ import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ButtonLink } from "@/components/ui/button";
-import { getHomeProof, searchTrips } from "@/lib/data";
+import { getHomeProof, getMarketPrices, searchTrips } from "@/lib/data";
+import { PriceCalculator } from "@/components/price-calculator";
 import { demoTrips } from "@/lib/demo";
 import { CORRIDORS, corridorSlug, findPlace } from "@/lib/places";
 import { euros, quote } from "@/lib/pricing";
@@ -24,6 +25,11 @@ async function LiveBoard() {
 }
 
 const example = quote(900, 5);
+
+async function Calculator() {
+  const market = await getMarketPrices().catch(() => []);
+  return <PriceCalculator market={market} />;
+}
 
 /** Chiffres et avis réels. Tant qu'un chiffre est trop petit pour parler, on montre un fait vérifiable à la place. */
 async function HomeProof() {
@@ -175,6 +181,36 @@ export default function Home() {
                 </Suspense>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Calculateur et code de réception, dès l'arrivée sur le site */}
+        <section className="mx-auto grid max-w-6xl gap-6 px-4 pt-12 sm:px-6 md:pt-16 lg:grid-cols-[1.25fr_1fr] lg:items-stretch">
+          <Suspense fallback={<div className="h-[320px] rounded-3xl bg-white ring-1 ring-line" />}>
+            <Calculator />
+          </Suspense>
+          <div className="rounded-3xl bg-ink p-6 text-white sm:p-8">
+            <h2 className="flex items-center gap-2 text-xl font-bold">
+              <KeyRound className="h-5 w-5 text-signal" aria-hidden="true" /> Le code de réception
+            </h2>
+            <p className="mt-2 text-sm text-white/70">Le colis n&apos;est livré que lorsque votre destinataire le reçoit en main propre.</p>
+            <p className="wide tabular mt-5 text-center text-4xl font-extrabold tracking-[0.3em] text-signal" aria-hidden="true">
+              482 913
+            </p>
+            <ol className="mt-5 space-y-3 text-[15px]">
+              {[
+                "Vous payez : un code à 6 chiffres est créé pour votre envoi.",
+                "Votre destinataire le reçoit par e-mail. Le voyageur, lui, ne le connaît pas.",
+                "En recevant le colis, votre destinataire donne le code au voyageur : la livraison est validée.",
+              ].map((t, i) => (
+                <li key={i} className="flex gap-3">
+                  <span className="wide tabular flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-sm font-extrabold text-signal">
+                    {i + 1}
+                  </span>
+                  <span className="text-white/85">{t}</span>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 

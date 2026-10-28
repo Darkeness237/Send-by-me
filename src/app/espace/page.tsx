@@ -3,7 +3,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import {
-  BadgeCheck,
   Bell,
   Check,
   ChevronRight,
@@ -222,25 +221,24 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
                 </Empty>
               )}
               {sendings.map((b) => (
-                <Link key={b.id} href={`/reservations/${b.id}`} className="group flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-line transition hover:ring-brand/50 sm:p-5">
-                  <div className="wide tabular w-20 shrink-0 text-lg font-extrabold sm:w-24">
-                    {codeFor(b.trip?.from_city ?? "")}
-                    <span className="text-muted"> › </span>
-                    {codeFor(b.trip?.to_city ?? "")}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">
-                      {kg(b.weight_kg)} · {catLabel(b.category)}
-                    </p>
-                    <p className="truncate text-sm text-muted first-letter:uppercase">
-                      {b.trip ? dayLabel(b.trip.departure_at, tzFor(b.trip.from_city)) : ""} · avec {b.trip?.traveler?.full_name ?? "voyageur"}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                <Link key={b.id} href={`/reservations/${b.id}`} className="group block rounded-2xl bg-white p-4 ring-1 ring-line transition hover:ring-brand/50 sm:p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="wide tabular text-lg font-extrabold">
+                      {codeFor(b.trip?.from_city ?? "")}
+                      <span className="text-muted"> › </span>
+                      {codeFor(b.trip?.to_city ?? "")}
+                    </span>
                     <StatusBadge status={b.status} />
-                    <span className="tabular text-sm font-semibold">{euros(b.total_cents)}</span>
                   </div>
-                  <ChevronRight className="hidden h-5 w-5 shrink-0 text-muted transition group-hover:translate-x-0.5 sm:block" aria-hidden="true" />
+                  <p className="mt-2 font-semibold">
+                    {kg(b.weight_kg)} · {catLabel(b.category)}
+                  </p>
+                  <div className="mt-0.5 flex flex-wrap items-baseline justify-between gap-x-3 text-sm text-muted">
+                    <span className="first-letter:uppercase">
+                      {b.trip ? dayLabel(b.trip.departure_at, tzFor(b.trip.from_city)) : ""} · avec {b.trip?.traveler?.full_name ?? "voyageur"}
+                    </span>
+                    <span className="tabular font-semibold text-ink">{euros(b.total_cents)}</span>
+                  </div>
                 </Link>
               ))}
             </section>
@@ -334,37 +332,17 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
               <span className="mt-3 block h-2 overflow-hidden rounded-full bg-line" aria-hidden="true">
                 <span className="block h-full rounded-full bg-brand transition-all" style={{ width: `${progress}%` }} />
               </span>
-              <ul className="mt-4 space-y-2 text-sm">
-                {checklist.map((c) => (
-                  <li key={c.label} className={`flex items-center gap-2 ${c.done ? "text-muted line-through" : "font-semibold"}`}>
-                    {c.done ? <BadgeCheck className="h-4 w-4 text-ok" aria-hidden="true" /> : <CircleDashed className="h-4 w-4 text-muted" aria-hidden="true" />}
-                    {c.label}
-                  </li>
-                ))}
-              </ul>
-              <ButtonLink href="/espace/profil" size="sm" className="mt-4 w-full">
+              <p className="mt-3 flex items-center gap-2 text-sm">
+                <CircleDashed className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+                <span>
+                  À faire : <span className="font-semibold">{checklist.filter((c) => !c.done).map((c) => c.label.toLowerCase()).join(", ")}</span>
+                </span>
+              </p>
+              <ButtonLink href="/espace/profil" size="sm" variant="outline" className="mt-3 w-full">
                 Compléter mon profil
               </ButtonLink>
-              <p className="mt-2 text-center text-xs text-muted">Les profils vérifiés reçoivent plus de demandes.</p>
             </section>
           )}
-
-          <Link href="/espace/parrainage" className="flex items-center gap-3 rounded-3xl bg-signal p-5 text-ink transition hover:brightness-95">
-            <Gift className="h-10 w-10 shrink-0 rounded-xl bg-white/40 p-2" aria-hidden="true" />
-            <span className="min-w-0 flex-1">
-              <span className="block font-bold">Parrainez vos proches</span>
-              <span className="block text-sm text-ink/75">{credit > 0 ? `${euros(credit)} de crédit disponible` : "5 € pour vous, 5 € pour eux"}</span>
-            </span>
-            <ChevronRight className="h-5 w-5" aria-hidden="true" />
-          </Link>
-
-          <Link href="/espace/ambassadeur" className="flex items-center gap-3 rounded-3xl bg-white p-5 ring-1 ring-line transition hover:ring-brand/50">
-            <Award className="h-10 w-10 shrink-0 rounded-xl bg-signal/15 p-2 text-signal-deep" aria-hidden="true" />
-            <span className="min-w-0 flex-1">
-              <span className="block font-bold">Programme Ambassadeur</span>
-            </span>
-            <ChevronRight className="h-5 w-5" aria-hidden="true" />
-          </Link>
 
           {alerts.length > 0 && (
             <section className="rounded-3xl bg-white p-5 ring-1 ring-line" aria-labelledby="alertes">
@@ -400,6 +378,8 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
                 ["/messages", MessageCircle, unread ? `Messages (${unread})` : "Messages"],
                 ["/notifications", Bell, "Notifications"],
                 ["/suivi", MapPinned, "Suivre un colis"],
+                ["/espace/parrainage", Gift, credit > 0 ? `Parrainage (${euros(credit)} de crédit)` : "Parrainage : 5 € pour vous, 5 € pour eux"],
+                ["/espace/ambassadeur", Award, "Programme Ambassadeur"],
                 ...(isAdmin ? [["/admin", Shield, "Administration"] as const] : []),
               ] as const
             ).map(([href, Icon, label]) => (

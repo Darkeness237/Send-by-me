@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { Bell, Mail } from "lucide-react";
-import { markAllNotificationsRead, setEmailNotifications } from "@/app/actions/notifications";
+import { Bell, Mail, MessageCircle } from "lucide-react";
+import { markAllNotificationsRead, setEmailNotifications, setWhatsAppNotifications } from "@/app/actions/notifications";
 import { LiveInbox } from "@/components/live-refresh";
 import { PageShell } from "@/components/page-shell";
 import { PushToggle } from "@/components/push-toggle";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { getNotifications, getProfile } from "@/lib/data";
 import { dayLabel, timeLabel } from "@/lib/format";
-import { getUserId } from "@/lib/supabase/server";
+import { createClient, getUserId } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Notifications", robots: { index: false } };
 
@@ -20,6 +20,9 @@ async function Notifications() {
   const [items, profile] = await Promise.all([getNotifications(userId), getProfile(userId)]);
   const unread = items.filter((n) => !n.read_at).length;
   const emailOn = (profile as { email_notifications?: boolean } | null)?.email_notifications !== false;
+  const whatsappOn = Boolean((profile as { whatsapp_notifications?: boolean } | null)?.whatsapp_notifications);
+  const { data: contact } = await (await createClient()).from("member_contacts").select("phone_verified_at").eq("user_id", userId).maybeSingle();
+  const phoneVerified = Boolean(contact?.phone_verified_at);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
@@ -53,6 +56,25 @@ async function Notifications() {
               {emailOn ? "Désactiver les e-mails" : "Activer les e-mails"}
             </Button>
           </form>
+        </div>
+        <div className="border-t border-line pt-4">
+          <p className="flex items-center gap-2 font-semibold">
+            <MessageCircle className="h-4 w-4 text-brand" aria-hidden="true" /> Par WhatsApp
+          </p>
+          <p className="mt-1 mb-3 text-sm text-muted">
+            Les mêmes étapes importantes, sur votre numéro vérifié. Jamais de publicité.
+          </p>
+          {phoneVerified ? (
+            <form action={setWhatsAppNotifications.bind(null, !whatsappOn)}>
+              <Button type="submit" variant="outline" size="sm">
+                {whatsappOn ? "Désactiver WhatsApp" : "Activer WhatsApp"}
+              </Button>
+            </form>
+          ) : (
+            <ButtonLink href="/espace/profil" variant="outline" size="sm">
+              Vérifier mon numéro d&apos;abord
+            </ButtonLink>
+          )}
         </div>
       </section>
 

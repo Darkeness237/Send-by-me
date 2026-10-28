@@ -1,6 +1,7 @@
 // Négociation du prix, messagerie sans coordonnées, code envoyé au destinataire, transit automatique,
 // réception validée et messages de fin. Prérequis identiques à tests/e2e.cjs. Lancer : node tests/e2e-v4.cjs
 const { chromium } = require('playwright');
+const pubForm = require('./publish.cjs');
 const addPhotos = require('./photos.cjs');
 const Stripe = require('stripe');
 const { execSync } = require('child_process');
@@ -29,11 +30,13 @@ async function signup(b, first, last, email, next) {
   const t = await signup(b, 'Moussa', 'Diallo', `tr${run}@test.fr`, '/publier');
   const tid = sql(`select id from auth.users where email='tr${run}@test.fr'`);
   await t.goto(BASE + '/publier');
+  await pubForm.openAll(t);
   await t.fill('#from_city', 'Paris'); await t.fill('#to_city', 'Dakar');
   await t.fill('#departure_date', day(4)); await t.fill('#departure_time', '10:00');
   await t.fill('#arrival_date', day(4)); await t.fill('#arrival_time', '16:30');
   await t.selectOption('#mode', 'car');
   await t.fill('#capacity_kg', '20'); await t.fill('#price_per_kg', '10');
+  await pubForm.next(t);
   await Promise.all([t.waitForURL('**/trajets/**'), t.click('button:has-text("Publier mon trajet")')]);
   const tripUrl = t.url().split('?')[0];
   const tripId = tripUrl.split('/').pop();

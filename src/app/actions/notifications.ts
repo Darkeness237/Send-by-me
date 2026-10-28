@@ -36,6 +36,14 @@ export async function markAllNotificationsRead() {
   revalidatePath("/notifications");
 }
 
+export async function setWhatsAppNotifications(enabled: boolean) {
+  const userId = await getUserId();
+  if (!userId) return;
+  const supabase = await createClient();
+  await supabase.from("profiles").update({ whatsapp_notifications: enabled }).eq("id", userId);
+  revalidatePath("/notifications");
+}
+
 export async function setEmailNotifications(enabled: boolean) {
   const userId = await getUserId();
   if (!userId) return;

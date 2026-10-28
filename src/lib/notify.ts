@@ -4,6 +4,7 @@ import webpush from "web-push";
 import { isBrevoConfigured, sendEmail } from "@/lib/brevo";
 import { SITE_URL } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isWhatsAppConfigured, sendWhatsApp } from "@/lib/whatsapp";
 
 // Notifications : enregistrées dans l'application, envoyées en push (téléphone, navigateur)
 // et par e-mail via Brevo pour les événements importants. Chaque canal est facultatif :
@@ -76,6 +77,20 @@ export async function notify(userId: string, n: Notice) {
         if (profile && !profile.email_notifications) return;
         const { data } = await db.auth.admin.getUserById(userId);
         if (data.user?.email) await sendEmail({ email: data.user.email, name: profile?.full_name ?? undefined }, n.title, emailHtml(n));
+      })(),
+    );
+  }
+  // WhatsApp : mêmes événements importants que l'e-mail, seulement si le membre l'a activé et vérifié son numéro.
+  if (n.email && isWhatsAppConfigured()) {
+    tasks.push(
+      (async () => {
+        const [{ data: profile }, { data: contact }] = await Promise.all([
+          db.from("profiles").select("whatsapp_notifications").eq("id", userId).maybeSingle(),
+          db.from("member_contacts").select("phone, phone_verified_at").eq("user_id", userId).maybeSingle(),
+        ]);
+        if (profile?.whatsapp_notifications && contact?.phone && contact.phone_verified_at) {
+          await sendWhatsApp(contact.phone, n.title, n.body ?? "", n.href ?? "/espace");
+        }
       })(),
     );
   }

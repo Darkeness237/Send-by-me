@@ -9,6 +9,7 @@ import { Avatar } from "@/components/avatar";
 import { ReportForm } from "@/components/account-forms";
 import { DeliveryCodeForm, MessageForm, ReviewForm } from "@/components/booking-client-forms";
 import { CallPanel } from "@/components/call-panel";
+import { NextStepBanner } from "@/components/next-step-banner";
 import { OfferPanel } from "@/components/offer-panel";
 import { ParcelPhotos } from "@/components/parcel-photos";
 import { ChatMessages } from "@/components/chat-messages";
@@ -20,6 +21,7 @@ import { markTravelStep } from "@/app/actions/tracking";
 import { TrackingTimeline } from "@/components/tracking-timeline";
 import { getBooking, getBookingPhotos, getDeliveryAddress, getDeliveryCode, getMessages, getPriceOffers, getTrackingEvents, markThreadRead } from "@/lib/data";
 import { missingPhotos, PHOTO_STEPS, REQUIRED_BEFORE_DELIVERY, REQUIRED_BEFORE_PICKUP } from "@/lib/parcel-photos";
+import { nextStep } from "@/lib/next-step";
 import { advanceTransit } from "@/lib/transit";
 import { kg, longDate, timeLabel } from "@/lib/format";
 import { codeFor, tzFor } from "@/lib/places";
@@ -74,6 +76,21 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
   const stepLabels = (kinds: string[]) => kinds.map((k) => `« ${PHOTO_STEPS.find((s) => s.kind === k)?.label} »`).join(", ");
   const missingForPickup = missingPhotos(photos, REQUIRED_BEFORE_PICKUP);
   const missingForDelivery = missingPhotos(photos, REQUIRED_BEFORE_DELIVERY);
+  const step =
+    isSender || isTraveler
+      ? nextStep({
+          role: isSender ? "sender" : "traveler",
+          status: booking.status,
+          photos,
+          events,
+          homeDelivery,
+          reviewed: Boolean(myReview),
+          senderName,
+          travelerName,
+          recipientName: booking.recipient_name.split(" ")[0],
+          total: euros(booking.total_cents),
+        })
+      : null;
   const reportable = ["paid", "picked_up", "delivered", "refunded"].includes(booking.status);
 
   return (
@@ -89,73 +106,19 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
           <p role="alert" className="rounded-2xl bg-warn-pale px-4 py-3 text-warn">Le paiement en ligne n&apos;est pas encore activé sur ce site.</p>
         )}
 
-        <section className="rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h1 className="wide text-2xl font-extrabold">
-              {codeFor(trip.from_city)} › {codeFor(trip.to_city)}
-            </h1>
-            <StatusBadge status={booking.status} label={bookingStatusLabel(booking.status, events)} />
-          </div>
-          <p className="mt-1 text-muted capitalize">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="wide text-2xl font-extrabold">
+            {codeFor(trip.from_city)} › {codeFor(trip.to_city)}
+          </h1>
+          <StatusBadge status={booking.status} label={bookingStatusLabel(booking.status, events)} />
+          <p className="w-full text-muted capitalize">
             {longDate(trip.departure_at, tzFor(trip.from_city))}, {timeLabel(trip.departure_at, tzFor(trip.from_city))} · {trip.from_city} → {trip.to_city}
           </p>
-
-          <div className="mt-6 rounded-2xl bg-paper p-5">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-bold">Suivi de l&apos;envoi</h2>
-              {booking.tracking_code && (
-                <Link href={`/suivi/${booking.tracking_code}`} className="wide tabular rounded-full bg-white px-3 py-1 text-sm font-bold ring-1 ring-line hover:ring-brand">
-                  {booking.tracking_code}
-                </Link>
-              )}
-            </div>
-            <TrackingTimeline events={events} homeDelivery={homeDelivery} details={timelineDetails} />
-            {isSender && booking.tracking_code && !closed && (
-              <p className="mt-4 text-sm text-muted">
-                Envoyez ce lien à {booking.recipient_name} pour qu&apos;il suive le colis :{" "}
-                <Link href={`/suivi/${booking.tracking_code}`} className="font-semibold text-brand">
-                  send-by-me.com/suivi/{booking.tracking_code}
-                </Link>
-              </p>
-            )}
-          </div>
-
-          <dl className="mt-6 grid gap-4 border-t border-line pt-6 text-[15px] sm:grid-cols-2">
-            <div>
-              <dt className="text-sm text-muted">Colis</dt>
-              <dd className="font-semibold">
-                {kg(booking.weight_kg)} · {CATEGORIES.find((c) => c.id === booking.category)?.label}
-              </dd>
-              <dd className="text-ink-soft">{booking.description}</dd>
-            </div>
-            <div>
-              <dt className="text-sm text-muted">Destinataire</dt>
-              <dd className="font-semibold">{booking.recipient_name}</dd>
-              <dd className="tabular text-ink-soft">{booking.recipient_phone}</dd>
-              {isSender && booking.recipient_email && <dd className="text-ink-soft">{booking.recipient_email}</dd>}
-              {booking.delivery_cents ? (
-                <dd className="mt-1 text-ink-soft">
-                  <span className="font-semibold text-ink">Livraison à domicile Send By Me</span>
-                  {isSender && deliveryAddress ? ` : ${deliveryAddress}` : " : notre livreur partenaire récupère le colis à l'arrivée."}
-                </dd>
-              ) : null}
-            </div>
-            <div>
-              <dt className="text-sm text-muted">{isTraveler ? "Vous recevrez" : "Total"}</dt>
-              <dd className="wide tabular text-xl font-extrabold">{euros(isTraveler ? booking.base_cents : booking.total_cents)}</dd>
-              {!isTraveler && (
-                <dd className="tabular text-sm text-muted">
-                  Transport {euros(booking.base_cents)}
-                  {booking.delivery_cents ? ` · livraison ${euros(booking.delivery_cents)}` : ""} · frais de service {euros(booking.fee_cents)}
-                  {booking.discount_cents ? ` · crédit parrainage −${euros(booking.discount_cents)}` : ""}
-                </dd>
-              )}
-            </div>
-          </dl>
-        </section>
+        </div>
+        {step && <NextStepBanner step={step} />}
 
         {/* Actions selon le rôle et l'étape */}
-        <section className="rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+        <section id="actions" className="scroll-mt-20 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
           {booking.status === "pending" && (isSender || isTraveler) && (
             <div className="mb-6">
               <OfferPanel
@@ -324,10 +287,65 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
             travelerName={travelerName}
           />
         )}
+
+        <section id="suivi" className="scroll-mt-20 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
+          <div className="rounded-2xl bg-paper p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-bold">Suivi de l&apos;envoi</h2>
+              {booking.tracking_code && (
+                <Link href={`/suivi/${booking.tracking_code}`} className="wide tabular rounded-full bg-white px-3 py-1 text-sm font-bold ring-1 ring-line hover:ring-brand">
+                  {booking.tracking_code}
+                </Link>
+              )}
+            </div>
+            <TrackingTimeline events={events} homeDelivery={homeDelivery} details={timelineDetails} />
+            {isSender && booking.tracking_code && !closed && (
+              <p className="mt-4 text-sm text-muted">
+                Envoyez ce lien à {booking.recipient_name} pour qu&apos;il suive le colis :{" "}
+                <Link href={`/suivi/${booking.tracking_code}`} className="font-semibold text-brand">
+                  send-by-me.com/suivi/{booking.tracking_code}
+                </Link>
+              </p>
+            )}
+          </div>
+
+          <dl className="mt-6 grid gap-4 border-t border-line pt-6 text-[15px] sm:grid-cols-2">
+            <div>
+              <dt className="text-sm text-muted">Colis</dt>
+              <dd className="font-semibold">
+                {kg(booking.weight_kg)} · {CATEGORIES.find((c) => c.id === booking.category)?.label}
+              </dd>
+              <dd className="text-ink-soft">{booking.description}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted">Destinataire</dt>
+              <dd className="font-semibold">{booking.recipient_name}</dd>
+              <dd className="tabular text-ink-soft">{booking.recipient_phone}</dd>
+              {isSender && booking.recipient_email && <dd className="text-ink-soft">{booking.recipient_email}</dd>}
+              {booking.delivery_cents ? (
+                <dd className="mt-1 text-ink-soft">
+                  <span className="font-semibold text-ink">Livraison à domicile Send By Me</span>
+                  {isSender && deliveryAddress ? ` : ${deliveryAddress}` : " : notre livreur partenaire récupère le colis à l'arrivée."}
+                </dd>
+              ) : null}
+            </div>
+            <div>
+              <dt className="text-sm text-muted">{isTraveler ? "Vous recevrez" : "Total"}</dt>
+              <dd className="wide tabular text-xl font-extrabold">{euros(isTraveler ? booking.base_cents : booking.total_cents)}</dd>
+              {!isTraveler && (
+                <dd className="tabular text-sm text-muted">
+                  Transport {euros(booking.base_cents)}
+                  {booking.delivery_cents ? ` · livraison ${euros(booking.delivery_cents)}` : ""} · frais de service {euros(booking.fee_cents)}
+                  {booking.discount_cents ? ` · crédit parrainage −${euros(booking.discount_cents)}` : ""}
+                </dd>
+              )}
+            </div>
+          </dl>
+        </section>
       </div>
 
       {/* Messagerie */}
-      <aside className="flex max-h-[80vh] flex-col rounded-3xl bg-white ring-1 ring-line lg:sticky lg:top-6">
+      <aside id="discussion" className="flex max-h-[80vh] scroll-mt-20 flex-col rounded-3xl bg-white ring-1 ring-line lg:sticky lg:top-6">
         <div className="flex flex-wrap items-center gap-3 border-b border-line p-5">
           <Avatar name={other?.full_name || "Membre"} verified={other?.id_verified} certified={other?.certified} src={other?.avatar_url} size={40} />
           <div>

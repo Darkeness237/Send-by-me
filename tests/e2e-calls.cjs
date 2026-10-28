@@ -1,6 +1,7 @@
 // Appel audio entre l'expéditeur et le voyageur, avec micro/caméra simulés.
 // Prérequis identiques à tests/e2e.cjs. Lancer : node tests/e2e-calls.cjs
 const { chromium } = require('playwright');
+const pubForm = require('./publish.cjs');
 const BASE = 'http://localhost:3000';
 const log = (...a) => console.log('✔', ...a);
 
@@ -20,9 +21,11 @@ async function signup(b, name, email, next) {
   const run = Date.now();
   const ta = await signup(b, 'Ibrahim K.', `ct${run}@test.fr`, '/publier');
   const d = new Date(Date.now() + 6 * 864e5).toISOString().slice(0, 10);
+  await pubForm.openAll(ta);
   await ta.fill('#from_city', 'Paris'); await ta.fill('#to_city', 'Abidjan');
   await ta.fill('#departure_date', d); await ta.fill('#departure_time', '11:00');
   await ta.selectOption('#mode', 'car');
+    await pubForm.next(ta);
     await Promise.all([ta.waitForURL('**/trajets/**'), ta.click('button:has-text("Publier mon trajet")')]);
   const tripUrl = ta.url().split('?')[0];
 

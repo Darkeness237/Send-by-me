@@ -1,6 +1,7 @@
 // Vérification d'identité, justificatif de voyage et connexion Google (bouton).
 // Prérequis identiques à tests/e2e.cjs. Lancer : node tests/e2e-verification.cjs
 const { chromium } = require('playwright');
+const pubForm = require('./publish.cjs');
 const { execSync } = require('child_process');
 const path = require('path');
 const BASE = 'http://localhost:3000';
@@ -89,9 +90,11 @@ async function signup(b, name, email, next = '/espace') {
   // Justificatif de voyage
   await m.goto(BASE + '/publier');
   const d = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+  await pubForm.openAll(m);
   await m.fill('#from_city', 'Paris'); await m.fill('#to_city', 'Dakar');
   await m.fill('#departure_date', d); await m.fill('#departure_time', '08:00');
   await m.selectOption('#mode', 'car');
+    await pubForm.next(m);
     await Promise.all([m.waitForURL('**/trajets/**'), m.click('button:has-text("Publier mon trajet")')]);
   const tripId = m.url().split('?')[0].split('/').pop();
   await m.locator('input[type=file]').setInputFiles(fx('fixtures-recto.png'));

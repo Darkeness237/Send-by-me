@@ -2,6 +2,7 @@
 // STRIPE_SECRET_KEY=sk_test_local_dummy STRIPE_WEBHOOK_SECRET=whsec_local_test npm run dev
 // Lancer : node tests/e2e.cjs
 const { chromium } = require('playwright');
+const pubForm = require('./publish.cjs');
 const addPhotos = require('./photos.cjs');
 const Stripe = require('stripe');
 const BASE = 'http://localhost:3000';
@@ -26,11 +27,13 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   await Promise.all([ta.waitForURL('**/publier'), ta.click('form:has(#password) button[type=submit]')]);
   log('voyageur inscrit, redirigé vers /publier');
   const d = new Date(Date.now() + 4 * 864e5).toISOString().slice(0, 10);
+  await pubForm.openAll(ta);
   await ta.fill('#from_city', 'Paris'); await ta.fill('#to_city', 'Douala');
   await ta.waitForSelector('#from_airport option[value=CDG]', { state: 'attached' });
   await ta.waitForSelector('#to_airport option[value=DLA]', { state: 'attached' });
   log('aéroports proposés pour Paris :', (await ta.locator('#from_airport option').allTextContents()).map((t) => t.split(' ')[0]).join(', '));
   await ta.fill('#departure_date', d); await ta.fill('#departure_time', '09:30');
+  await pubForm.openAll(ta);
   await ta.fill('#capacity_kg', '20'); await ta.fill('#price_per_kg', '9');
   await ta.fill('#pickup_note', 'Gare de Lyon, la veille du départ');
   await ta.fill('#dropoff_note', 'Akwa, le lendemain de mon arrivée');
@@ -40,12 +43,15 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   await ta.check('input[name=ticket_name_matches]');
   // Erreur volontaire : un vol Air France ne commence pas par SN
   await ta.fill('#transport_ref', 'SN205');
+  await pubForm.next(ta);
   await ta.click('button:has-text("Publier mon trajet")');
   await ta.waitForSelector('text=ne correspond pas à la compagnie');
   log('numéro de vol incohérent avec la compagnie → refusé');
+  await pubForm.openAll(ta);
   await ta.fill('#transport_ref', 'AF 946');
   // Forfait de livraison à domicile (l'option est proposée sur tous les trajets)
   await shot(ta, '01-publier');
+  await pubForm.next(ta);
   await Promise.all([ta.waitForURL('**/trajets/**'), ta.click('button:has-text("Publier mon trajet")')]);
   const tripUrl = ta.url().split('?')[0];
   log('trajet publié', tripUrl);
@@ -62,7 +68,7 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   await Promise.all([sb.waitForURL('**/trajets/**'), sb.click('form:has(#password) button[type=submit]')]);
   log('expéditeur inscrit, revenu sur le trajet');
   // Question avant réservation
-  await Promise.all([sb.waitForURL('**/messages/**'), sb.click('button:has-text("Poser une question")')]);
+  await Promise.all([sb.waitForURL('**/messages/**'), sb.click('a:has-text("Poser une question")')]);
   await sb.fill('#body', 'Bonjour, acceptez-vous des chaussures ?');
   await sb.click('button:has-text("Envoyer")');
   await sb.waitForSelector('text=acceptez-vous des chaussures');
