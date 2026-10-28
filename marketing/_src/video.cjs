@@ -268,26 +268,103 @@ vid('15-film-marque', [V16, V9], [
   endCard('Vos colis voyagent dans la valise de quelqu’un.', 'send-by-me.com', 3.6),
 ], 'Film de marque (22 s), pour YouTube, Facebook et la page d’accueil. Ajoutez une musique libre de droits dans l’outil de publication.');
 
+// ─── Voix off : une phrase par scène (null = pas de voix) ───────────────────
+// « Send baille mi » : orthographe phonétique pour que la voix française prononce « Sènd baï mi ».
+const VO = {
+  '01-teaser-lancement': ['Quelque chose arrive pour vos colis.', 'Bientôt, vos colis voyageront autrement, avec des voyageurs vérifiés, entre l’Europe et l’Afrique.', 'Send baille mi. Suivez-nous pour ne pas rater le lancement.'],
+  '02-compte-a-rebours': ['Trois.', 'Deux.', 'Un.', 'On décolle !', 'Send baille mi est en ligne.'],
+  '03-lancement-officiel': ['C’est parti ! Vos colis voyagent dans la valise de quelqu’un.', 'Des voyageurs vérifiés proposent leurs kilos libres. Identité vérifiée, paiement bloqué, code de remise.', 'À l’arrivée, le voyageur n’est payé que quand votre famille a le colis en main.', 'Send baille mi. Envoyez vos colis entre l’Europe et l’Afrique, sur send baille mi point com.'],
+  '04-comment-ca-marche': ['Envoyer un colis avec un voyageur, comment ça marche ?', 'Étape un : trouvez un trajet. Comparez les dates, les prix au kilo et les avis.', 'Étape deux : demandez des kilos. Décrivez votre colis, et discutez avec le voyageur.', 'Étape trois : payez en ligne. Le montant reste bloqué par Send baille mi.', 'Étape quatre : votre destinataire donne son code au voyageur. Le paiement est alors libéré.', 'Inscription gratuite, sur send baille mi point com.'],
+  '05-voyageur-kilos': ['Vous partez bientôt ? Votre valise a de la place ?', 'Vos kilos libres ont de la valeur. Par exemple, vingt-trois kilos à neuf euros le kilo, c’est deux cent sept euros si tout part.', 'Publier votre trajet est gratuit. Vous fixez votre prix, et vous êtes payé à la remise.', 'Proposez vos kilos en deux minutes, sur send baille mi point com.'],
+  '06-plus-d-arnaque': ['Payer d’avance un inconnu, et croiser les doigts ?', 'Avec Send baille mi, votre argent reste bloqué jusqu’à la livraison.', 'Votre famille donne le code au voyageur, et c’est seulement là qu’il est payé.', 'Send baille mi. Envoyez vos colis sans payer d’avance un inconnu.'],
+  '07-code-de-remise': ['Le code de remise : six chiffres que seule votre famille connaît.', 'Sans le code, pas de livraison validée. Et le voyageur n’est pas payé.', 'Send baille mi. La sécurité, à chaque colis.'],
+  '08-nos-lignes': ['Vers où envoyez-vous ?', 'Paris, Douala.', 'Paris, Dakar.', 'Paris, Abidjan.', 'Paris, Yaoundé.', 'Bruxelles, Kinshasa.', 'Lyon, Douala.', 'Trouvez les voyageurs de votre ligne, sur send baille mi point com.'],
+  '09-suivi-colis': ['Suivez votre colis, étape par étape : accepté, payé, remis au voyageur, en vol, arrivé, livré.', 'Votre destinataire peut le suivre aussi, avec le numéro de suivi.', 'Send baille mi.'],
+  '10-demande-envoi': ['Pas de trajet qui vous convient ?', 'Publiez votre colis : poids, contenu, photos, dates. Les voyageurs qui partent sur votre ligne viennent à vous.', 'Publiez votre demande, sur send baille mi point com.'],
+  '11-parrainage': ['Parrainez vos proches : cinq euros pour vous, cinq euros pour eux.', 'Partagez votre lien depuis votre espace. Le crédit arrive après leur première livraison réussie.', 'Send baille mi. Invitez vos proches.'],
+  '12-mythe-realite': ['On dit qu’il faut toujours payer d’avance, et croiser les doigts.', 'En vrai, votre paiement reste bloqué par Send baille mi. Le voyageur n’est payé qu’à la remise, avec le code de votre destinataire.', 'Envoyez en toute confiance.'],
+  '13-fin-annee': ['Les fêtes approchent. Les cadeaux arrivent avant les fêtes.', 'Un conseil : réservez tôt, les kilos de décembre partent vite.', 'Trouvez un voyageur qui rentre pour les fêtes, sur send baille mi point com.'],
+  '14-ambassadeurs': ['Étudiant ? Deviens ambassadeur Send baille mi sur ton campus.', 'Fais connaître Send baille mi aux étudiants qui rentrent au pays.', 'Écris-nous en message privé.'],
+  '15-film-marque': ['Quelqu’un prépare sa valise.', 'Quelqu’un prépare un colis.', 'Le colis voyage avec lui.', 'Il est remis en main propre.', 'Et c’est la famille qui valide.', 'Send baille mi. Vos colis voyagent dans la valise de quelqu’un.'],
+};
+for (const v of VIDEOS) {
+  const vo = VO[v.file] || [];
+  if (vo.length && vo.length !== v.scenes.length) throw new Error(`Voix off de ${v.file} : ${vo.length} phrases pour ${v.scenes.length} scènes`);
+  v.vo = vo;
+}
+
 module.exports = { VIDEOS };
 
 // ─── Rendu ──────────────────────────────────────────────────────────────────
+const VO_DIR = path.join(__dirname, 'vo');
+const VO_LEAD = 0.3; // la voix démarre 0,3 s après le début de la scène
+const keyOf = (text) => require('crypto').createHash('sha1').update(text).digest('hex').slice(0, 12);
+const run = (cmd, args) => new Promise((ok, ko) => { const p = spawn(cmd, args, { stdio: ['ignore', 'inherit', 'inherit'] }); p.on('close', (c) => (c ? ko(new Error(`${cmd} ${c}`)) : ok())); });
+
+// Synthèse des phrases manquantes (Piper, voix fr_FR-siwis), puis lecture des durées.
+async function synthesize(list) {
+  fs.mkdirSync(VO_DIR, { recursive: true });
+  const lines = [...new Set(list.flatMap((v) => v.vo.filter(Boolean)))].map((text) => ({ key: keyOf(text), text }));
+  const missing = lines.filter((l) => !fs.existsSync(path.join(VO_DIR, l.key + '.wav')));
+  if (missing.length) {
+    fs.writeFileSync(path.join(VO_DIR, '.todo.json'), JSON.stringify(missing));
+    await run(process.env.PIPER_PYTHON || 'python3', [path.join(__dirname, 'tts.py'), path.join(VO_DIR, '.todo.json'), VO_DIR]);
+  }
+  const dur = {};
+  for (const l of lines) dur[l.text] = parseFloat(require('child_process').execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(VO_DIR, l.key + '.wav')]).toString());
+  return dur;
+}
+
+// Mixage : voix calée sur chaque scène + musique originale qui baisse sous la voix.
+async function mixAudio(silent, out, starts, vo, total) {
+  const music = path.join(VO_DIR, `music-${Math.ceil(total)}.wav`);
+  if (!fs.existsSync(music)) await run('python3', [path.join(__dirname, 'music.py'), music, String(Math.ceil(total) + 1)]);
+  const inputs = ['-i', silent, '-i', music];
+  const parts = [];
+  const labels = [];
+  vo.forEach((text, i) => {
+    if (!text) return;
+    inputs.push('-i', path.join(VO_DIR, keyOf(text) + '.wav'));
+    const ms = Math.round((starts[i] + VO_LEAD) * 1000);
+    const idx = inputs.filter((x) => x === '-i').length - 1;
+    parts.push(`[${idx}:a]aformat=sample_rates=44100:channel_layouts=stereo,volume=1.6,adelay=${ms}|${ms}[v${i}]`);
+    labels.push(`[v${i}]`);
+  });
+  const fade = Math.max(0, total - 1.2).toFixed(2);
+  let graph;
+  if (labels.length) {
+    parts.push(`${labels.join('')}amix=inputs=${labels.length}:normalize=0,apad[vo]`, `[vo]asplit[vo1][vo2]`);
+    parts.push(`[1:a]aformat=sample_rates=44100:channel_layouts=stereo,volume=0.32[mu]`);
+    parts.push(`[mu][vo1]sidechaincompress=threshold=0.02:ratio=8:attack=20:release=400[duck]`);
+    parts.push(`[duck][vo2]amix=inputs=2:normalize=0,atrim=0:${total.toFixed(2)},afade=t=out:st=${fade}:d=1.2,loudnorm=I=-14:TP=-1.5:LRA=11[a]`);
+  } else {
+    parts.push(`[1:a]volume=0.6,atrim=0:${total.toFixed(2)},afade=t=out:st=${fade}:d=1.2,loudnorm=I=-14:TP=-1.5[a]`);
+  }
+  await run('ffmpeg', ['-y', '-loglevel', 'error', ...inputs, '-filter_complex', parts.join(';'), '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-ar', '44100', '-movflags', '+faststart', out]);
+}
+
 async function render() {
   fs.mkdirSync(OUT, { recursive: true });
+  const list = VIDEOS.filter((v) => !filter || v.file.includes(filter));
+  const durations = await synthesize(list);
   const browser = await chromium.launch();
   const page = await (await browser.newContext()).newPage();
-  const list = VIDEOS.filter((v) => !filter || v.file.includes(filter));
   for (const v of list) {
+    // Chaque scène dure au moins le temps de sa phrase.
+    const scenes = v.scenes.map((sc, i) => ({ ...sc, dur: Math.max(sc.dur, v.vo[i] ? durations[v.vo[i]] + VO_LEAD + 0.6 : 0) }));
+    const starts = scenes.reduce((a, sc, i) => (a.push(i ? a[i - 1] + scenes[i - 1].dur : 0), a), []);
     for (const [W, H] of v.sizes) {
       const fmt = W === H ? '1x1' : W > H ? '16x9' : '9x16';
       const out = path.join(OUT, `${v.file}-${fmt}.mp4`);
-      const { html, total } = build({ W, H, scenes: v.scenes });
+      const silent = path.join(__dirname, '.tmp-silent.mp4');
+      const { html, total } = build({ W, H, scenes });
       await page.setViewportSize({ width: W, height: H });
       const tmp = path.join(__dirname, '.tmp-video.html');
       fs.writeFileSync(tmp, html);
       await page.goto('file://' + tmp, { waitUntil: 'load' });
       await page.evaluate(() => document.fonts.ready);
       await page.evaluate(() => document.getAnimations().forEach((a) => a.pause()));
-      const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out]);
+      const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p', silent]);
       const frames = Math.round(total * FPS);
       for (let i = 0; i < frames; i++) {
         const t = (i / FPS) * 1000;
@@ -297,6 +374,7 @@ async function render() {
       }
       ff.stdin.end();
       await new Promise((r) => ff.on('close', r));
+      await mixAudio(silent, out, starts, v.vo, total);
       console.log('✔', path.basename(out), `${total.toFixed(1)} s`);
     }
   }
