@@ -500,12 +500,6 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
             />
           </Field>
 
-          <p className="rounded-2xl bg-paper px-4 py-3 text-sm text-ink-soft">
-            Le destinataire ne peut pas se déplacer ? L&apos;expéditeur peut
-            choisir la livraison à domicile. Vous confiez alors le colis à notre
-            livreur à votre arrivée, il s&apos;occupe du reste.
-          </p>
-
           <Field
             label="Un mot pour les expéditeurs"
             htmlFor="notes"

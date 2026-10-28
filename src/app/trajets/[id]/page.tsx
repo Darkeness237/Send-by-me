@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { CalendarDays, CheckCircle2, House, MessageCircle, MapPin, Plane, ShieldCheck, Star, TicketCheck } from "lucide-react";
+import { CalendarDays, CheckCircle2, MessageCircle, MapPin, Plane, ShieldCheck, Star, TicketCheck } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { BookingForm } from "@/components/booking-form";
 import { TakeoffBanner } from "@/components/journey";
@@ -217,13 +217,6 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
                   </div>
                 </div>
               )}
-              <div className="flex gap-3">
-                <House className="mt-0.5 h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
-                <div>
-                  <dt className="font-semibold">Livraison à domicile en option · +{euros(homeDeliveryFor(trip.to_country))}</dt>
-                  <dd className="text-muted">Si le destinataire ne peut pas venir, notre partenaire de livraison lui apporte le colis.</dd>
-                </div>
-              </div>
             </dl>
             <h3 className="mt-6 font-semibold">Colis acceptés</h3>
             <ul className="mt-3 flex flex-wrap gap-2">

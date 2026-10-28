@@ -8,6 +8,7 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { homeDeliveryFor } from "@/lib/delivery";
 import { CONTACT_BLOCKED_MESSAGE, containsContactDetails } from "@/lib/contact-guard";
 import { notifyBooking, notifyMessage, notifyOffer } from "@/lib/notify-events";
+import { missingPhotos, REQUIRED_BEFORE_DELIVERY, REQUIRED_BEFORE_PICKUP } from "@/lib/parcel-photos";
 import { quote, roundKg } from "@/lib/pricing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getUserId } from "@/lib/supabase/server";
@@ -186,6 +187,9 @@ export async function confirmPickup(bookingId: string) {
   const b = await loadBooking(bookingId);
   if (!b || b.traveler_id !== userId || b.status !== "paid") return;
   const admin = createAdminClient();
+  // Traçabilité : photos de l'expéditeur (contenu, colis emballé) et du voyageur à la prise en charge.
+  const { data: photos } = await admin.from("booking_photos").select("kind").eq("booking_id", bookingId);
+  if (missingPhotos(photos ?? [], REQUIRED_BEFORE_PICKUP).length) return;
   const { data: picked } = await admin
     .from("bookings")
     .update({ status: "picked_up", updated_at: new Date().toISOString() })
@@ -210,6 +214,10 @@ export async function confirmDelivery(_: FormState, formData: FormData): Promise
   if (!b || b.traveler_id !== userId || b.status !== "picked_up") return { error: "Livraison impossible pour cette réservation." };
 
   const admin = createAdminClient();
+  const { data: photos } = await admin.from("booking_photos").select("kind").eq("booking_id", bookingId);
+  if (missingPhotos(photos ?? [], REQUIRED_BEFORE_DELIVERY).length) {
+    return { error: "Ajoutez d'abord les photos du colis à l'arrivée : encore emballé, puis ouvert." };
+  }
   const { data: secret } = await admin
     .from("booking_secrets")
     .select("delivery_code, attempts")

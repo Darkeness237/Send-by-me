@@ -350,6 +350,20 @@ export async function getTrackingEvents(bookingId: string): Promise<TrackingEven
   return (data ?? []).map((e) => ({ kind: e.kind as string, at: e.created_at as string, note: (e.note as string) ?? null }));
 }
 
+/** Photos du colis (participants uniquement, RLS), avec des liens temporaires vers le stockage privé. */
+export async function getBookingPhotos(bookingId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("booking_photos")
+    .select("id, kind, path, author_id, created_at")
+    .eq("booking_id", bookingId)
+    .order("created_at", { ascending: true });
+  const rows = data ?? [];
+  if (!rows.length) return [];
+  const { data: signed } = await supabase.storage.from("parcel-photos").createSignedUrls(rows.map((r) => r.path as string), 3600);
+  return rows.map((r, i) => ({ id: r.id as string, kind: r.kind as string, url: signed?.[i]?.signedUrl ?? null, at: r.created_at as string }));
+}
+
 /** Négociation du prix d'une réservation (participants uniquement, RLS). */
 export async function getPriceOffers(bookingId: string): Promise<PriceOffer[]> {
   const supabase = await createClient();

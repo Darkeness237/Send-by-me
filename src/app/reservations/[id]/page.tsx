@@ -10,6 +10,7 @@ import { ReportForm } from "@/components/account-forms";
 import { DeliveryCodeForm, MessageForm, ReviewForm } from "@/components/booking-client-forms";
 import { CallPanel } from "@/components/call-panel";
 import { OfferPanel } from "@/components/offer-panel";
+import { ParcelPhotos } from "@/components/parcel-photos";
 import { ChatMessages } from "@/components/chat-messages";
 import { LiveRefresh } from "@/components/live-refresh";
 import { PageShell } from "@/components/page-shell";
@@ -17,7 +18,8 @@ import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { markTravelStep } from "@/app/actions/tracking";
 import { TrackingTimeline } from "@/components/tracking-timeline";
-import { getBooking, getDeliveryAddress, getDeliveryCode, getMessages, getPriceOffers, getTrackingEvents, markThreadRead } from "@/lib/data";
+import { getBooking, getBookingPhotos, getDeliveryAddress, getDeliveryCode, getMessages, getPriceOffers, getTrackingEvents, markThreadRead } from "@/lib/data";
+import { missingPhotos, PHOTO_STEPS, REQUIRED_BEFORE_DELIVERY, REQUIRED_BEFORE_PICKUP } from "@/lib/parcel-photos";
 import { advanceTransit } from "@/lib/transit";
 import { kg, longDate, timeLabel } from "@/lib/format";
 import { codeFor, tzFor } from "@/lib/places";
@@ -40,7 +42,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
   // Le suivi passe seul « en transit » puis « arrivé » d'après les horaires du vol.
   if (booking.status === "picked_up") await advanceTransit(booking.id);
 
-  const [messages, , code, myReview, events, deliveryAddress, offers] = await Promise.all([
+  const [messages, , code, myReview, events, deliveryAddress, offers, photos] = await Promise.all([
     getMessages(booking.id),
     markThreadRead(userId, booking.id),
     isSender && ["paid", "picked_up"].includes(booking.status) ? getDeliveryCode(booking.id) : Promise.resolve(null),
@@ -53,6 +55,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
     getTrackingEvents(booking.id),
     isSender && booking.delivery_cents ? getDeliveryAddress(booking.id) : Promise.resolve(null),
     booking.status === "pending" ? getPriceOffers(booking.id) : Promise.resolve([]),
+    booking.status === "pending" ? Promise.resolve([]) : getBookingPhotos(booking.id),
   ]);
   const tz = { from: tzFor(trip.from_city), to: tzFor(trip.to_city) };
   const flight = trip.mode === "plane" && trip.transport_ref ? `Vol ${trip.transport_ref}` : null;
@@ -66,6 +69,11 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
 
   const other = isSender ? trip.traveler : booking.sender;
   const closed = booking.status === "declined" || booking.status === "cancelled" || booking.status === "refunded";
+  const senderName = booking.sender?.full_name?.split(" ")[0] || "l'expéditeur";
+  const travelerName = trip.traveler?.full_name?.split(" ")[0] || "le voyageur";
+  const stepLabels = (kinds: string[]) => kinds.map((k) => `« ${PHOTO_STEPS.find((s) => s.kind === k)?.label} »`).join(", ");
+  const missingForPickup = missingPhotos(photos, REQUIRED_BEFORE_PICKUP);
+  const missingForDelivery = missingPhotos(photos, REQUIRED_BEFORE_DELIVERY);
   const reportable = ["paid", "picked_up", "delivered", "refunded"].includes(booking.status);
 
   return (
@@ -182,6 +190,11 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
               </div>
             </Action>
           )}
+          {isSender && ["accepted", "paid"].includes(booking.status) && missingPhotos(photos, ["contents", "packed"]).length > 0 && (
+            <p className="mb-5 rounded-2xl bg-warn-pale px-4 py-3 text-sm text-warn">
+              Avant de remettre le colis, ajoutez les photos du contenu et du colis emballé (section « Photos du colis »). Le voyageur ne peut pas le prendre en charge sans elles.
+            </p>
+          )}
           {isSender && code && (
             <div className="rounded-2xl bg-ink p-5 text-white">
               <p className="flex items-center gap-2 text-sm text-white/70">
@@ -208,11 +221,17 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
           )}
           {isTraveler && booking.status === "accepted" && <Action text="En attente du paiement de l'expéditeur. Ne prenez pas le colis avant." />}
           {isTraveler && booking.status === "paid" && (
-            <Action text="Paiement reçu : en attente du colis. Contrôlez le contenu devant l'expéditeur, puis confirmez que vous l'avez reçu.">
-              <form action={confirmPickup.bind(null, booking.id)}>
-                <Button type="submit">J&apos;ai reçu le colis</Button>
-              </form>
-            </Action>
+            missingForPickup.length ? (
+              <Action
+                text={`Paiement reçu : en attente du colis. Contrôlez le contenu devant ${senderName} et comparez-le à ses photos. Photos encore attendues : ${stepLabels(missingForPickup)}.`}
+              />
+            ) : (
+              <Action text={`Paiement reçu : en attente du colis. Le colis correspond aux photos de ${senderName} ? Confirmez que vous l'avez reçu.`}>
+                <form action={confirmPickup.bind(null, booking.id)}>
+                  <Button type="submit">J&apos;ai reçu le colis</Button>
+                </form>
+              </Action>
+            )
           )}
           {isTraveler && booking.status === "picked_up" && (
             <div className="space-y-5">
@@ -251,6 +270,8 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
                 ) : hasEvent("out_for_delivery") ? (
                   <Action text="Colis remis au livreur partenaire." />
                 ) : null
+              ) : missingForDelivery.length ? (
+                <Action text={`À la remise, photographiez le colis encore emballé puis ouvert devant ${booking.recipient_name}. Photos attendues : ${stepLabels(missingForDelivery)}. Vous pourrez ensuite saisir son code.`} />
               ) : (
                 <DeliveryCodeForm bookingId={booking.id} />
               )}
@@ -280,6 +301,17 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
             </div>
           )}
         </section>
+
+        {(isSender || isTraveler) && (
+          <ParcelPhotos
+            bookingId={booking.id}
+            photos={photos}
+            role={isSender ? "sender" : "traveler"}
+            status={booking.status}
+            senderName={senderName}
+            travelerName={travelerName}
+          />
+        )}
       </div>
 
       {/* Messagerie */}

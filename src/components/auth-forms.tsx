@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { signIn, signUp } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
 import { submitKeepingValues } from "@/components/ui/keep-form";
 import { Field, FormMessage, Input, Select } from "@/components/ui/field";
 
@@ -24,7 +25,7 @@ export function SignInForm({ next }: { next?: string }) {
           </Link>
         }
       >
-        <Input id="password" name="password" type="password" autoComplete="current-password" required minLength={8} />
+        <PasswordInput id="password" name="password" autoComplete="current-password" required minLength={8} />
       </Field>
       <FormMessage state={state} />
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
@@ -112,10 +113,9 @@ export function SignUpForm({ next, referral }: { next?: string; referral?: strin
         </Field>
       </div>
       <Field label="Mot de passe" htmlFor="password" hint={strength?.label ?? "8 caractères minimum"}>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           autoComplete="new-password"
           required
           minLength={8}

@@ -1,6 +1,7 @@
 // Négociation du prix, messagerie sans coordonnées, code envoyé au destinataire, transit automatique,
 // réception validée et messages de fin. Prérequis identiques à tests/e2e.cjs. Lancer : node tests/e2e-v4.cjs
 const { chromium } = require('playwright');
+const addPhotos = require('./photos.cjs');
 const Stripe = require('stripe');
 const { execSync } = require('child_process');
 const BASE = 'http://localhost:3000';
@@ -103,13 +104,15 @@ async function signup(b, first, last, email, next) {
   log('code créé pour le destinataire :', sql(`select delivery_code ~ '^[0-9]{6}$' from booking_secrets where booking_id='${bid}'`), '(e-mail envoyé seulement si Brevo est configuré)');
 
   // 6. Le voyageur reçoit le colis, puis le vol décolle et atterrit (horaires avancés pour le test)
-  await t.goto(bookingUrl);
+  await addPhotos(s, bookingUrl, ['contents', 'packed']);
+  await addPhotos(t, bookingUrl, ['pickup']);
+  log('photos départ (contenu, emballé, prise en charge) :', sql(`select count(*) from booking_photos where booking_id='${bid}'`));
   await t.click('button:has-text("J\'ai reçu le colis")');
   await t.waitForSelector('text=Colis reçu par le voyageur');
   log('statut après prise en charge : Colis reçu par le voyageur');
   sql(`update trips set departure_at = now() - interval '2 hours', arrival_at = now() + interval '3 hours' where id='${tripId}'`);
   await s.goto(bookingUrl);
-  await s.waitForSelector('span:has-text("En transit")');
+  await s.waitForSelector('span:has-text("En transit")', { timeout: 8000 }).catch(() => s.reload().then(() => s.waitForSelector('span:has-text("En transit")')));
   log('passage automatique en transit au décollage');
   sql(`update trips set arrival_at = now() - interval '5 minutes' where id='${tripId}'`);
   const r = await fetch(BASE + '/api/cron/transit');
@@ -122,7 +125,7 @@ async function signup(b, first, last, email, next) {
 
   // 7. Réception : le destinataire donne son code, messages de fin
   const code = sql(`select delivery_code from booking_secrets where booking_id='${bid}'`);
-  await t.goto(bookingUrl);
+  await addPhotos(t, bookingUrl, ['arrival_packed', 'arrival_opened']);
   await t.fill('#code', code);
   await t.click('button:has-text("Valider")');
   await t.waitForSelector('text=Colis réceptionné');

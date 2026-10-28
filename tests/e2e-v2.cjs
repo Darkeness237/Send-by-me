@@ -1,6 +1,7 @@
 // Fonctions v2 : temps réel, signalement, profil, alertes, annulation, administration.
 // Prérequis identiques à tests/e2e.cjs. Lancer : node tests/e2e-v2.cjs
 const { chromium } = require('playwright');
+const addPhotos = require('./photos.cjs');
 const { execSync } = require('child_process');
 const Stripe = require('stripe');
 const BASE = 'http://localhost:3000';
@@ -104,8 +105,11 @@ async function signup(ctx, name, email, next = '/espace') {
   log('signalement envoyé');
 
   // Livraison
-  await ta.goto(bk1);
+  await addPhotos(sb, bk1, ['contents', 'packed']);
+  await addPhotos(ta, bk1, ['pickup']);
   await ta.click('button:has-text("J\'ai reçu le colis")');
+  await ta.waitForSelector('text=Photos attendues');
+  await addPhotos(ta, bk1, ['arrival_packed', 'arrival_opened']);
   await ta.waitForSelector('#code');
   await ta.fill('#code', code);
   await ta.click('button:has-text("Valider la réception")');

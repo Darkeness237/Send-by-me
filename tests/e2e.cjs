@@ -2,6 +2,7 @@
 // STRIPE_SECRET_KEY=sk_test_local_dummy STRIPE_WEBHOOK_SECRET=whsec_local_test npm run dev
 // Lancer : node tests/e2e.cjs
 const { chromium } = require('playwright');
+const addPhotos = require('./photos.cjs');
 const Stripe = require('stripe');
 const BASE = 'http://localhost:3000';
 const shot = (p, n) => p.screenshot({ path: require('path').join(__dirname, 'screenshots', 'e2e-' + n) + '.png', fullPage: true });
@@ -129,9 +130,15 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   await shot(sb, '05-code-remise-mobile');
 
   // 5. Voyageur : ne voit pas le code, prend le colis, livre
+  await addPhotos(sb, bookingUrl, ['contents', 'packed']);
   await ta.goto(bookingUrl);
+  log('bouton « J\'ai reçu le colis » avant la photo du voyageur ?', (await ta.locator('button:has-text("J\'ai reçu le colis")').count()) ? 'OUI (KO)' : 'non (OK)');
+  await addPhotos(ta, bookingUrl, ['pickup']);
   log('le voyageur voit le code ?', (await ta.textContent('main')).includes(code) ? 'OUI (KO)' : 'non (OK)');
   await ta.click('button:has-text("J\'ai reçu le colis")');
+  await ta.waitForSelector('text=Photos attendues');
+  await addPhotos(ta, bookingUrl, ['arrival_packed', 'arrival_opened']);
+  log('photos du colis →', sql(`select string_agg(kind, ', ' order by created_at) from booking_photos where booking_id='${bookingId}'`));
   await ta.waitForSelector('#code');
   await ta.fill('#code', code === '000000' ? '111111' : '000000');
   await ta.click('button:has-text("Valider la réception")');
@@ -139,7 +146,7 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   log('mauvais code refusé :', (await ta.textContent('[role=alert]')).trim());
   await ta.fill('#code', code);
   await ta.click('button:has-text("Valider la réception")');
-  await ta.waitForSelector('text=Colis réceptionné');
+  await ta.waitForSelector('[role=status]:has-text("Colis réceptionné")');
   log('livraison confirmée avec le bon code');
   await ta.reload();
   await ta.click('label:has-text("5")');

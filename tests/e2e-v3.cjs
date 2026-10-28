@@ -1,6 +1,7 @@
 // Demandes d'envoi et correspondances, notifications, livraison à domicile Send By Me, suivi d'envoi,
 // écran de bienvenue. Prérequis identiques à tests/e2e.cjs. Lancer : node tests/e2e-v3.cjs
 const { chromium } = require('playwright');
+const addPhotos = require('./photos.cjs');
 const Stripe = require('stripe');
 const { execSync } = require('child_process');
 const path = require('path');
@@ -110,7 +111,8 @@ async function signup(b, first, last, email, next) {
   const payload = JSON.stringify({ id: 'evt_' + run, object: 'event', type: 'checkout.session.completed', data: { object: { id: 'cs_' + run, object: 'checkout.session', metadata: { booking_id: bookingId }, client_reference_id: bookingId, amount_total: total, currency: 'eur', payment_status: 'paid', payment_intent: 'pi_' + run } } });
   await fetch(BASE + '/api/webhooks/stripe', { method: 'POST', headers: { 'stripe-signature': stripe.webhooks.generateTestHeaderString({ payload, secret: 'whsec_local_test' }), 'content-type': 'application/json' }, body: payload });
   log('payé, notification voyageur →', sql(`select title from notifications where user_id='${tid}' and kind='booking_paid' limit 1`));
-  await t.reload();
+  await addPhotos(s, `${BASE}/reservations/${bookingId}`, ['contents', 'packed']);
+  await addPhotos(t, `${BASE}/reservations/${bookingId}`, ['pickup']);
   await t.click('button:has-text("J\'ai reçu le colis")');
   await t.waitForSelector('button:has-text("Je suis parti")');
   await t.click('button:has-text("Je suis parti")');
@@ -118,7 +120,7 @@ async function signup(b, first, last, email, next) {
   await t.click('button:has-text("Je suis arrivé")');
   await t.waitForSelector('button:has-text("J\'ai remis le colis au livreur")');
   await t.click('button:has-text("J\'ai remis le colis au livreur")');
-  await t.waitForSelector('text=Colis remis au livreur. Le paiement');
+  await t.waitForSelector('text=Colis remis au livreur partenaire.');
   log('étapes enregistrées →', sql(`select string_agg(kind, ' > ' order by created_at) from booking_events where booking_id='${bookingId}'`));
 
   // 7. Suivi public par numéro (sans nom ni adresse)

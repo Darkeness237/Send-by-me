@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { createReport, requestPasswordReset, updatePassword, updateProfile } from "@/app/actions/account";
 import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Field, FormMessage, Input, Select, Textarea } from "@/components/ui/field";
 import { REPORT_REASONS } from "@/lib/types";
 
@@ -48,10 +49,10 @@ export function NewPasswordForm() {
   return (
     <form action={action} className="space-y-5">
       <Field label="Nouveau mot de passe" htmlFor="password" hint="8 caractères minimum">
-        <Input id="password" name="password" type="password" required minLength={8} autoComplete="new-password" />
+        <PasswordInput id="password" name="password" required minLength={8} autoComplete="new-password" />
       </Field>
       <Field label="Confirmer" htmlFor="confirm">
-        <Input id="confirm" name="confirm" type="password" required minLength={8} autoComplete="new-password" />
+        <PasswordInput id="confirm" name="confirm" required minLength={8} autoComplete="new-password" />
       </Field>
       <FormMessage state={state} />
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
