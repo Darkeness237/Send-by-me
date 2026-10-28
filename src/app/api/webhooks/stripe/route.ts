@@ -1,5 +1,5 @@
 import type Stripe from "stripe";
-import { markPaid } from "@/lib/booking-payment";
+import { markPaid, paymentFromSession } from "@/lib/booking-payment";
 import { notifySafe } from "@/lib/notify";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     case "checkout.session.async_payment_succeeded": {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.payment_status === "paid" || session.payment_status === "no_payment_required") {
-        await markPaid(session);
+        await markPaid(paymentFromSession(session));
       }
       break;
     }

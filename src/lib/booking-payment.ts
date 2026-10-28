@@ -8,29 +8,49 @@ import { sendRecipientCode } from "@/lib/recipient-mail";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+/** Paiement encaissé par Stripe, ramené à ce qui compte pour la réservation. */
+export type Payment = { bookingId: string | null; amount: number | null; currency: string | null; paymentIntentId: string | null };
+
+export const paymentFromSession = (session: Stripe.Checkout.Session): Payment => ({
+  bookingId: session.metadata?.booking_id ?? session.client_reference_id,
+  amount: session.amount_total,
+  currency: session.currency,
+  paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : (session.payment_intent?.id ?? null),
+});
+
 /**
- * Le membre revient de Stripe, ou rouvre sa réservation : on interroge Stripe sur la session enregistrée.
+ * Le membre revient de Stripe, ou rouvre sa réservation : on demande à Stripe si elle est payée.
  * Filet de sécurité si le webhook n'arrive pas (endpoint mal configuré, panne) ; markPaid reste idempotent.
+ * Deux sources : la dernière session enregistrée, puis tout paiement réussi portant l'identifiant de la
+ * réservation (le membre a pu payer une session plus ancienne avant de recliquer sur « Payer »).
  */
 export async function confirmCheckout(bookingId: string) {
   if (!process.env.STRIPE_SECRET_KEY) return false;
   const { data } = await createAdminClient().from("bookings").select("stripe_checkout_session_id").eq("id", bookingId).eq("status", "accepted").maybeSingle();
-  const sessionId = data?.stripe_checkout_session_id;
-  if (!sessionId) return false;
+  if (!data) return false;
   try {
-    const session = await stripe().checkout.sessions.retrieve(sessionId);
-    if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") return false;
-    if ((session.metadata?.booking_id ?? session.client_reference_id) !== bookingId) return false;
-    return await markPaid(session);
+    if (data.stripe_checkout_session_id) {
+      const session = await stripe().checkout.sessions.retrieve(data.stripe_checkout_session_id);
+      if ((session.payment_status === "paid" || session.payment_status === "no_payment_required") && paymentFromSession(session).bookingId === bookingId) {
+        return await markPaid(paymentFromSession(session));
+      }
+    }
+    const found = await stripe().paymentIntents.search({ query: `metadata['booking_id']:'${bookingId}' AND status:'succeeded'`, limit: 1 });
+    const pi = found.data[0];
+    if (!pi) {
+      console.info("Paiement Stripe pas encore reçu pour la réservation", bookingId);
+      return false;
+    }
+    return await markPaid({ bookingId, amount: pi.amount_received, currency: pi.currency, paymentIntentId: pi.id });
   } catch (e) {
-    console.error("Vérification du paiement Stripe", bookingId, e);
+    console.error("Vérification du paiement Stripe", bookingId, e instanceof Error ? e.message : e);
     return false;
   }
 }
 
 /** Réservation acceptée → payée, une seule fois : code de remise, livraison à domicile, notifications. */
-export async function markPaid(session: Stripe.Checkout.Session): Promise<boolean> {
-  const bookingId = session.metadata?.booking_id ?? session.client_reference_id;
+export async function markPaid(payment: Payment): Promise<boolean> {
+  const { bookingId } = payment;
   if (!bookingId) return false;
 
   const admin = createAdminClient();
@@ -42,8 +62,8 @@ export async function markPaid(session: Stripe.Checkout.Session): Promise<boolea
   if (!booking) return false;
 
   // Contrôle du montant encaissé.
-  if (session.amount_total !== booking.total_cents || session.currency !== "eur") {
-    console.error("Montant Stripe inattendu pour la réservation", bookingId);
+  if (payment.amount !== booking.total_cents || payment.currency !== "eur") {
+    console.error("Montant Stripe inattendu pour la réservation", bookingId, payment.amount, booking.total_cents);
     return false;
   }
 
@@ -55,7 +75,7 @@ export async function markPaid(session: Stripe.Checkout.Session): Promise<boolea
       status: "paid",
       paid_at: now,
       updated_at: now,
-      stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id,
+      stripe_payment_intent_id: payment.paymentIntentId,
     })
     .eq("id", bookingId)
     .eq("status", "accepted")
