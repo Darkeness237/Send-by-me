@@ -28,7 +28,7 @@ export async function generateMetadata(props: PageProps<"/trajets/[id]">): Promi
   if (!trip) return { title: "Trajet introuvable" };
   return {
     title: `Colis ${trip.from_city} → ${trip.to_city}, ${longDate(trip.departure_at, tzFor(trip.from_city))}`,
-    description: `${kg(trip.capacity_kg - trip.reserved_kg)} disponibles à ${euros(trip.price_per_kg_cents)} le kilo. Réservez en ligne, paiement bloqué jusqu'à la livraison.`,
+    description: `${kg(trip.capacity_kg - trip.reserved_kg)} disponibles à ${euros(trip.price_per_kg_cents)} le kilo. Réservez en ligne.`,
   };
 }
 

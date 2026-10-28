@@ -4,7 +4,7 @@ import { ButtonLink } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Comment ça marche",
-  description: "Envoyer un colis avec un voyageur, étape par étape : recherche, demande, paiement bloqué, remise avec code.",
+  description: "Envoyer un colis avec un voyageur, étape par étape : recherche, demande, paiement, remise avec code.",
   alternates: { canonical: "/comment-ca-marche" },
 };
 
@@ -21,7 +21,7 @@ export default function HowItWorks() {
           <li><strong>Envoyez une demande</strong> en indiquant le poids, le type et le contenu du colis. Le prix total s&apos;affiche avant l&apos;envoi.</li>
           <li><strong>Payez quand le voyageur accepte.</strong> L&apos;argent est bloqué par Send By Me : le voyageur ne le touche pas encore.</li>
           <li><strong>Remettez le colis ouvert</strong> au voyageur, au lieu convenu par messagerie. Il vérifie le contenu, puis vous le fermez ensemble.</li>
-          <li><strong>Transmettez le code de remise</strong> à votre destinataire. Il le donne au voyageur en recevant le colis. Le paiement est alors libéré.</li>
+          <li><strong>Transmettez le code de remise</strong> à votre destinataire. Il le donne au voyageur en recevant le colis.</li>
         </ul>
       </section>
       <section>
@@ -29,7 +29,7 @@ export default function HowItWorks() {
         <ul>
           <li><strong>Publiez votre trajet</strong> : villes, date, kilos disponibles, prix au kilo et types de colis acceptés.</li>
           <li><strong>Acceptez ou refusez</strong> chaque demande. Posez toutes vos questions avant d&apos;accepter.</li>
-          <li><strong>Attendez le paiement</strong> avant de prendre un colis. Vous êtes prévenu dès qu&apos;il est bloqué.</li>
+          <li><strong>Attendez le paiement</strong> avant de prendre un colis. Vous êtes prévenu dès qu&apos;il est fait.</li>
           <li><strong>Contrôlez le contenu</strong> au moment de la remise. Refusez tout ce qui vous semble douteux.</li>
           <li><strong>Saisissez le code</strong> que vous donne le destinataire. Vous êtes payé du montant que vous avez fixé.</li>
         </ul>

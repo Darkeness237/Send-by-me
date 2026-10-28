@@ -169,7 +169,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
             </Action>
           )}
           {isSender && booking.status === "accepted" && (
-            <Action text={`${other?.full_name ?? "Le voyageur"} a accepté. Payez pour confirmer : l'argent reste bloqué jusqu'à la livraison.`}>
+            <Action text={`${other?.full_name ?? "Le voyageur"} a accepté. Payez pour confirmer votre envoi.`}>
               <div className="flex flex-wrap gap-2">
                 <form action={startCheckout.bind(null, booking.id)}>
                   <Button type="submit" size="lg">
@@ -208,7 +208,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
           )}
           {isTraveler && booking.status === "accepted" && <Action text="En attente du paiement de l'expéditeur. Ne prenez pas le colis avant." />}
           {isTraveler && booking.status === "paid" && (
-            <Action text="Paiement reçu et bloqué : en attente du colis. Contrôlez le contenu devant l'expéditeur, puis confirmez que vous l'avez reçu.">
+            <Action text="Paiement reçu : en attente du colis. Contrôlez le contenu devant l'expéditeur, puis confirmez que vous l'avez reçu.">
               <form action={confirmPickup.bind(null, booking.id)}>
                 <Button type="submit">J&apos;ai reçu le colis</Button>
               </form>
@@ -243,13 +243,13 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
               ) : null}
               {homeDelivery ? (
                 hasEvent("arrived") && !hasEvent("out_for_delivery") ? (
-                  <Action text="Livraison à domicile : remettez le colis au livreur partenaire Send By Me. Le paiement vous est versé dès que le destinataire l'a reçu.">
+                  <Action text="Livraison à domicile : remettez le colis au livreur partenaire Send By Me.">
                     <form action={markTravelStep.bind(null, booking.id, "out_for_delivery")}>
                       <Button type="submit">J&apos;ai remis le colis au livreur</Button>
                     </form>
                   </Action>
                 ) : hasEvent("out_for_delivery") ? (
-                  <Action text="Colis remis au livreur. Le paiement vous sera versé dès la livraison confirmée." />
+                  <Action text="Colis remis au livreur partenaire." />
                 ) : null
               ) : (
                 <DeliveryCodeForm bookingId={booking.id} />

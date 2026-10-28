@@ -48,11 +48,11 @@ export async function notifyBooking(bookingId: string, event: Event) {
     case "requested":
       return toTraveler("Nouvelle demande de réservation", `Un expéditeur souhaite envoyer un colis sur votre trajet ${route}. Répondez-lui vite.`);
     case "accepted":
-      return toSender("Le voyageur a accepté votre demande", `Payez pour confirmer votre envoi ${route}. L'argent reste bloqué jusqu'à la livraison.`);
+      return toSender("Le voyageur a accepté votre demande", `Payez pour confirmer votre envoi ${route}.`);
     case "declined":
       return toSender("Demande refusée", `Le voyageur ne peut pas prendre votre colis ${route}. D'autres trajets vous attendent.`);
     case "paid":
-      await toSender("Paiement confirmé", `Votre paiement pour ${route} est bloqué jusqu'à la livraison. ${recipient} a reçu son code de réception par e-mail.`);
+      await toSender("Paiement confirmé", `Votre paiement pour ${route} est confirmé. ${recipient} a reçu son code de réception par e-mail.`);
       return toTraveler("Paiement reçu : en attente du colis", `L'expéditeur a payé pour ${route}. Convenez de la remise du colis dans la conversation.`);
     case "picked_up":
       return toSender("Colis reçu par le voyageur", `Le voyageur a pris en charge votre colis ${route}. Le suivi passera en transit au décollage.`);

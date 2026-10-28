@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/",
     name: "Send By Me · colis entre voyageurs",
     short_name: "Send By Me",
-    description: "Envoyez un colis avec un voyageur vérifié entre l'Europe et l'Afrique. Paiement bloqué jusqu'à la livraison.",
+    description: "Envoyez un colis avec un voyageur vérifié entre l'Europe et l'Afrique.",
     lang: "fr",
     start_url: "/?source=pwa",
     scope: "/",

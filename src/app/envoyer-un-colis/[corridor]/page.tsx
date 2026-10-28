@@ -23,7 +23,7 @@ export async function generateMetadata(props: PageProps<"/envoyer-un-colis/[corr
   const [from, to] = pair;
   return {
     title: `Envoyer un colis de ${from.city} à ${to.city}`,
-    description: `Envoyez un colis de ${from.city} à ${to.city} (${to.country}) avec un voyageur vérifié. Prix au kilo affiché, paiement bloqué jusqu'à la livraison, remise en main propre.`,
+    description: `Envoyez un colis de ${from.city} à ${to.city} (${to.country}) avec un voyageur vérifié. Prix au kilo affiché, remise en main propre.`,
     alternates: { canonical: `/envoyer-un-colis/${corridor}` },
   };
 }
@@ -67,7 +67,7 @@ export default async function CorridorPage(props: PageProps<"/envoyer-un-colis/[
         name: `Comment envoyer un colis de ${from.city} à ${to.city} ?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Cherchez un voyageur qui part de ${from.city} vers ${to.city} sur Send By Me, envoyez une demande avec le poids et le contenu, puis payez en ligne. Le voyageur est payé quand votre destinataire lui donne le code de remise.`,
+          text: `Cherchez un voyageur qui part de ${from.city} vers ${to.city} sur Send By Me, envoyez une demande avec le poids et le contenu, puis payez en ligne. À l'arrivée, votre destinataire reçoit le colis en main propre.`,
         },
       },
       ...FAQ_ITEMS.slice(0, 3).map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
@@ -90,7 +90,7 @@ export default async function CorridorPage(props: PageProps<"/envoyer-un-colis/[
           </h1>
           <p className="mt-4 max-w-[60ch] text-lg text-white/75">
             Des voyageurs qui font le trajet {from.city} – {to.city} proposent leurs kilos libres. Remise en main propre à votre
-            destinataire, paiement libéré seulement avec son code.
+            destinataire, suivi à chaque étape.
           </p>
           <div className="mt-8">
             <SearchForm compact defaults={{ from: from.city, to: to.city }} />

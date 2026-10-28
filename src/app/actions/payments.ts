@@ -37,7 +37,7 @@ export async function startCheckout(bookingId: string) {
             unit_amount: b.total_cents,
             product_data: {
               name: `Envoi de colis ${codeFor(trip?.from_city ?? "")} → ${codeFor(trip?.to_city ?? "")}`,
-              description: `${b.weight_kg} kg, frais de service inclus. Paiement bloqué jusqu'à la livraison.`,
+              description: `${b.weight_kg} kg, frais de service inclus.`,
             },
           },
         },

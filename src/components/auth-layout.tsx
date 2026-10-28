@@ -16,10 +16,10 @@ export function AuthLayout({ title, intro, children }: { title: string; intro: s
         <div className="relative max-w-md">
           <p className="display text-3xl leading-tight">Un compte pour envoyer vos colis et rentabiliser vos kilos libres.</p>
           <p className="mt-4 text-white/60">
-            Le voyageur n&apos;est payé qu&apos;une fois que votre destinataire a donné son code de remise.
+            Des voyageurs vérifiés transportent vos colis entre l&apos;Europe et l&apos;Afrique.
           </p>
         </div>
-        <p className="relative text-sm text-white/60">Paiement bloqué jusqu&apos;à la livraison · Identités vérifiées</p>
+        <p className="relative text-sm text-white/60">Identités vérifiées · Suivi de chaque colis</p>
       </div>
       <div className="flex flex-col sm:px-10 lg:py-8">
         {/* Mobile et tablette : bandeau photo, comme sur ordinateur */}
@@ -30,7 +30,7 @@ export function AuthLayout({ title, intro, children }: { title: string; intro: s
             <Logo tone="light" />
           </Link>
           <p className="display relative mt-10 max-w-xs text-2xl leading-tight">Vos colis voyagent avec des voyageurs vérifiés.</p>
-          <p className="relative mt-2 text-sm text-white/70">Paiement bloqué jusqu&apos;à la livraison</p>
+          <p className="relative mt-2 text-sm text-white/70">Identités vérifiées · Suivi de chaque colis</p>
         </div>
         <div className="relative mx-auto -mt-8 w-full max-w-md rounded-t-3xl bg-paper px-4 pt-8 pb-10 sm:rounded-3xl sm:px-0 lg:mt-0 lg:my-auto lg:bg-transparent lg:py-10">
           <h1 className="display text-3xl sm:text-4xl">{title}</h1>

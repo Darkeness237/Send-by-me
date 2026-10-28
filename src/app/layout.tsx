@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s · Send By Me",
   },
   description:
-    "Envoyez un colis entre la France, la Belgique et l'Afrique avec un voyageur vérifié qui a de la place dans sa valise. Paiement bloqué jusqu'à la livraison.",
+    "Envoyez un colis entre la France, la Belgique et l'Afrique avec un voyageur vérifié qui a de la place dans sa valise.",
   applicationName: "Send By Me",
   keywords: [
     "envoi colis Afrique",

@@ -26,11 +26,11 @@ export default function PublishPage() {
           position="50% 30%"
           eyebrow="Vous partez bientôt ?"
           title="Proposer mes kilos"
-          text="Votre valise a de la place ? Des familles attendent un colis sur votre ligne. Vous choisissez qui vous aidez, et vous êtes payé à la remise."
+          text="Votre valise a de la place ? Des familles attendent un colis sur votre ligne. Vous choisissez qui vous aidez, et vous fixez votre prix."
           points={[
             [BadgeEuro, "Vous fixez votre prix"],
             [ThumbsUp, "Vous acceptez ou refusez"],
-            [ShieldCheck, "Paiement garanti"],
+            [ShieldCheck, "Voyageurs vérifiés"],
           ]}
         />
         <div className="mt-8">

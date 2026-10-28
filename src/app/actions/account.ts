@@ -79,7 +79,7 @@ export async function createReport(_: FormState, formData: FormData): Promise<Fo
   const { error } = await supabase.from("reports").insert({ ...parsed.data, author_id: userId });
   if (error) return { error: "Signalement non envoyé." };
   revalidatePath(`/reservations/${parsed.data.booking_id}`);
-  return { ok: "Signalement envoyé. L'équipe vous répond par e-mail, et le paiement reste bloqué pendant l'examen." };
+  return { ok: "Signalement envoyé. L'équipe vous répond par e-mail." };
 }
 
 // ── Alertes de ligne ────────────────────────────────────────────

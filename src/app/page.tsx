@@ -46,15 +46,15 @@ export default function Home() {
                 </span>
               </h1>
               <p className="reveal reveal-delay-1 mt-5 max-w-[34rem] text-lg leading-relaxed text-ink-soft">
-                Des voyageurs vérifiés proposent leurs kilos libres entre l&apos;Europe et l&apos;Afrique. Vous payez en
-                ligne, et l&apos;argent reste bloqué jusqu&apos;à ce que votre destinataire ait le colis en main.
+                Des voyageurs vérifiés proposent leurs kilos libres entre l&apos;Europe et l&apos;Afrique. Vous choisissez votre
+                voyageur, et vous suivez votre colis jusqu&apos;à ce qu&apos;il arrive chez vos proches.
               </p>
               <ul className="mt-6 hidden flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-ink-soft sm:flex">
                 <li className="flex items-center gap-2">
                   <BadgeCheck className="h-4 w-4 text-brand" aria-hidden="true" /> Identités vérifiées
                 </li>
                 <li className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-brand" aria-hidden="true" /> Paiement bloqué jusqu&apos;à la livraison
+                  <Lock className="h-4 w-4 text-brand" aria-hidden="true" /> Paiement en ligne sécurisé
                 </li>
                 <li className="flex items-center gap-2">
                   <KeyRound className="h-4 w-4 text-brand" aria-hidden="true" /> Code de remise à 6 chiffres
@@ -124,7 +124,7 @@ export default function Home() {
             <ul className="mt-6 space-y-3 text-[15px]">
               <li>Souvent moins cher qu&apos;un transporteur, et livré en main propre.</li>
               <li>Vous échangez avec le voyageur avant de lui confier quoi que ce soit.</li>
-              <li>Il n&apos;est payé que quand votre destinataire donne le code.</li>
+              <li>Vous suivez votre colis à chaque étape, jusqu&apos;à la remise.</li>
             </ul>
             <ButtonLink href="/recherche" className="mt-8">
               Trouver un voyageur
@@ -143,7 +143,7 @@ export default function Home() {
             <ul className="mt-6 space-y-3 text-[15px]">
               <li>Vous acceptez seulement les colis qui vous conviennent.</li>
               <li>Vous voyez le contenu avant de fermer le colis.</li>
-              <li>Le paiement vous est versé dès la remise confirmée.</li>
+              <li>Publier votre trajet est gratuit.</li>
             </ul>
             <ButtonLink href="/publier" variant="primary" className="mt-8 bg-ink hover:bg-ink-soft">
               Proposer mes kilos
@@ -160,8 +160,8 @@ export default function Home() {
               {[
                 ["Trouvez un trajet", "Cherchez votre ville de départ et d'arrivée. Comparez dates, prix au kilo et avis."],
                 ["Demandez des kilos", "Décrivez votre colis. Le voyageur accepte ou refuse, vous pouvez discuter avec lui."],
-                ["Payez en ligne", "Le montant est bloqué par Send By Me. Le voyageur ne le reçoit pas encore."],
-                ["Remise avec un code", "Votre destinataire donne son code de 6 chiffres au voyageur. Le paiement est alors libéré."],
+                ["Payez en ligne", "Par carte, en toute sécurité. Aucun paiement en espèces."],
+                ["Remise avec un code", "Votre destinataire donne son code de 6 chiffres au voyageur : la réception est validée."],
               ].map(([title, text], i) => (
                 <li key={title} className="relative">
                   <span className="wide tabular flex h-10 w-10 items-center justify-center rounded-full bg-ink text-sm font-extrabold text-signal">
@@ -201,7 +201,7 @@ export default function Home() {
                 <dd className="wide text-3xl font-extrabold">{euros(example.totalCents)}</dd>
               </div>
             </dl>
-            <p className="mt-4 text-sm text-muted">Le voyageur reçoit {euros(example.baseCents)} après la livraison.</p>
+            <p className="mt-4 text-sm text-muted">Le voyageur reçoit {euros(example.baseCents)}.</p>
           </div>
         </section>
 
@@ -215,7 +215,7 @@ export default function Home() {
               <h2 className="display text-3xl sm:text-4xl">À l&apos;arrivée, c&apos;est votre famille qui valide</h2>
               <p className="mt-4 max-w-md leading-relaxed text-white/75">
                 Le voyageur remet le colis en main propre à la personne que vous avez choisie. Elle lui donne son code de
-                remise : c&apos;est ce geste qui libère le paiement.
+                remise, et la livraison est validée.
               </p>
               <ButtonLink href="/comment-ca-marche" variant="signal" className="mt-8 self-start">
                 Voir le parcours complet
@@ -231,7 +231,7 @@ export default function Home() {
             <div className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
               {[
                 [BadgeCheck, "Identité vérifiée", "Pièce d'identité et selfie contrôlés avant d'obtenir le badge bleu."],
-                [Lock, "Argent bloqué", "Le voyageur est payé seulement après la remise. En cas de problème, vous êtes remboursé."],
+                [Lock, "Paiement sécurisé", "Vous payez en ligne, jamais en espèces. En cas de problème, vous êtes remboursé."],
                 [KeyRound, "Code de remise", "Seul votre destinataire connaît le code. Sans lui, la livraison ne peut pas être validée."],
                 [Star, "Avis après chaque envoi", "Expéditeurs et voyageurs se notent mutuellement. Les avis ne peuvent pas être supprimés."],
                 [MessageCircle, "Messagerie intégrée", "Échangez photos du colis et lieu de rendez-vous sans donner votre numéro."],
