@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
+  // Photos en qualité 90 (le reste en 75, la valeur par défaut).
+  images: { qualities: [75, 90] },
   partialPrefetching: true,
   async headers() {
     return [

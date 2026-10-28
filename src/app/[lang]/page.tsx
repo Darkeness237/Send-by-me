@@ -182,7 +182,7 @@ export default async function Home() {
             </div>
             <div className="reveal reveal-delay-3 relative lg:col-start-2 lg:row-start-1">
               <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] bg-signal sm:aspect-[5/4] lg:aspect-[4/5]">
-                <Image
+                <Image quality={90}
                   src={voyageuse}
                   alt={t("Une voyageuse souriante, billet en main, tire sa valise")}
                   fill
@@ -241,7 +241,7 @@ export default async function Home() {
         <section className="mx-auto grid max-w-6xl gap-5 px-4 py-16 sm:px-6 md:grid-cols-2 md:py-20">
           <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-line">
             <div className="relative aspect-[16/9]">
-              <Image src={remise} alt={t("Un colis passe de main en main")} fill placeholder="blur" sizes="(min-width: 768px) 560px, 100vw" className="object-cover" />
+              <Image quality={90} src={remise} alt={t("Un colis passe de main en main")} fill placeholder="blur" sizes="(min-width: 768px) 560px, 100vw" className="object-cover" />
             </div>
             <div className="p-7 sm:p-9">
             <h2 className="wide text-2xl font-extrabold">{t("Vous envoyez un colis")}</h2>
@@ -260,7 +260,7 @@ export default async function Home() {
           </div>
           <div className="overflow-hidden rounded-3xl bg-signal">
             <div className="relative aspect-[16/9]">
-              <Image src={valise} alt={t("Un père et ses enfants préparent une valise jaune")} fill placeholder="blur" sizes="(min-width: 768px) 560px, 100vw" className="object-cover object-[50%_40%]" />
+              <Image quality={90} src={valise} alt={t("Un père et ses enfants préparent une valise jaune")} fill placeholder="blur" sizes="(min-width: 768px) 560px, 100vw" className="object-cover object-[50%_40%]" />
             </div>
             <div className="p-7 sm:p-9">
             <h2 className="wide text-2xl font-extrabold">{t("Vous avez des kilos libres")}</h2>
@@ -345,7 +345,7 @@ export default async function Home() {
         <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-20">
           <div className="grid overflow-hidden rounded-3xl bg-ink text-white md:grid-cols-2">
             <div className="relative aspect-[4/3] md:aspect-auto md:min-h-[380px]">
-              <Image src={famille} alt={t("Une mère tend un cadeau à sa fille souriante")} fill placeholder="blur" sizes="(min-width: 768px) 560px, 100vw" className="object-cover" />
+              <Image quality={90} src={famille} alt={t("Une mère tend un cadeau à sa fille souriante")} fill placeholder="blur" sizes="(min-width: 768px) 560px, 100vw" className="object-cover" />
             </div>
             <div className="flex flex-col justify-center p-8 sm:p-12">
               <h2 className="display text-3xl sm:text-4xl">{t("À l'arrivée, c'est votre famille qui valide")}</h2>

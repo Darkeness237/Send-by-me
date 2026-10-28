@@ -10,7 +10,7 @@ export async function AuthLayout({ title, intro, children }: { title: string; in
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1fr_1.1fr]">
       <div className="relative hidden flex-col justify-between overflow-hidden bg-ink p-10 text-white lg:flex">
-        <Image src={aeroport} alt="" fill placeholder="blur" sizes="50vw" className="object-cover opacity-45" />
+        <Image quality={90} src={aeroport} alt="" fill placeholder="blur" sizes="50vw" className="object-cover opacity-45" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/30" aria-hidden="true" />
         <Link href="/" aria-label={t("Accueil")} className="relative">
           <Logo tone="light" />
@@ -26,7 +26,7 @@ export async function AuthLayout({ title, intro, children }: { title: string; in
       <div className="flex flex-col sm:px-10 lg:py-8">
         {/* Mobile et tablette : bandeau photo, comme sur ordinateur */}
         <div className="relative overflow-hidden bg-ink px-4 pt-6 pb-16 text-white sm:-mx-10 sm:px-10 lg:hidden">
-          <Image src={aeroport} alt="" fill placeholder="blur" sizes="100vw" priority className="object-cover opacity-50" />
+          <Image quality={90} src={aeroport} alt="" fill placeholder="blur" sizes="100vw" priority className="object-cover opacity-50" />
           <div className="absolute inset-0 bg-gradient-to-b from-ink/40 via-ink/60 to-ink" aria-hidden="true" />
           <Link href="/" aria-label={t("Accueil")} className="relative inline-block">
             <Logo tone="light" />

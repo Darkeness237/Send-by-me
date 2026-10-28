@@ -78,7 +78,7 @@ export function JourneyHero({
 }) {
   return (
     <section className="relative isolate overflow-hidden rounded-[28px] bg-ink text-white">
-      <Image
+      <Image quality={90}
         src={image}
         alt={alt}
         fill

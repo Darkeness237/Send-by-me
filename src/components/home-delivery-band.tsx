@@ -17,7 +17,7 @@ export async function HomeDeliveryBand() {
     <section id="livraison" className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-12 sm:px-6 md:pt-16" aria-labelledby="livraison-title">
       <div className="grid overflow-hidden rounded-[28px] bg-ink text-white md:grid-cols-[0.9fr_1.1fr]">
         <div className="relative min-h-[260px]">
-          <Image src={livraison} alt={t("Un livreur remet un colis en main propre")} fill placeholder="blur" sizes="(min-width: 768px) 480px, 100vw" className="object-cover" />
+          <Image quality={90} src={livraison} alt={t("Un livreur remet un colis en main propre")} fill placeholder="blur" sizes="(min-width: 768px) 480px, 100vw" className="object-cover" />
           <span className="absolute top-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-signal px-3.5 py-1.5 text-sm font-extrabold text-ink shadow-lg">
             <Truck className="h-4 w-4" aria-hidden="true" /> {t("Nouveau")}
           </span>
