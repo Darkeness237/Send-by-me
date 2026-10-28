@@ -14,17 +14,42 @@ export type BookingStatus =
   | "cancelled"
   | "refunded";
 
+// Types de colis, rangés par famille. Les identifiants sont enregistrés en base : ne jamais en renommer un.
+export const CATEGORY_GROUPS = ["Mode et beauté", "Enfants et maison", "High-tech", "Alimentation et santé", "Papiers et loisirs", "Divers"] as const;
+
 export const CATEGORIES = [
-  { id: "documents", label: "Documents" },
-  { id: "clothing", label: "Vêtements et chaussures" },
-  { id: "electronics", label: "Électronique" },
-  { id: "cosmetics", label: "Cosmétiques (sans liquides > 100 ml)" },
-  { id: "books", label: "Livres" },
-  { id: "food", label: "Alimentaire sec et emballé" },
-  { id: "gifts", label: "Cadeaux et objets personnels" },
-  { id: "medication", label: "Médicaments avec ordonnance" },
+  { id: "clothing", label: "Vêtements et chaussures", group: "Mode et beauté" },
+  { id: "accessories", label: "Sacs, montres et accessoires", group: "Mode et beauté" },
+  { id: "jewelry", label: "Bijoux fantaisie", group: "Mode et beauté" },
+  { id: "cosmetics", label: "Cosmétiques (sans liquides > 100 ml)", group: "Mode et beauté" },
+  { id: "hair", label: "Mèches, perruques et soins capillaires", group: "Mode et beauté" },
+  { id: "baby", label: "Articles pour bébé", group: "Enfants et maison" },
+  { id: "toys", label: "Jouets", group: "Enfants et maison" },
+  { id: "school", label: "Fournitures scolaires", group: "Enfants et maison" },
+  { id: "textiles", label: "Linge de maison, pagnes et tissus", group: "Enfants et maison" },
+  { id: "kitchen", label: "Ustensiles de cuisine", group: "Enfants et maison" },
+  { id: "decor", label: "Décoration et artisanat", group: "Enfants et maison" },
+  { id: "phones", label: "Téléphones et tablettes", group: "High-tech" },
+  { id: "electronics", label: "Ordinateurs, consoles et autre électronique", group: "High-tech" },
+  { id: "tech_accessories", label: "Câbles, chargeurs et accessoires", group: "High-tech" },
+  { id: "food", label: "Alimentaire sec et emballé", group: "Alimentation et santé" },
+  { id: "spices", label: "Épices, farines et condiments secs", group: "Alimentation et santé" },
+  { id: "medication", label: "Médicaments avec ordonnance", group: "Alimentation et santé" },
+  { id: "documents", label: "Documents", group: "Papiers et loisirs" },
+  { id: "books", label: "Livres", group: "Papiers et loisirs" },
+  { id: "sports", label: "Articles de sport", group: "Papiers et loisirs" },
+  { id: "music", label: "Instruments et accessoires de musique", group: "Papiers et loisirs" },
+  { id: "spare_parts", label: "Pièces auto et petites pièces détachées", group: "Divers" },
+  { id: "tools", label: "Outils à main", group: "Divers" },
+  { id: "gifts", label: "Cadeaux et objets personnels", group: "Divers" },
+  { id: "other", label: "Autre (à préciser dans la description)", group: "Divers" },
 ] as const;
 export type CategoryId = (typeof CATEGORIES)[number]["id"];
+
+/** Catégories regroupées par famille, dans l'ordre d'affichage (familles vides omises). */
+export function groupedCategories<T extends { group: string }>(list: readonly T[]) {
+  return CATEGORY_GROUPS.map((group) => ({ group, items: list.filter((c) => c.group === group) })).filter((g) => g.items.length);
+}
 
 export type Profile = {
   id: string;

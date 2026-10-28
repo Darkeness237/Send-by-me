@@ -21,7 +21,7 @@ import {
 } from "@/lib/flights";
 import { priceGuide, priceLevel, type MarketPrice } from "@/lib/price-guide";
 import { euros } from "@/lib/pricing";
-import { CATEGORIES, type TripMode } from "@/lib/types";
+import { CATEGORIES, groupedCategories, type TripMode } from "@/lib/types";
 
 const LEVEL = {
   attractive: {
@@ -458,23 +458,29 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
           </div>
           <div>
             <p className="text-sm font-semibold">Colis que vous acceptez</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {CATEGORIES.map((c) => (
-                <label
-                  key={c.id}
-                  className="flex items-center gap-3 rounded-xl border border-line px-3.5 py-3 text-[15px] has-checked:border-brand has-checked:bg-brand-pale"
-                >
-                  <input
-                    type="checkbox"
-                    name="accepted_categories"
-                    value={c.id}
-                    defaultChecked={c.id !== "medication"}
-                    className="h-4 w-4 accent-brand"
-                  />
-                  {c.label}
-                </label>
-              ))}
-            </div>
+            <p className="mt-1 text-sm text-muted">Tout est coché sauf les médicaments : décochez ce que vous ne voulez pas transporter.</p>
+            {groupedCategories(CATEGORIES).map((g) => (
+              <div key={g.group} className="mt-4">
+                <p className="text-xs font-semibold tracking-wide text-muted uppercase">{g.group}</p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {g.items.map((c) => (
+                    <label
+                      key={c.id}
+                      className="flex items-center gap-3 rounded-xl border border-line px-3.5 py-3 text-[15px] has-checked:border-brand has-checked:bg-brand-pale"
+                    >
+                      <input
+                        type="checkbox"
+                        name="accepted_categories"
+                        value={c.id}
+                        defaultChecked={c.id !== "medication"}
+                        className="h-4 w-4 accent-brand"
+                      />
+                      {c.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </fieldset>
 

@@ -15,7 +15,7 @@ import {
 import { submitKeepingValues } from "@/components/ui/keep-form";
 import { useCitySearch } from "@/components/use-city-search";
 import { createClient } from "@/lib/supabase/client";
-import { CATEGORIES } from "@/lib/types";
+import { CATEGORIES, groupedCategories } from "@/lib/types";
 
 const TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -190,10 +190,14 @@ export function RequestForm({
                 <option value="" disabled>
                   Choisir
                 </option>
-                {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
-                  </option>
+                {groupedCategories(CATEGORIES).map((g) => (
+                  <optgroup key={g.group} label={g.group}>
+                    {g.items.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </Select>
             </Field>

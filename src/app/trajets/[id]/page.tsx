@@ -219,13 +219,26 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
               )}
             </dl>
             <h3 className="mt-6 font-semibold">Colis acceptés</h3>
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {CATEGORIES.filter((c) => trip.accepted_categories.includes(c.id)).map((c) => (
-                <li key={c.id} className="rounded-full bg-paper px-3 py-1.5 text-sm">
-                  {c.label}
-                </li>
-              ))}
-            </ul>
+            {(() => {
+              // Liste longue : on dit plutôt ce que le voyageur refuse.
+              const accepted = CATEGORIES.filter((c) => trip.accepted_categories.includes(c.id));
+              const refused = CATEGORIES.filter((c) => !trip.accepted_categories.includes(c.id));
+              const shown = accepted.length > 8 && refused.length <= 4 ? refused : accepted;
+              return (
+                <>
+                  {shown === refused && (
+                    <p className="mt-2 text-sm text-muted">{refused.length ? "Tous les types de colis, sauf :" : "Tous les types de colis."}</p>
+                  )}
+                  <ul className="mt-3 flex flex-wrap gap-2">
+                    {shown.map((c) => (
+                      <li key={c.id} className={`rounded-full px-3 py-1.5 text-sm ${shown === refused ? "bg-danger-pale text-danger" : "bg-paper"}`}>
+                        {c.label}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              );
+            })()}
             {trip.notes && (
               <>
                 <h3 className="mt-6 font-semibold">Le mot du voyageur</h3>

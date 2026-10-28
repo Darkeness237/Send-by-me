@@ -6,7 +6,7 @@ import { Field, FormMessage, Input, Select, Textarea } from "@/components/ui/fie
 import { Button } from "@/components/ui/button";
 import { submitKeepingValues } from "@/components/ui/keep-form";
 import { COMMISSION_TIERS, euros, percent, quote, SECURITY_FEE_CENTS } from "@/lib/pricing";
-import { CATEGORIES } from "@/lib/types";
+import { CATEGORIES, groupedCategories } from "@/lib/types";
 
 type Props = {
   tripId: string;
@@ -50,10 +50,14 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
           <option value="" disabled>
             Choisir
           </option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-            </option>
+          {groupedCategories(categories).map((g) => (
+            <optgroup key={g.group} label={g.group}>
+              {g.items.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </Select>
       </Field>
