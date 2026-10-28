@@ -21,6 +21,7 @@ import {
   UserRound,
   X,
   Award,
+  Wallet,
 } from "lucide-react";
 import { deleteAlert } from "@/app/actions/account";
 import { acceptBooking, declineBooking } from "@/app/actions/bookings";
@@ -36,7 +37,7 @@ import { getCreditBalance, getMyAlerts, getMyRequests, getMySendings, getMyTrips
 import { dayLabel, kg } from "@/lib/format";
 import { codeFor, tzFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
-import { getSession } from "@/lib/supabase/server";
+import { createClient, getSession } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/types";
 import { getLocale, getT } from "@/i18n/server";
 
@@ -53,7 +54,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
   const { userId, isAdmin } = await getSession();
   if (!userId) redirect("/connexion?suite=/espace");
   const { onglet } = await searchParams;
-  const [profile, sendings, trips, alerts, requests, unread, credit] = await Promise.all([
+  const [profile, sendings, trips, alerts, requests, unread, credit, hasPayout] = await Promise.all([
     getProfile(userId),
     getMySendings(userId),
     getMyTrips(userId),
@@ -61,6 +62,10 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
     getMyRequests(userId),
     getUnreadCount(userId),
     getCreditBalance(userId),
+    (async () => {
+      const { data } = await (await createClient()).from("payout_methods").select("user_id").eq("user_id", userId).maybeSingle();
+      return !!data;
+    })(),
   ]);
 
   const pending = trips.flatMap((t) => t.bookings.map((b) => ({ ...b, trip: t }))).filter((b) => b.status === "pending");
@@ -81,6 +86,8 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
     { done: !!profile?.avatar_url, label: t("Photo de profil") },
     { done: !!profile?.id_verified, label: t("Identité vérifiée") },
     { done: !!profile?.address_verified, label: t("Adresse vérifiée") },
+    // Voyageur : sans moyen de versement, ses gains ne peuvent pas lui être versés.
+    ...(trips.length ? [{ done: hasPayout, label: t("Moyen de versement") }] : []),
   ];
   const progress = Math.round((checklist.filter((c) => c.done).length / checklist.length) * 100);
   const todo = pending.length + toPay.length + (unread ? 1 : 0);
@@ -381,6 +388,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
             {(
               [
                 ["/espace/profil", UserRound, t("Profil et vérification")],
+                ["/espace/profil?onglet=compte", Wallet, hasPayout ? t("Versements et paiements") : t("Ajouter mon moyen de versement")],
                 ["/messages", MessageCircle, unread ? t("Messages ({n})", { n: unread }) : t("Messages")],
                 ["/notifications", Bell, "Notifications"],
                 ["/suivi", MapPinned, t("Suivre un colis")],

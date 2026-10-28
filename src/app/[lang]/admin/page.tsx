@@ -16,6 +16,7 @@ import { euros } from "@/lib/pricing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession } from "@/lib/supabase/server";
 import { REPORT_REASONS, type BookingStatus } from "@/lib/types";
+import { formatIban, operatorLabel, type PayoutMethod } from "@/lib/payout";
 
 export const metadata: Metadata = { title: "Administration", robots: { index: false } };
 
@@ -271,10 +272,14 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
     const boostShown = new Set<string>();
     const { data } = await db
       .from("bookings")
-      .select("id, base_cents, delivery_cents, delivered_at, trip:trips(id, from_city, to_city, boost_fee_cents, boost_settled_booking, traveler:profiles!trips_traveler_id_fkey(full_name))")
+      .select("id, base_cents, delivery_cents, delivered_at, trip:trips(id, traveler_id, from_city, to_city, boost_fee_cents, boost_settled_booking, traveler:profiles!trips_traveler_id_fkey(full_name))")
       .eq("payout_status", "due")
       .order("delivered_at", { ascending: true })
       .limit(100);
+    // Où verser : moyen enregistré par chaque voyageur (donnée privée, lue avec la clé de service).
+    const travelerIds = [...new Set((data ?? []).map((b) => one((b as Row).trip as Row | Row[] | null)?.traveler_id as string).filter(Boolean))];
+    const { data: methods } = travelerIds.length ? await db.from("payout_methods").select("*").in("user_id", travelerIds) : { data: [] };
+    const methodFor = new Map(((methods ?? []) as (PayoutMethod & { user_id: string })[]).map((m) => [m.user_id, m]));
     content = (data ?? []).length ? (
       <ul className="space-y-3">
         {(data as Row[]).map((b) => {
@@ -293,6 +298,15 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
                   {codeFor((trip?.from_city as string) ?? "")} › {codeFor((trip?.to_city as string) ?? "")} · livré le{" "}
                   {b.delivered_at ? dayLabel(b.delivered_at as string) : "—"}
                 </p>
+                {(() => {
+                  const m = methodFor.get(trip?.traveler_id as string);
+                  if (!m) return <p className="mt-1 text-sm font-semibold text-danger">Aucun moyen de versement enregistré : prévenir le voyageur.</p>;
+                  return (
+                    <p className="tabular mt-1 text-sm">
+                      {m.kind === "iban" ? `Virement · ${formatIban(m.iban ?? "")}${m.bic ? ` · ${m.bic}` : ""}` : `${operatorLabel(m.mobile_operator)} · ${m.mobile_number}${m.country ? ` (${m.country})` : ""}`} · {m.holder_name}
+                    </p>
+                  );
+                })()}
               </div>
               <PayoutForm bookingId={b.id as string} />
             </li>

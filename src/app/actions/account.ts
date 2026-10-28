@@ -6,6 +6,7 @@ import { z } from "zod";
 import { isSupabaseConfigured, SITE_URL } from "@/lib/env";
 import { findPlace } from "@/lib/places";
 import { createClient, getUserId } from "@/lib/supabase/server";
+import { cleanIban, isValidIban, MOBILE_OPERATORS } from "@/lib/payout";
 import { REPORT_REASONS } from "@/lib/types";
 import type { FormState } from "./auth";
 
@@ -101,4 +102,59 @@ export async function deleteAlert(id: number) {
   const supabase = await createClient();
   await supabase.from("route_alerts").delete().eq("id", id).eq("user_id", userId);
   revalidatePath("/espace");
+}
+
+// ── Moyen de versement ──────────────────────────────────────────
+const payoutSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("iban"),
+    holder_name: z.string().trim().min(2, "Indiquez le titulaire du compte").max(100),
+    iban: z
+      .string()
+      .transform(cleanIban)
+      .refine(isValidIban, "IBAN invalide : vérifiez les caractères saisis."),
+    bic: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^([A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?)?$/, "BIC invalide (8 ou 11 caractères).")
+      .optional(),
+  }),
+  z.object({
+    kind: z.literal("mobile_money"),
+    holder_name: z.string().trim().min(2, "Indiquez le nom du titulaire").max(100),
+    mobile_operator: z.enum(MOBILE_OPERATORS.map((o) => o.id) as [string, ...string[]], { error: "Choisissez l'opérateur" }),
+    mobile_number: z
+      .string()
+      .transform((v) => v.replace(/[\s.-]/g, ""))
+      .refine((v) => /^\+[0-9]{8,15}$/.test(v), "Numéro au format international, par exemple +237 6 12 34 56 78."),
+    country: z.string().trim().max(60).optional(),
+  }),
+]);
+
+export async function savePayoutMethod(_: FormState, formData: FormData): Promise<FormState> {
+  if (!isSupabaseConfigured) return { error: DEMO_ERROR };
+  const userId = await getUserId();
+  if (!userId) return { error: "Connectez-vous." };
+  const parsed = payoutSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const d = parsed.data;
+  const row =
+    d.kind === "iban"
+      ? { kind: d.kind, holder_name: d.holder_name, iban: d.iban, bic: d.bic || null, mobile_operator: null, mobile_number: null, country: d.iban.slice(0, 2) }
+      : { kind: d.kind, holder_name: d.holder_name, iban: null, bic: null, mobile_operator: d.mobile_operator, mobile_number: d.mobile_number, country: d.country || null };
+  const supabase = await createClient();
+  const { error } = await supabase.from("payout_methods").upsert({ user_id: userId, ...row, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+  if (error) return { error: "Moyen de versement non enregistré. Réessayez." };
+  revalidatePath("/espace/profil");
+  return { ok: "Moyen de versement enregistré. Vos prochains gains y seront versés." };
+}
+
+export async function deletePayoutMethod() {
+  const userId = await getUserId();
+  if (!userId) redirect("/connexion?suite=/espace/profil/versement");
+  const supabase = await createClient();
+  await supabase.from("payout_methods").delete().eq("user_id", userId);
+  revalidatePath("/espace/profil");
+  redirect("/espace/profil/versement");
 }
