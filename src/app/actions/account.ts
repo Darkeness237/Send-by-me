@@ -162,7 +162,7 @@ export async function savePayoutMethod(_: FormState, formData: FormData): Promis
       else return { ok: "IBAN mis à jour. Vos prochains virements automatiques y seront envoyés." };
     } catch (e) {
       console.error("Virements automatiques à l'enregistrement de l'IBAN", e instanceof Error ? e.message : e);
-      return { ok: "IBAN enregistré. Les virements automatiques n'ont pas pu être activés pour l'instant : nous vous verserons vos gains à la main." };
+      return { ok: "IBAN enregistré. Vos gains seront versés sur ce compte." };
     }
     redirect(url);
   }

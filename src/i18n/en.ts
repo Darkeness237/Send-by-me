@@ -1340,11 +1340,11 @@ export const en: Record<string, string> = {
   "Comptes bancaires acceptés : {pays}. Ailleurs, ou en Mobile Money, nous vous versons vos gains à la main.": "Bank accounts accepted in: {pays}. Elsewhere, or with Mobile Money, we pay your earnings manually.",
   "IBAN d'un pays accepté : virements automatiques après une vérification rapide chez Stripe. Mobile Money ou autre pays : versement à la main dans les jours qui suivent la livraison.": "IBAN from an accepted country: automatic transfers after a quick check with Stripe. Mobile Money or another country: manual payment in the days following delivery.",
   "IBAN mis à jour. Vos prochains virements automatiques y seront envoyés.": "IBAN updated. Your next automatic transfers will go there.",
-  "IBAN enregistré. Les virements automatiques n'ont pas pu être activés pour l'instant : nous vous verserons vos gains à la main.": "IBAN saved. Automatic transfers couldn't be activated for now: we'll pay your earnings manually.",
   "Thème d'affichage": "Display theme",
   "Auto": "Auto",
   "Clair": "Light",
   "Sombre": "Dark",
   "Affichage": "Display",
   "« Auto » passe en mode nuit quand votre téléphone le fait.": "“Auto” switches to dark mode when your phone does.",
+  "IBAN enregistré. Vos gains seront versés sur ce compte.": "IBAN saved. Your earnings will be paid to this account.",
 };

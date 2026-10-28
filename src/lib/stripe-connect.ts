@@ -63,39 +63,50 @@ export async function ensureConnectAccount(userId: string, country: string, emai
     return existing.account_id;
   }
   const [first, ...rest] = (bank?.holder || name).trim().split(/\s+/);
-  const account = await stripe().accounts.create(
+  // Accounts v2 : compte « destinataire » (il ne fait que recevoir des virements), tableau de bord Express.
+  // Send By Me garde les fonds jusqu'à la livraison puis transfère : les pertes éventuelles sont à la charge de la plateforme
+  // (à confirmer une fois dans Stripe : Paramètres → Connect → Profil de la plateforme).
+  const account = await stripe().v2.core.accounts.create(
     {
-      country,
-      email: email ?? undefined,
-      business_type: "individual",
-      individual: { email: email ?? undefined, first_name: first || undefined, last_name: rest.join(" ") || undefined },
-      controller: {
-        fees: { payer: "application" },
-        losses: { payments: "application" },
-        requirement_collection: "stripe",
-        stripe_dashboard: { type: "express" },
+      display_name: (bank?.holder || name).slice(0, 80) || "Voyageur Send By Me",
+      contact_email: email ?? undefined,
+      dashboard: "express",
+      identity: {
+        country,
+        entity_type: "individual",
+        individual: { given_name: first || undefined, surname: rest.join(" ") || undefined, email: email ?? undefined },
       },
-      capabilities: { transfers: { requested: true } },
-      // Le voyageur ne fait que recevoir des virements : contrat « destinataire ».
-      tos_acceptance: { service_agreement: "recipient" },
-      business_profile: { product_description: "Voyageur Send By Me : transport de colis entre particuliers" },
-      external_account: bank ? bankAccount(country, bank) : undefined,
+      configuration: { recipient: { capabilities: { stripe_balance: { stripe_transfers: { requested: true } } } } },
+      defaults: {
+        responsibilities: { fees_collector: "application", losses_collector: "application" },
+        profile: { product_description: "Voyageur Send By Me : transport de colis entre particuliers" },
+      },
       metadata: { user_id: userId },
     },
-    { idempotencyKey: `connect-account-${userId}-${country}-${bank?.iban.slice(-6) ?? "sans-iban"}` },
+    { idempotencyKey: `connect-v2-${userId}-${country}` },
   );
+  if (bank) {
+    // IBAN prérempli : Stripe ne le redemande pas. En cas de refus, Stripe le demandera simplement pendant l'inscription.
+    await stripe()
+      .accounts.createExternalAccount(account.id, { external_account: bankAccount(country, bank), default_for_currency: true })
+      .catch((e) => console.error("IBAN prérempli chez Stripe", e instanceof Error ? e.message : e));
+  }
   await createAdminClient().from("stripe_connect_accounts").insert({ user_id: userId, account_id: account.id, country });
   return account.id;
 }
 
 /** Lien vers le formulaire Stripe : identité, adresse et IBAN du voyageur. */
 export async function onboardingUrl(accountId: string) {
-  const link = await stripe().accountLinks.create({
+  const link = await stripe().v2.core.accountLinks.create({
     account: accountId,
-    type: "account_onboarding",
-    refresh_url: `${SITE_URL}/espace/profil/versement/stripe`,
-    return_url: `${SITE_URL}/espace/profil/versement?stripe=retour`,
-    collection_options: { fields: "eventually_due" },
+    use_case: {
+      type: "account_onboarding",
+      account_onboarding: {
+        refresh_url: `${SITE_URL}/espace/profil/versement/stripe`,
+        return_url: `${SITE_URL}/espace/profil/versement?stripe=retour`,
+        collection_options: { fields: "eventually_due" },
+      },
+    },
   });
   return link.url;
 }
@@ -105,8 +116,8 @@ export async function syncConnectAccount(userId: string): Promise<ConnectAccount
   const acc = await getConnectAccount(userId);
   if (!acc) return null;
   try {
-    const account = await stripe().accounts.retrieve(acc.account_id);
-    const active = account.capabilities?.transfers === "active" && account.payouts_enabled;
+    const account = await stripe().v2.core.accounts.retrieve(acc.account_id, { include: ["configuration.recipient"] });
+    const active = account.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers?.status === "active";
     if (active !== acc.transfers_active) {
       await createAdminClient().from("stripe_connect_accounts").update({ transfers_active: active, updated_at: new Date().toISOString() }).eq("user_id", userId);
       if (active) await payDueBookings(userId);
