@@ -359,8 +359,11 @@ vid('25-demande-et-suivi', [V9], [
   withVo(textScene(3, { title: 'Pas de trajet qui vous convient ?' }), 'Vous ne trouvez pas de trajet à la bonne date ? Pas de problème.'),
   withVo(S.card({ eyebrow: 'Demande d’envoi', title: 'Publiez votre colis.' }, L.parcel({ size: 1.3, home: false })), 'Publiez une demande d’envoi : les villes, les dates, le poids, le contenu, et quelques photos du colis.'),
   withVo(S.stamp({ eyebrow: 'En option', title: 'Livraison à domicile.' }), 'Vous pouvez même demander la livraison à domicile pour votre destinataire.'),
+  withVo(photoScene(4, { photo: P.sofa, pos: '50% 40%', eyebrow: 'Messagerie', title: 'Discutez avant de choisir.' }), 'Avant de choisir, discutez dans la messagerie : photos du colis, lieu de rendez-vous. Votre numéro reste privé.'),
   withVo(textScene(4, { color: C.brand, title: 'Les voyageurs viennent à vous.', text: 'Ils sont prévenus et vous proposent leur trajet.' }), 'Les voyageurs qui partent sur votre ligne sont prévenus, et vous proposent leur trajet. Vous discutez, vous choisissez.'),
-  withVo(S.track({ eyebrow: 'Suivi', title: 'Suivez chaque étape.' }), 'Une fois le colis remis au voyageur, suivez chaque étape : en vol, arrivé, livré.'),
+  withVo(S.lock({ eyebrow: 'Paiement', title: 'Votre argent reste bloqué.' }), 'Une fois le voyageur choisi, vous payez en ligne. L’argent reste bloqué jusqu’à la réception du colis.'),
+  withVo(S.track({ eyebrow: 'Suivi', title: 'Suivez chaque étape.' }), 'Une fois le colis remis au voyageur, suivez chaque étape : en transit, arrivé, réceptionné.'),
+  withVo(S.code({ eyebrow: 'Réception', title: 'Le code arrive par e-mail.' }), 'Votre destinataire reçoit son code de réception par e-mail. Il le donne au voyageur en recevant le colis, et la réception est validée.'),
   withVo(textScene(3.5, { color: C.paper, fg: C.ink, accent: C.brand, eyebrow: 'Numéro de suivi', title: 'Votre destinataire suit aussi.', text: 'Sans créer de compte.' }), 'Votre destinataire peut suivre le colis avec son numéro de suivi, sans créer de compte.'),
   withVo(endCard('Publiez votre demande d’envoi.', 'send-by-me.com/demandes'), 'Publiez votre demande sur send baille mi point com.'),
 ], 'Demande d’envoi et suivi (environ 50 s). Légende : « Pas de trajet ? Publiez votre colis, les voyageurs viennent à vous. »');
@@ -369,6 +372,9 @@ vid('26-fin-annee', [V9], [
   withVo(photoScene(4, { photo: P.famille, pos: '50% 35%', eyebrow: 'Fêtes de fin d’année', title: 'Les fêtes approchent.' }), 'Les fêtes de fin d’année approchent, et vous pensez déjà aux cadeaux pour la famille restée au pays.'),
   withVo(photoScene(4, { photo: P.habits, pos: '50% 50%', eyebrow: 'Conseil', title: 'Préparez votre colis.' }), 'Vêtements, jouets, chocolats bien emballés : préparez votre colis, et présentez-le ouvert au voyageur.'),
   withVo(textScene(4, { color: C.signal, fg: C.ink, accent: C.ink, eyebrow: 'Décembre', title: 'Réservez tôt : les kilos partent vite.' }), 'En décembre, beaucoup de voyageurs rentrent, mais les kilos partent vite. Réservez tôt, pour que tout arrive avant les fêtes.'),
+  withVo(textScene(4, { color: C.paper, fg: C.ink, accent: C.brand, eyebrow: 'Négociation', title: 'Proposez votre prix au voyageur.' }), 'Vous pouvez proposer votre prix au voyageur : il accepte, il refuse, ou il vous fait une contre-proposition.'),
+  withVo(S.track({ eyebrow: 'Suivi', title: 'Suivez le colis jusqu’à la famille.' }), 'Pendant le voyage, suivez votre colis étape par étape : en transit, arrivé, puis réceptionné.'),
+  withVo(photoScene(4, { photo: P.remise, pos: '55% 50%', eyebrow: 'Remise', title: 'En main propre, au rendez-vous.' }), 'Le voyageur remet le colis en main propre à votre famille, au rendez-vous convenu.'),
   withVo(S.code({ eyebrow: 'À l’arrivée', title: 'Votre famille valide la livraison.' }), 'À l’arrivée, c’est votre famille qui valide la livraison avec son code. Le voyageur n’est payé qu’à ce moment-là.'),
   withVo(S.card({ eyebrow: 'Vous rentrez aussi ?', title: 'Proposez vos kilos de décembre.' }, L.ticket({ date: 'Sam. 19 déc.', size: 1.2 }), C.signal), 'Et si vous rentrez vous aussi pour les fêtes, proposez vos kilos libres : c’est le meilleur moment de l’année.'),
   withVo(endCard('Joyeuses fêtes !'), 'Joyeuses fêtes, avec Send baille mi.'),
@@ -378,7 +384,9 @@ vid('27-parrainage-ambassadeurs', [V9], [
   withVo(S.card({ eyebrow: 'Parrainage', title: '5 € pour vous, 5 € pour eux.' }, L.creditCard({ size: 1.3 }), C.signal), 'Vous aimez Send baille mi ? Parrainez vos proches : cinq euros pour vous, cinq euros pour eux.'),
   withVo(textScene(4, { eyebrow: 'Comment ?', title: 'Partagez votre lien depuis votre espace.' }), 'Partagez votre lien de parrainage depuis votre espace. Quand votre proche réussit sa première livraison, vous recevez chacun cinq euros de crédit.'),
   withVo(textScene(3.5, { color: C.paper, fg: C.ink, accent: C.brand, eyebrow: 'Crédit', title: 'Déduit de vos frais de service.' }), 'Ce crédit s’applique automatiquement sur les frais de service de vos prochaines réservations.'),
+  withVo(textScene(4, { color: C.brand, eyebrow: 'Partagez', title: 'Votre lien, partout où on envoie des colis.' }), 'Partagez votre lien sur WhatsApp, dans vos groupes, ou avec vos proches qui envoient souvent des colis au pays.'),
   withVo(photoScene(4, { photo: P.lagos, pos: '50% 30%', eyebrow: 'Étudiants', title: 'Devenez ambassadeur sur votre campus.' }), 'Vous êtes étudiant ? Devenez ambassadeur Send baille mi sur votre campus, et faites connaître la plateforme aux étudiants qui rentrent au pays.'),
+  withVo(textScene(4, { eyebrow: 'Ambassadeurs', title: 'Un rôle concret, près de chez vous.' }), 'Vous présentez Send baille mi lors des événements de votre association, et vous aidez les nouveaux voyageurs à publier leur premier trajet.'),
   withVo(endCard('Écrivez-nous en message privé.'), 'Écrivez-nous, et parrainez vos proches, sur send baille mi point com.'),
 ], 'Parrainage et ambassadeurs (environ 45 s). Légende : « 5 € pour vous, 5 € pour eux 🎁 Et devenez ambassadeur sur votre campus. »');
 
@@ -386,9 +394,11 @@ vid('28-film-de-marque', [V16, V9], [
   withVo(photoScene(4, { photo: P.valise, pos: '50% 40%', title: 'Quelqu’un prépare sa valise.', kind: 'pan' }), 'Quelque part en Europe, quelqu’un prépare sa valise pour rentrer au pays. Il lui reste de la place.'),
   withVo(photoScene(4, { photo: P.habits, pos: '50% 50%', title: 'Quelqu’un prépare un colis.', kind: 'pan' }), 'Pas loin de là, quelqu’un prépare un colis pour sa famille : des vêtements, des cahiers, un téléphone.'),
   withVo(photoScene(4, { photo: P.sofa, pos: '50% 40%', title: 'Ils se trouvent.', kind: 'pan' }), 'Sur Send baille mi, ils se trouvent. Ils discutent, et se mettent d’accord.'),
+  withVo(photoScene(4, { photo: P.carton, pos: '60% 40%', title: 'Le prix est convenu, le paiement bloqué.', kind: 'pan' }), 'Ils conviennent du prix, et l’expéditeur paie en ligne. Le voyageur sait qu’il sera payé, l’expéditeur sait que son argent est protégé.'),
   withVo(photoScene(4, { photo: P.aile, pos: '50% 50%', title: 'Le colis voyage avec lui.', kind: 'pan' }), 'Le colis voyage dans la valise. Pendant ce temps, l’argent reste bloqué, en sécurité.'),
   withVo(photoScene(4, { photo: P.remise, pos: '55% 50%', title: 'Il est remis en main propre.', kind: 'pan' }), 'À l’arrivée, il est remis en main propre.'),
   withVo(photoScene(4, { photo: P.famille, pos: '50% 35%', title: 'Et c’est la famille qui valide.', kind: 'pan' }), 'Et c’est la famille qui valide, avec son code. Le voyageur est payé. Tout le monde y gagne.'),
+  withVo(textScene(4, { title: 'Chaque valise qui part avec de la place peut rapprocher deux familles.' }), 'Chaque jour, des valises partent vers l’Afrique avec de la place. Avec Send baille mi, cette place devient un lien entre les familles.'),
   withVo(endCard('Vos colis voyagent dans la valise de quelqu’un.', 'send-by-me.com', 4), 'Send baille mi. Vos colis voyagent dans la valise de quelqu’un.'),
 ], 'Film de marque (environ 50 s), pour YouTube, Facebook, LinkedIn et la page d’accueil.');
 
