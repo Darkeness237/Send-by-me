@@ -1,0 +1,92 @@
+{
+ "business": "Send By Me — modèle actuel + forfait sécurité et suivi de 2 € (envoi moyen de 8 kg à 9 €/kg)",
+ "unit": "envoi payé",
+ "price": 11.09,
+ "variable": [
+  {
+   "label": "Parrainage : 5 € de crédit sur ~20 % des envois (estimation)",
+   "cost": 1.0
+  },
+  {
+   "label": "Notifications SMS et e-mails, ~4 SMS (tarif Brevo ~0,045 €/SMS)",
+   "cost": 0.2
+  },
+  {
+   "label": "Vérification d'identité, ramenée à l'envoi (estimation)",
+   "cost": 0.3
+  },
+  {
+   "label": "Litiges et remboursements non récupérés, ~1 % du volume (estimation)",
+   "cost": 0.8
+  },
+  {
+   "label": "Virement au voyageur (Stripe Connect, estimation)",
+   "cost": 0.5
+  }
+ ],
+ "days_per_month": 30,
+ "capacity_per_day": 10000,
+ "plan_per_day": 30,
+ "ramp_per_day": [
+  1,
+  2,
+  3,
+  4,
+  6,
+  9,
+  14,
+  12,
+  10,
+  12,
+  16,
+  22
+ ],
+ "fixed_monthly": [
+  {
+   "label": "Support et opérations (freelance mi-temps, estimation)",
+   "cost": 1200
+  },
+  {
+   "label": "Hébergement et outils : Supabase Pro, Netlify Pro, Brevo, Google Workspace, domaine (estimation)",
+   "cost": 150
+  },
+  {
+   "label": "Expert-comptable (estimation)",
+   "cost": 150
+  },
+  {
+   "label": "Assurances : RC pro plateforme et garantie colis (estimation à confirmer par devis)",
+   "cost": 200
+  },
+  {
+   "label": "Banque, outils divers (estimation)",
+   "cost": 50
+  },
+  {
+   "label": "Publicité permanente : Meta, TikTok, Google (budget choisi)",
+   "cost": 3000
+  }
+ ],
+ "startup": [
+  {
+   "label": "Création de la société et formalités (estimation)",
+   "cost": 600
+  },
+  {
+   "label": "Avocat : CGU, responsabilité, douane, DAC7 (estimation)",
+   "cost": 2500
+  },
+  {
+   "label": "Campagne de lancement : contenus sponsorisés, influenceurs diaspora (budget choisi)",
+   "cost": 6000
+  },
+  {
+   "label": "Présence aéroports et associations : flyers, kakémonos, stands (budget choisi)",
+   "cost": 2000
+  },
+  {
+   "label": "Réserve litiges des premiers mois (estimation)",
+   "cost": 1500
+  }
+ ]
+}
