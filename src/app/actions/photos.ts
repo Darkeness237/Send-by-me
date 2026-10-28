@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { fingerprint, hashDistance, SAME_PHOTO_DISTANCE } from "@/lib/photo-hash";
 import { MAX_PHOTOS_PER_STEP, PHOTO_STEPS, type PhotoKind } from "@/lib/parcel-photos";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUserId } from "@/lib/supabase/server";
@@ -32,11 +33,33 @@ export async function addBookingPhoto(bookingId: string, kind: PhotoKind, path: 
   if ((count ?? 0) >= MAX_PHOTOS_PER_STEP) return { error: `${MAX_PHOTOS_PER_STEP} photos maximum pour cette étape.` };
 
   // Le fichier doit vraiment exister dans le stockage.
-  const folder = path.split("/")[0];
-  const { data: files } = await db.storage.from("parcel-photos").list(folder, { search: path.split("/")[1] });
-  if (!files?.length) return { error: "Photo introuvable : réessayez l'envoi." };
+  const { data: file } = await db.storage.from("parcel-photos").download(path);
+  if (!file) return { error: "Photo introuvable : réessayez l'envoi." };
 
-  const { error } = await db.from("booking_photos").insert({ booking_id: bookingId, author_id: userId, kind, path });
+  // Chaque étape demande une nouvelle prise de vue : pas la même photo réutilisée (même recompressée),
+  // ni une photo déjà envoyée pour un autre colis.
+  const { sha, phash } = await fingerprint(Buffer.from(await file.arrayBuffer()));
+  const [{ data: here }, { data: elsewhere }] = await Promise.all([
+    db.from("booking_photos").select("kind, content_hash, phash").eq("booking_id", bookingId),
+    db
+      .from("booking_photos")
+      .select("id")
+      .neq("booking_id", bookingId)
+      .or(phash ? `content_hash.eq.${sha},phash.eq.${phash}` : `content_hash.eq.${sha}`)
+      .limit(1),
+  ]);
+  const twin = (here ?? []).find((p) => p.content_hash === sha || (phash && p.phash && hashDistance(phash, p.phash) <= SAME_PHOTO_DISTANCE));
+  if (twin || elsewhere?.length) {
+    await db.storage.from("parcel-photos").remove([path]);
+    const step = PHOTO_STEPS.find((s) => s.kind === twin?.kind);
+    return {
+      error: twin
+        ? `Cette photo est identique à celle de l'étape « ${step?.label ?? "précédente"} ». Prenez une nouvelle photo du colis maintenant.`
+        : "Cette photo a déjà servi pour un autre envoi. Prenez une nouvelle photo de ce colis.",
+    };
+  }
+
+  const { error } = await db.from("booking_photos").insert({ booking_id: bookingId, author_id: userId, kind, path, content_hash: sha, phash });
   if (error) return { error: "Photo non enregistrée." };
   revalidatePath(`/reservations/${bookingId}`);
   return { ok: true };

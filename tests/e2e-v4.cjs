@@ -104,7 +104,17 @@ async function signup(b, first, last, email, next) {
   log('code créé pour le destinataire :', sql(`select delivery_code ~ '^[0-9]{6}$' from booking_secrets where booking_id='${bid}'`), '(e-mail envoyé seulement si Brevo est configuré)');
 
   // 6. Le voyageur reçoit le colis, puis le vol décolle et atterrit (horaires avancés pour le test)
-  await addPhotos(s, bookingUrl, ['contents', 'packed']);
+  // L'expéditeur tente de réutiliser la photo du contenu pour le colis emballé (même recompressée) : refusé
+  const sharp = require('sharp');
+  const photoA = await addPhotos.image();
+  await s.goto(bookingUrl);
+  await addPhotos.upload(s, 'contents', photoA);
+  await s.waitForSelector('[data-photo-step="contents"] img');
+  await s.reload();
+  await addPhotos.upload(s, 'packed', await sharp(photoA).resize(320).jpeg({ quality: 45 }).toBuffer());
+  await s.waitForSelector('[data-photo-step="packed"] [role=alert]');
+  log('même photo réutilisée :', (await s.textContent('[data-photo-step="packed"] [role=alert]')).trim());
+  await addPhotos(s, bookingUrl, ['packed']);
   await addPhotos(t, bookingUrl, ['pickup']);
   log('photos départ (contenu, emballé, prise en charge) :', sql(`select count(*) from booking_photos where booking_id='${bid}'`));
   await t.click('button:has-text("J\'ai reçu le colis")');
