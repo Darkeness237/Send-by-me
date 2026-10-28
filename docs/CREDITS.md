@@ -11,3 +11,25 @@ Photos issues de [Pexels](https://www.pexels.com), sous la [licence Pexels](http
 | `public/images/cadeau-famille.jpg` | https://www.pexels.com/photo/crop-black-mother-passing-christmas-gift-to-smiling-daughter-5727939/ |
 
 Les personnes photographiées ne sont pas des membres de Send By Me : les photos illustrent l'usage, elles ne sont jamais présentées comme des témoignages. À remplacer par des photos de vrais membres, avec leur accord écrit, dès que possible.
+
+## Kit marketing (`marketing/`)
+
+Photos supplémentaires issues de Pexels (même licence), utilisées uniquement dans les visuels publicitaires :
+
+| Fichier | Source |
+|---|---|
+| `marketing/_src/photos/px-30677594.jpg` | https://www.pexels.com/photo/smiling-woman-with-smartphone-in-lagos-30677594/ |
+| `marketing/_src/photos/px-3646733.jpg` | https://www.pexels.com/photo/airplane-window-view-of-airplane-wing-and-clouds-3646733/ |
+| `marketing/_src/photos/px-3885493.jpg` | https://www.pexels.com/photo/stylish-woman-with-suitcase-and-bag-walking-on-street-near-modern-airport-terminal-3885493/ |
+| `marketing/_src/photos/px-4247766.jpg` | https://www.pexels.com/photo/crop-man-sealing-box-with-scotch-tape-4247766/ |
+| `marketing/_src/photos/px-5711715.jpg` | https://www.pexels.com/photo/photo-of-a-woman-using-her-phone-while-smiling-5711715/ |
+| `marketing/_src/photos/px-5991144.jpg` | https://www.pexels.com/photo/happy-black-woman-smiling-and-receiving-call-on-smartphone-5991144/ |
+| `marketing/_src/photos/px-6612087.jpg` | https://www.pexels.com/photo/a-person-packing-clothes-in-a-cardboard-box-6612087/ |
+| `marketing/_src/photos/px-731217.jpg` | https://www.pexels.com/photo/airplane-wing-above-clouds-731217/ |
+| `marketing/_src/photos/px-7464379.jpg` | https://www.pexels.com/photo/a-man-packing-ceramic-mug-in-a-carboard-box-7464379/ |
+| `marketing/_src/photos/px-7464408.jpg` | https://www.pexels.com/photo/a-man-packing-the-box-7464408/ |
+| `marketing/_src/photos/px-9429449.jpg` | https://www.pexels.com/photo/smiling-black-woman-with-smartphone-9429449/ |
+
+Les photos du site (`public/images/`) sont aussi utilisées.
+
+Police : **Nunito** (`marketing/_src/fonts/`), licence SIL Open Font License 1.1, https://github.com/google/fonts/tree/main/ofl/nunito
