@@ -6,7 +6,7 @@ import { isSupabaseConfigured } from "./env";
 import { normalize } from "./places";
 import { createClient } from "./supabase/server";
 import { computeMarket, type MarketPrice } from "./price-guide";
-import type { Booking, Profile, Trip } from "./types";
+import type { Booking, PriceOffer, Profile, Trip } from "./types";
 
 const TRIP_SELECT =
   "*, traveler:profiles!trips_traveler_id_fkey(id, full_name, avatar_url, bio, city, id_verified, address_verified, certified, created_at)";
@@ -348,6 +348,17 @@ export async function getTrackingEvents(bookingId: string): Promise<TrackingEven
     .eq("booking_id", bookingId)
     .order("created_at", { ascending: true });
   return (data ?? []).map((e) => ({ kind: e.kind as string, at: e.created_at as string, note: (e.note as string) ?? null }));
+}
+
+/** Négociation du prix d'une réservation (participants uniquement, RLS). */
+export async function getPriceOffers(bookingId: string): Promise<PriceOffer[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("price_offers")
+    .select("id, booking_id, author_id, price_per_kg_cents, status, created_at")
+    .eq("booking_id", bookingId)
+    .order("created_at", { ascending: true });
+  return (data ?? []) as PriceOffer[];
 }
 
 /** Adresse de livraison à domicile (lisible par l'expéditeur uniquement, RLS). */

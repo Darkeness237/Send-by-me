@@ -11,6 +11,6 @@ const tone: Record<BookingStatus, string> = {
   refunded: "bg-paper text-muted",
 };
 
-export function StatusBadge({ status }: { status: BookingStatus }) {
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${tone[status]}`}>{STATUS_LABEL[status]}</span>;
+export function StatusBadge({ status, label }: { status: BookingStatus; label?: string }) {
+  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${tone[status]}`}>{label ?? STATUS_LABEL[status]}</span>;
 }

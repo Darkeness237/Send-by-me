@@ -77,7 +77,7 @@ async function signup(b, first, last, email, next) {
   await s.selectOption('#category', 'clothing');
   await s.fill('#description', 'Vêtements pour enfants');
   await s.fill('#recipient_name', 'Awa Traoré');
-  await s.fill('#recipient_phone', '+225 07 00 00 00 00');
+  await s.fill('#recipient_phone', '+225 07 00 00 00 00'); await s.fill('#recipient_email', 'destinataire@test.fr');
   await s.check('input[name=home_delivery]');
   await s.fill('#delivery_address', 'Cocody, Riviera 2, villa 14');
   await s.check('input[name=declaration]');
@@ -111,7 +111,7 @@ async function signup(b, first, last, email, next) {
   await fetch(BASE + '/api/webhooks/stripe', { method: 'POST', headers: { 'stripe-signature': stripe.webhooks.generateTestHeaderString({ payload, secret: 'whsec_local_test' }), 'content-type': 'application/json' }, body: payload });
   log('payé, notification voyageur →', sql(`select title from notifications where user_id='${tid}' and kind='booking_paid' limit 1`));
   await t.reload();
-  await t.click('button:has-text("J\'ai le colis")');
+  await t.click('button:has-text("J\'ai reçu le colis")');
   await t.waitForSelector('button:has-text("Je suis parti")');
   await t.click('button:has-text("Je suis parti")');
   await t.waitForSelector('button:has-text("Je suis arrivé")');

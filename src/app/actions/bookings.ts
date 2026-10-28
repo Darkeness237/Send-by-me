@@ -6,7 +6,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/env";
 import { homeDeliveryFor } from "@/lib/delivery";
-import { notifyBooking, notifyMessage } from "@/lib/notify-events";
+import { CONTACT_BLOCKED_MESSAGE, containsContactDetails } from "@/lib/contact-guard";
+import { notifyBooking, notifyMessage, notifyOffer } from "@/lib/notify-events";
 import { quote, roundKg } from "@/lib/pricing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getUserId } from "@/lib/supabase/server";
@@ -52,6 +53,8 @@ const requestSchema = z.object({
     .string()
     .trim()
     .regex(/^\+?[0-9 ]{8,20}$/, "Numéro du destinataire invalide (ex. +237 6 99 00 00 00)"),
+  recipient_email: z.email("E-mail du destinataire invalide : il y recevra son code de réception").max(120),
+  offer_price: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().min(1, "Proposition : 1 € minimum le kilo").max(100).optional()),
   declaration: z.literal("on", { error: "Confirmez que le colis ne contient aucun objet interdit" }),
   home_delivery: z.literal("on").optional(),
   delivery_address: z.string().trim().max(300).optional(),
@@ -92,8 +95,9 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
     .in("status", ["pending", "accepted"]);
   if (count) return { error: "Vous avez déjà une demande en cours sur ce trajet." };
 
-  // Prix recalculé ici, à partir du trajet en base.
+  // Prix recalculé ici, à partir du trajet en base. Une proposition de prix ne s'applique qu'une fois acceptée.
   const q = quote(trip.price_per_kg_cents, d.weight_kg, wantsDelivery ? homeDeliveryFor(trip.to_country) : 0);
+  const offerCents = d.offer_price ? Math.round(d.offer_price * 100) : null;
 
   const { data: booking, error } = await admin
     .from("bookings")
@@ -105,6 +109,8 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
       description: d.description,
       recipient_name: d.recipient_name,
       recipient_phone: d.recipient_phone,
+      recipient_email: d.recipient_email.toLowerCase(),
+      price_per_kg_cents: trip.price_per_kg_cents,
       base_cents: q.baseCents,
       delivery_cents: q.deliveryCents,
       delivery_status: wantsDelivery ? "requested" : null,
@@ -124,6 +130,10 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
   // Crédit de parrainage : déduit des frais, au plus la commission Send By Me (la part du voyageur est intacte).
   await admin.rpc("apply_booking_credit", { p_booking_id: booking.id, p_max_cents: q.commissionCents });
   await notifyBooking(booking.id, "requested");
+  if (offerCents && offerCents !== trip.price_per_kg_cents) {
+    await admin.from("price_offers").insert({ booking_id: booking.id, author_id: userId, price_per_kg_cents: offerCents });
+    await notifyOffer(booking.id, trip.traveler_id, "offer", offerCents);
+  }
   redirect(`/reservations/${booking.id}`);
 }
 
@@ -134,7 +144,11 @@ export async function acceptBooking(bookingId: string) {
   if (!b || b.traveler_id !== userId || b.status !== "pending") return;
   const admin = createAdminClient();
   const { data: accepted } = await admin.rpc("accept_booking", { p_booking_id: bookingId, p_traveler_id: userId });
-  if (accepted) await notifyBooking(bookingId, "accepted");
+  if (accepted) {
+    // Le voyageur accepte au prix en vigueur : une proposition encore ouverte est close.
+    await admin.from("price_offers").update({ status: "superseded", answered_at: new Date().toISOString() }).eq("booking_id", bookingId).eq("status", "pending");
+    await notifyBooking(bookingId, "accepted");
+  }
   refresh(bookingId);
 }
 
@@ -215,7 +229,7 @@ export async function confirmDelivery(_: FormState, formData: FormData): Promise
   await admin.from("bookings").update({ status: "delivered", delivered_at: now, updated_at: now }).eq("id", bookingId).eq("status", "picked_up");
   await notifyBooking(bookingId, "delivered");
   refresh(bookingId);
-  return { ok: "Livraison confirmée. Le paiement va vous être versé." };
+  return { ok: "Réception validée : la transaction est terminée." };
 }
 
 // ── Messages (réservation ou question avant réservation) ─────────
@@ -228,11 +242,12 @@ export async function sendMessage(_: FormState, formData: FormData): Promise<For
   const thread = uuid.safeParse(bookingId).success ? { booking_id: bookingId } : uuid.safeParse(inquiryId).success ? { inquiry_id: inquiryId } : null;
   if (!thread || !body) return null;
   if (body.length > 2000) return { error: "Message trop long (2000 caractères maximum)." };
+  if (containsContactDetails(body)) return { error: CONTACT_BLOCKED_MESSAGE };
 
   // Client utilisateur : la RLS vérifie que l'auteur participe à la discussion.
   const supabase = await createClient();
   const { error } = await supabase.from("messages").insert({ ...thread, author_id: userId, body });
-  if (error) return { error: "Message non envoyé." };
+  if (error) return { error: error.code === "23514" ? CONTACT_BLOCKED_MESSAGE : "Message non envoyé." };
   await notifyMessage("booking_id" in thread ? { bookingId } : { inquiryId }, userId, body);
   revalidatePath("booking_id" in thread ? `/reservations/${bookingId}` : `/messages/${inquiryId}`);
   revalidatePath("/messages");

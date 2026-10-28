@@ -184,7 +184,13 @@ export function PublishForm({ market }: { market: MarketPrice[] }) {
                 defaultValue="10:00"
               />
             </Field>
-            <Field label="Moyen de transport" htmlFor="mode">
+            <Field label="Arrivée prévue" htmlFor="arrival_date" hint="Heure locale de la ville d'arrivée. Le suivi des colis passe seul à « Arrivé » à cette heure.">
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <Input id="arrival_date" name="arrival_date" type="date" aria-label="Date d'arrivée" />
+              <Input id="arrival_time" name="arrival_time" type="time" aria-label="Heure d'arrivée" />
+            </div>
+          </Field>
+          <Field label="Moyen de transport" htmlFor="mode">
               <Select
                 id="mode"
                 name="mode"

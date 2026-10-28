@@ -29,7 +29,7 @@ async function signup(b, name, email, next) {
   const sb = await signup(b, 'Nadia T.', `cs${run}@test.fr`, new URL(tripUrl).pathname);
   await sb.fill('#weight_kg', '2'); await sb.selectOption('#category', 'documents');
   await sb.fill('#description', 'Dossier administratif'); await sb.fill('#recipient_name', 'Koffi A.');
-  await sb.fill('#recipient_phone', '+225 07 00 00 00 00'); await sb.check('input[name=declaration]');
+  await sb.fill('#recipient_phone', '+225 07 00 00 00 00'); await sb.fill('#recipient_email', 'destinataire@test.fr'); await sb.check('input[name=declaration]');
   await Promise.all([sb.waitForURL('**/reservations/**'), sb.click('button:has-text("Envoyer ma demande")')]);
   const bookingUrl = sb.url().split('?')[0];
   await ta.goto(bookingUrl);

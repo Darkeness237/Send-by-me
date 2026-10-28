@@ -2,12 +2,12 @@
 export const TRACKING_STEPS = [
   { kind: "requested", label: "Demande envoyée au voyageur" },
   { kind: "accepted", label: "Acceptée par le voyageur" },
-  { kind: "paid", label: "Paiement sécurisé" },
-  { kind: "picked_up", label: "Colis remis au voyageur" },
-  { kind: "departed", label: "En route" },
+  { kind: "paid", label: "Paiement sécurisé · en attente du colis" },
+  { kind: "picked_up", label: "Colis reçu par le voyageur" },
+  { kind: "departed", label: "En transit" },
   { kind: "arrived", label: "Arrivé à destination" },
   { kind: "out_for_delivery", label: "Remis au livreur pour la livraison à domicile" },
-  { kind: "delivered", label: "Livré au destinataire" },
+  { kind: "delivered", label: "Colis réceptionné par le destinataire" },
 ] as const;
 
 export const TRACKING_END: Record<string, string> = {

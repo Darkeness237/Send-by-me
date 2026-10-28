@@ -9,11 +9,13 @@ import { trackShipment } from "@/lib/data";
 import { DELIVERY_STATUS_LABEL, type DeliveryStatus } from "@/lib/delivery";
 import { kg, longDate } from "@/lib/format";
 import { codeFor, tzFor } from "@/lib/places";
+import { advanceTransit } from "@/lib/transit";
 
 export const metadata: Metadata = { title: "Suivi de colis", robots: { index: false } };
 
 async function Shipment({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
+  await advanceTransit().catch(() => 0); // étapes « en transit » et « arrivé » d'après les horaires
   const s = await trackShipment(decodeURIComponent(code));
   if (!s) {
     return (
@@ -51,7 +53,7 @@ async function Shipment({ params }: { params: Promise<{ code: string }> }) {
 
       <section className="mt-6 rounded-3xl bg-white p-6 ring-1 ring-line sm:p-8">
         <h1 className="mb-5 text-lg font-bold">Où en est le colis ?</h1>
-        <TrackingTimeline events={s.events} homeDelivery={s.home_delivery} />
+        <TrackingTimeline events={s.events} homeDelivery={s.home_delivery} details={s.transport_ref ? { departed: `Vol ${s.transport_ref}` } : {}} />
         <p className="mt-6 flex items-start gap-2 rounded-2xl bg-paper p-4 text-sm text-ink-soft">
           {s.home_delivery ? (
             <>

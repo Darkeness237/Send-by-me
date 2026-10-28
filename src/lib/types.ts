@@ -83,6 +83,9 @@ export type Booking = {
   description: string;
   recipient_name: string;
   recipient_phone: string;
+  recipient_email?: string | null;
+  recipient_notified_at?: string | null;
+  price_per_kg_cents?: number | null;
   base_cents: number;
   delivery_cents?: number;
   delivery_status?: "requested" | "scheduled" | "out_for_delivery" | "delivered" | "failed" | null;
@@ -100,15 +103,33 @@ export type Booking = {
 export const STATUS_LABEL: Record<BookingStatus, string> = {
   pending: "En attente du voyageur",
   accepted: "Acceptée, à payer",
-  paid: "Payée",
-  picked_up: "En route",
-  delivered: "Livrée",
+  paid: "En attente du colis",
+  picked_up: "Colis reçu par le voyageur",
+  delivered: "Colis réceptionné",
   declined: "Refusée",
   cancelled: "Annulée",
   refunded: "Remboursée",
 };
 
 export type PayoutStatus = "not_due" | "due" | "paid";
+
+export type PriceOffer = {
+  id: string;
+  booking_id: string;
+  author_id: string;
+  price_per_kg_cents: number;
+  status: "pending" | "accepted" | "declined" | "superseded";
+  created_at: string;
+};
+
+/** Statut affiché : le transit et l'arrivée se lisent dans les étapes de suivi. */
+export function bookingStatusLabel(status: BookingStatus, events: { kind: string }[] = []) {
+  if (status === "picked_up") {
+    if (events.some((e) => e.kind === "arrived")) return "Arrivé à destination";
+    if (events.some((e) => e.kind === "departed")) return "En transit";
+  }
+  return STATUS_LABEL[status];
+}
 
 export const REPORT_REASONS = [
   { id: "not_delivered", label: "Le colis n'a pas été livré" },

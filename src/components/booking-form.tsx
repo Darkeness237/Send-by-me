@@ -67,7 +67,25 @@ export function BookingForm({ tripId, pricePerKgCents, maxKg, acceptedCategories
         <Field label="Téléphone du destinataire" htmlFor="recipient_phone">
           <Input id="recipient_phone" name="recipient_phone" type="tel" required placeholder="+237 6 99 00 00 00" autoComplete="off" />
         </Field>
+        <div className="sm:col-span-2">
+          <Field label="E-mail du destinataire" htmlFor="recipient_email" hint="Il y recevra son code de réception après votre paiement.">
+            <Input id="recipient_email" name="recipient_email" type="email" required maxLength={120} placeholder="destinataire@exemple.com" autoComplete="off" />
+          </Field>
+        </div>
       </div>
+
+      <details className="rounded-2xl border border-line p-4 open:border-brand open:bg-brand-pale/30">
+        <summary className="cursor-pointer font-semibold">Proposer un autre prix au voyageur</summary>
+        <p className="mt-2 text-sm text-muted">
+          Prix annoncé : {euros(pricePerKgCents)} le kilo. Le voyageur peut accepter votre proposition, la refuser ou vous en faire une autre. Le
+          prix final s&apos;applique avant le paiement.
+        </p>
+        <div className="mt-3">
+          <Field label="Votre proposition (€ par kg)" htmlFor="offer_price">
+            <Input id="offer_price" name="offer_price" type="number" min={1} max={100} step={0.5} placeholder={String(Math.max(1, Math.round(pricePerKgCents * 0.85) / 100))} />
+          </Field>
+        </div>
+      </details>
 
       {homeDeliveryCents > 0 ? (
         <div className="rounded-2xl border border-line p-4 has-checked:border-brand has-checked:bg-brand-pale/40">

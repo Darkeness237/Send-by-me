@@ -82,7 +82,7 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   await sb.selectOption('#category', 'clothing');
   await sb.fill('#description', 'Vêtements et fournitures scolaires');
   await sb.fill('#recipient_name', 'Marie Ngo');
-  await sb.fill('#recipient_phone', '+237 699 00 00 00');
+  await sb.fill('#recipient_phone', '+237 699 00 00 00'); await sb.fill('#recipient_email', 'destinataire@test.fr');
   await sb.check('input[name=declaration]');
   await shot(sb, '03-reserver-mobile');
   await Promise.all([sb.waitForURL('**/reservations/**'), sb.click('button:has-text("Envoyer ma demande")')]).catch(async (e) => { console.log('alerte :', await sb.locator('[role=alert]').allTextContents()); throw e; });
@@ -131,15 +131,15 @@ const sql = (q) => require('child_process').execSync(`psql "postgresql://postgre
   // 5. Voyageur : ne voit pas le code, prend le colis, livre
   await ta.goto(bookingUrl);
   log('le voyageur voit le code ?', (await ta.textContent('main')).includes(code) ? 'OUI (KO)' : 'non (OK)');
-  await ta.click('button:has-text("J\'ai le colis")');
+  await ta.click('button:has-text("J\'ai reçu le colis")');
   await ta.waitForSelector('#code');
   await ta.fill('#code', code === '000000' ? '111111' : '000000');
-  await ta.click('button:has-text("Valider la livraison")');
+  await ta.click('button:has-text("Valider la réception")');
   await ta.waitForSelector('text=Code incorrect');
   log('mauvais code refusé :', (await ta.textContent('[role=alert]')).trim());
   await ta.fill('#code', code);
-  await ta.click('button:has-text("Valider la livraison")');
-  await ta.waitForSelector('text=Livraison confirmée');
+  await ta.click('button:has-text("Valider la réception")');
+  await ta.waitForSelector('text=Colis réceptionné');
   log('livraison confirmée avec le bon code');
   await ta.reload();
   await ta.click('label:has-text("5")');

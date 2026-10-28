@@ -100,7 +100,7 @@ export default function Home() {
                   className="object-cover object-[50%_25%]"
                 />
               </div>
-              <div className="relative -mt-14 px-3 sm:px-6 lg:absolute lg:bottom-8 lg:-left-20 lg:mt-0 lg:w-[400px] lg:px-0">
+              <div className="relative -mt-14 px-3 sm:px-6 lg:absolute lg:bottom-8 lg:-left-6 lg:mt-0 lg:w-[380px] lg:px-0 xl:-left-12 xl:w-[400px]">
                 <Suspense fallback={<div className="h-[200px] rounded-2xl bg-[#0b1630] ring-1 ring-white/10" />}>
                   <LiveBoard />
                 </Suspense>

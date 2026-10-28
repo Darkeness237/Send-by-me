@@ -5,7 +5,16 @@ import { TRACKING_END, TRACKING_STEPS } from "@/lib/tracking";
 type Event = { kind: string; at: string; note?: string | null };
 
 /** Frise de suivi : étapes passées (avec date) et étapes à venir. */
-export function TrackingTimeline({ events, homeDelivery }: { events: Event[]; homeDelivery: boolean }) {
+export function TrackingTimeline({
+  events,
+  homeDelivery,
+  details = {},
+}: {
+  events: Event[];
+  homeDelivery: boolean;
+  /** Précision affichée sous une étape (par exemple le vol sous « En transit »). */
+  details?: Record<string, string>;
+}) {
   const byKind = new Map(events.map((e) => [e.kind, e]));
   const ended = events.find((e) => TRACKING_END[e.kind]);
   const steps = TRACKING_STEPS.filter((s) => homeDelivery || s.kind !== "out_for_delivery");
@@ -29,6 +38,7 @@ export function TrackingTimeline({ events, homeDelivery }: { events: Event[]; ho
             )}
             <div className="min-w-0">
               <p className={done ? "font-semibold text-ink" : "text-muted"}>{s.label}</p>
+              {details[s.kind] && <p className="text-sm text-ink-soft">{details[s.kind]}</p>}
               {e && (
                 <p className="tabular text-sm text-muted">
                   {dayLabel(e.at)}, {timeLabel(e.at)}

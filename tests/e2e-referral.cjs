@@ -63,7 +63,7 @@ async function signup(b, first, last, email, path) {
   await f.selectOption('#category', 'documents');
   await f.fill('#description', 'Dossier administratif');
   await f.fill('#recipient_name', 'Koffi A.');
-  await f.fill('#recipient_phone', '+225 07 00 00 00 00');
+  await f.fill('#recipient_phone', '+225 07 00 00 00 00'); await f.fill('#recipient_email', 'destinataire@test.fr');
   await f.check('input[name=home_delivery]');
   await f.fill('#delivery_address', 'Cocody, Riviera 2');
   await f.check('input[name=declaration]');

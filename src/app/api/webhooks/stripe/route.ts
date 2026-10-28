@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { requestPartnerDelivery } from "@/lib/delivery-partner";
 import { notifySafe } from "@/lib/notify";
 import { notifyBooking } from "@/lib/notify-events";
+import { sendRecipientCode } from "@/lib/recipient-mail";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -89,6 +90,7 @@ async function markPaid(session: Stripe.Checkout.Session) {
       .from("booking_secrets")
       .upsert({ booking_id: bookingId, sender_id: booking.sender_id, delivery_code: code, attempts: 0 }, { onConflict: "booking_id", ignoreDuplicates: true });
     await scheduleHomeDelivery(bookingId);
+    await sendRecipientCode(bookingId).catch((e) => console.error("code destinataire", e));
     await notifyBooking(bookingId, "paid");
   }
 }

@@ -62,7 +62,7 @@ async function signup(ctx, name, email, next = '/espace') {
     await sb.goto(url);
     await sb.fill('#weight_kg', '3'); await sb.selectOption('#category', 'clothing');
     await sb.fill('#description', 'Habits pour la famille'); await sb.fill('#recipient_name', 'Awa Diop');
-    await sb.fill('#recipient_phone', '+221 77 000 00 00'); await sb.check('input[name=declaration]');
+    await sb.fill('#recipient_phone', '+221 77 000 00 00'); await sb.fill('#recipient_email', 'destinataire@test.fr'); await sb.check('input[name=declaration]');
     await Promise.all([sb.waitForURL('**/reservations/**'), sb.click('button:has-text("Envoyer ma demande")')]);
     return sb.url().split('?')[0];
   };
@@ -105,11 +105,11 @@ async function signup(ctx, name, email, next = '/espace') {
 
   // Livraison
   await ta.goto(bk1);
-  await ta.click('button:has-text("J\'ai le colis")');
+  await ta.click('button:has-text("J\'ai reçu le colis")');
   await ta.waitForSelector('#code');
   await ta.fill('#code', code);
-  await ta.click('button:has-text("Valider la livraison")');
-  await ta.waitForSelector('text=Livraison confirmée');
+  await ta.click('button:has-text("Valider la réception")');
+  await ta.waitForSelector('text=Colis réceptionné');
   log('livré ; versement →', sql(`select payout_status from bookings where id='${bookingId}'`));
 
   // Non-admin sur /admin

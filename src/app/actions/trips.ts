@@ -25,6 +25,8 @@ const tripSchema = z
     to_city: z.string().trim().min(2, "Ville d'arrivée manquante").max(80),
     departure_date: z.iso.date("Date de départ invalide"),
     departure_time: z.string().regex(/^\d{2}:\d{2}$/, "Heure de départ invalide"),
+    arrival_date: z.union([z.iso.date("Date d'arrivée invalide"), z.literal("")]).optional(),
+    arrival_time: z.union([z.string().regex(/^\d{2}:\d{2}$/, "Heure d'arrivée invalide"), z.literal("")]).optional(),
     mode: z.enum(["plane", "car", "bus", "train"]),
     capacity_kg: z.coerce.number().min(1, "Au moins 1 kg").max(300, "300 kg maximum"),
     price_per_kg: z.coerce.number().min(1, "1 € minimum par kg").max(100, "100 € maximum par kg"),
@@ -76,6 +78,15 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
   const departure = zonedToUtc(d.departure_date, d.departure_time, from.tz);
   if (Number.isNaN(departure.getTime()) || departure.getTime() < Date.now() + 3600_000) {
     return { error: "Le départ doit être dans le futur (au moins dans une heure)." };
+  }
+
+  // Arrivée prévue (heure locale de la ville d'arrivée) : le suivi passe seul à « Arrivé » à cette heure.
+  let arrival: Date | null = null;
+  if (d.arrival_date && d.arrival_time) {
+    arrival = zonedToUtc(d.arrival_date, d.arrival_time, to.tz);
+    const hours = (arrival.getTime() - departure.getTime()) / 3600_000;
+    if (Number.isNaN(hours) || hours <= 0) return { error: "L'arrivée doit être après le départ (heure locale de la ville d'arrivée)." };
+    if (hours > 72) return { error: "L'arrivée prévue est plus de 3 jours après le départ : vérifiez la date." };
   }
 
   // Informations de transport et contrôles automatiques.
@@ -133,6 +144,7 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
       to_country: to.country,
       to_tz: to.tz,
       departure_at: departure.toISOString(),
+      arrival_at: arrival?.toISOString() ?? null,
       mode: d.mode,
       capacity_kg: d.capacity_kg,
       price_per_kg_cents: Math.round(d.price_per_kg * 100),

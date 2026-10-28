@@ -16,7 +16,7 @@ export function DeliveryCodeForm({ bookingId }: { bookingId: string }) {
       <div className="flex gap-2">
         <Input id="code" name="code" inputMode="numeric" pattern="[0-9 ]{6,7}" maxLength={7} required placeholder="000000" className="wide tabular max-w-40 text-center text-xl tracking-[0.3em]" />
         <Button type="submit" disabled={pending}>
-          {pending ? "Vérification…" : "Valider la livraison"}
+          {pending ? "Vérification…" : "Valider la réception"}
         </Button>
       </div>
       <FormMessage state={state} />
