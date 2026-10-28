@@ -30,8 +30,18 @@ export const HOME_DELIVERY_FLAT_CENTS = 1000;
 
 const toNinety = (cents: number) => Math.ceil((cents + 10) / 100) * 100 - 10;
 
+/** Au-delà de 10 kg, prix par valise (bagage en soute de 23 kg) : 9,99 € pour une, 15,99 € pour deux, +6 € par valise en plus. */
+export const SUITCASE_KG = 23;
+export const SUITCASE_PRICES_CENTS = [999, 1599] as const;
+export const EXTRA_SUITCASE_CENTS = 600;
+export const suitcasesFor = (weightKg: number) => Math.max(1, Math.ceil(weightKg / SUITCASE_KG));
+
 export function homeDeliveryFor(country: string | null | undefined, weightKg: number) {
   if (!country || !PARTNER_COUNTRIES.includes(country)) return HOME_DELIVERY_FLAT_CENTS;
+  if (weightKg > 10) {
+    const n = suitcasesFor(weightKg);
+    return n <= SUITCASE_PRICES_CENTS.length ? SUITCASE_PRICES_CENTS[n - 1] : SUITCASE_PRICES_CENTS[1] + (n - 2) * EXTRA_SUITCASE_CENTS;
+  }
   return toNinety(xafToCents(partnerCostXaf(weightKg)) * DELIVERY_MARKUP);
 }
 
