@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ArrowRight, BadgeCheck, KeyRound, Lock, MessageCircle, PackagePlus, PackageX, Plane, Star } from "lucide-react";
+import { ArrowRight, BadgeCheck, KeyRound, Lock, MessageCircle, PackagePlus, PackageX, Plane, Star, Truck } from "lucide-react";
 import { DepartureBoard } from "@/components/departure-board";
 import { SearchForm } from "@/components/search-form";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
@@ -20,6 +20,7 @@ import valise from "../../../public/images/preparer-valise.jpg";
 import famille from "../../../public/images/cadeau-famille.jpg";
 import { getLocale, getT } from "@/i18n/server";
 import { TrustBand } from "@/components/trust-band";
+import { HOME_DELIVERY_CENTS } from "@/lib/delivery";
 
 async function LiveBoard() {
   const trips = await searchTrips({}, 6).catch(() => []);
@@ -128,16 +129,21 @@ export default async function Home() {
               <p className="reveal reveal-delay-1 mt-5 max-w-[34rem] text-lg leading-relaxed text-ink-soft">
                 {t("Des voyageurs vérifiés proposent leurs kilos libres entre l'Europe et l'Afrique. Vous choisissez votre voyageur, et vous suivez votre colis jusqu'à ce qu'il arrive chez vos proches.")}
               </p>
-              <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-ink-soft">
-                <li className="flex items-center gap-2">
-                  <BadgeCheck className="h-4 w-4 text-brand" aria-hidden="true" /> {t("Identités vérifiées")}
-                </li>
-                <li className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-brand" aria-hidden="true" /> {t("Paiement en ligne sécurisé")}
-                </li>
-                <li className="flex items-center gap-2">
-                  <KeyRound className="h-4 w-4 text-brand" aria-hidden="true" /> {t("Code de remise à 6 chiffres")}
-                </li>
+              <ul className="reveal reveal-delay-1 mt-6 grid max-w-[34rem] grid-cols-3 gap-2 sm:gap-2.5">
+                {(
+                  [
+                    [BadgeCheck, "Identités vérifiées", "bg-brand text-white"],
+                    [Lock, "Paiement sécurisé", "bg-ink text-white"],
+                    [KeyRound, "Code de remise", "bg-signal text-ink"],
+                  ] as const
+                ).map(([Icon, label, tone]) => (
+                  <li key={label} className="flex flex-col items-center gap-2 rounded-2xl bg-white px-2 py-3 text-center shadow-[0_10px_30px_-18px_rgb(14_48_76/0.45)] ring-1 ring-line sm:flex-row sm:gap-3 sm:px-3.5 sm:text-left">
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${tone}`}>
+                      <Icon className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                    <span className="text-[13px] leading-tight font-extrabold text-ink sm:text-[15px]">{t(label)}</span>
+                  </li>
+                ))}
               </ul>
             </div>
             <div className="reveal reveal-delay-2 space-y-4 lg:col-span-2 lg:row-start-2">
@@ -275,7 +281,7 @@ export default async function Home() {
                 ["Trouvez un trajet", "Cherchez votre ville de départ et d'arrivée. Comparez dates, prix au kilo et avis."],
                 ["Demandez des kilos", "Décrivez votre colis. Le voyageur accepte ou refuse, vous pouvez discuter avec lui."],
                 ["Payez en ligne", "Par carte, en toute sécurité. Aucun paiement en espèces."],
-                ["Remise avec un code", "Votre destinataire donne son code de 6 chiffres au voyageur : la réception est validée."],
+                ["Remise en main propre ou à domicile", "Votre destinataire donne son code de 6 chiffres au voyageur : la réception est validée. Ou faites livrer à domicile : notre livreur partenaire récupère le colis à l'arrivée."],
               ].map(([title, text], i) => (
                 <li key={title} className="relative">
                   <span className="wide tabular flex h-10 w-10 items-center justify-center rounded-full bg-ink text-sm font-extrabold text-signal">
@@ -283,6 +289,11 @@ export default async function Home() {
                   </span>
                   <h3 className="mt-4 text-lg font-bold">{t(title)}</h3>
                   <p className="mt-2 text-[15px] leading-relaxed text-muted">{t(text)}</p>
+                  {i === 3 && (
+                    <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-signal/15 px-3 py-1 text-sm font-bold text-signal-deep">
+                      <Truck className="h-4 w-4" aria-hidden="true" /> {t("Livraison à domicile : +{euros}", { euros: euros(HOME_DELIVERY_CENTS) })}
+                    </span>
+                  )}
                 </li>
               ))}
             </ol>

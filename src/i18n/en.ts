@@ -203,7 +203,7 @@ export const en: Record<string, string> = {
   "Pièce d'identité et selfie contrôlés avant d'obtenir le badge bleu.": "ID document and selfie checked before the blue badge is granted.",
   "Paiement sécurisé": "Secure payment",
   "Vous payez en ligne, jamais en espèces. En cas de problème, vous êtes remboursé.": "You pay online, never in cash. If something goes wrong, you're refunded.",
-  "Code de remise": "Handover code",
+  "Code de remise": "Delivery code",
   "Seul votre destinataire connaît le code. Sans lui, la livraison ne peut pas être validée.": "Only your recipient knows the code. Without it, delivery can't be confirmed.",
   "Avis après chaque envoi": "Reviews after every shipment",
   "Expéditeurs et voyageurs se notent mutuellement. Les avis ne peuvent pas être supprimés.": "Senders and travellers rate each other. Reviews can't be deleted.",
@@ -1206,4 +1206,7 @@ export const en: Record<string, string> = {
   "Montré ouvert au voyageur, photographié avant d'être fermé.": "Shown open to the traveller, photographed before it's closed.",
   "Chaque étape s'affiche, avec un lien de suivi pour votre destinataire.": "Every step is shown, with a tracking link for your recipient.",
   "Votre proche donne son code à 6 chiffres : sans lui, pas de livraison.": "Your loved one gives their 6-digit code: without it, no delivery.",
+  "Votre destinataire donne son code de 6 chiffres au voyageur : la réception est validée. Ou faites livrer à domicile : notre livreur partenaire récupère le colis à l'arrivée.": "Your recipient gives their 6-digit code to the traveller: delivery is confirmed. Or choose home delivery: our partner courier collects the parcel on arrival.",
+  "Livraison à domicile : +{euros}": "Home delivery: +{euros}",
+  "Remise en main propre ou à domicile": "Handed over in person or delivered home",
 };
