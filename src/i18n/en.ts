@@ -1335,4 +1335,5 @@ export const en: Record<string, string> = {
   "Irlande": "Ireland",
   "Autriche": "Austria",
   "Luxembourg": "Luxembourg",
+  "Les virements automatiques ne sont pas encore ouverts. Enregistrez votre IBAN ou votre Mobile Money ci-dessous : nous vous versons vos gains à la main en attendant.": "Automatic transfers aren't open yet. Save your IBAN or Mobile Money below: we'll pay your earnings manually in the meantime.",
 };

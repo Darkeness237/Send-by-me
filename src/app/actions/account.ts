@@ -174,8 +174,10 @@ export async function startStripeOnboarding(formData: FormData) {
     const accountId = await ensureConnectAccount(userId, country, user.user?.email ?? null, profile?.full_name ?? "");
     url = await onboardingUrl(accountId);
   } catch (e) {
-    console.error("Inscription Stripe du voyageur", e instanceof Error ? e.message : e);
-    redirect("/espace/profil/versement?stripe=erreur");
+    const message = e instanceof Error ? e.message : String(e);
+    console.error("Inscription Stripe du voyageur", message);
+    // Connect pas encore activé sur le compte Stripe de Send By Me : rien que le voyageur puisse faire.
+    redirect(`/espace/profil/versement?stripe=${/connect/i.test(message) && /sign(ed)? up|enable|activate|platform/i.test(message) ? "indisponible" : "erreur"}`);
   }
   redirect(url);
 }

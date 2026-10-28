@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { AlertTriangle, BadgeCheck, Banknote, Gift, LayoutDashboard, Package, Truck, Users, type LucideIcon } from "lucide-react";
+import { AdminOverview, QUEUE_ICONS } from "@/components/admin-overview";
 import { setVerified } from "@/app/actions/admin";
 import { completeHomeDelivery } from "@/app/actions/tracking";
 import { DELIVERY_STATUS_LABEL, type DeliveryStatus } from "@/lib/delivery";
@@ -21,6 +23,7 @@ import { formatIban, operatorLabel, type PayoutMethod } from "@/lib/payout";
 export const metadata: Metadata = { title: "Administration", robots: { index: false } };
 
 const TABS = [
+  ["apercu", "Tableau de bord"],
   ["verifications", "Vérifications"],
   ["signalements", "Signalements"],
   ["livraisons", "Livraisons"],
@@ -30,6 +33,16 @@ const TABS = [
   ["reservations", "Réservations"],
 ] as const;
 type Tab = (typeof TABS)[number][0];
+const TAB_ICONS: Record<Tab, LucideIcon> = {
+  apercu: LayoutDashboard,
+  verifications: BadgeCheck,
+  signalements: AlertTriangle,
+  livraisons: Truck,
+  versements: Banknote,
+  primes: Gift,
+  membres: Users,
+  reservations: Package,
+};
 
 type Row = Record<string, unknown>;
 const one = (v: unknown): Row | undefined => (Array.isArray(v) ? (v[0] as Row) : ((v as Row | null) ?? undefined));
@@ -38,7 +51,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
   const { userId, isAdmin } = await getSession();
   if (!userId || !isAdmin) notFound(); // la page n'existe pas pour les autres membres
   const sp = await searchParams;
-  const tab: Tab = (TABS.find(([k]) => k === sp.onglet)?.[0] ?? "verifications") as Tab;
+  const tab: Tab = (TABS.find(([k]) => k === sp.onglet)?.[0] ?? "apercu") as Tab;
   const db = createAdminClient();
 
   const [{ count: pendingIds }, { count: pendingProofs }, { count: openReports }, { count: duePayouts }, { count: unverified }, { count: openDeliveries }, { count: dueRewards }] = await Promise.all([
@@ -50,9 +63,23 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
     db.from("bookings").select("id", { count: "exact", head: true }).gt("delivery_cents", 0).in("status", ["paid", "picked_up"]),
     db.from("ambassador_rewards").select("id", { count: "exact", head: true }).is("paid_at", null),
   ]);
-  const counts: Record<Tab, number | null> = { verifications: (pendingIds ?? 0) + (pendingProofs ?? 0), signalements: openReports, livraisons: openDeliveries, versements: duePayouts, primes: dueRewards, membres: unverified, reservations: null };
+  const counts: Record<Tab, number | null> = { apercu: null, verifications: (pendingIds ?? 0) + (pendingProofs ?? 0), signalements: openReports, livraisons: openDeliveries, versements: duePayouts, primes: dueRewards, membres: unverified, reservations: null };
 
   let content: React.ReactNode = null;
+
+  if (tab === "apercu") {
+    content = (
+      <AdminOverview
+        queues={[
+          { key: "verifications", label: "vérifications à examiner", count: counts.verifications ?? 0, icon: QUEUE_ICONS.verifications },
+          { key: "signalements", label: "signalements ouverts", count: counts.signalements ?? 0, icon: QUEUE_ICONS.signalements },
+          { key: "livraisons", label: "livraisons à domicile en cours", count: counts.livraisons ?? 0, icon: QUEUE_ICONS.livraisons },
+          { key: "versements", label: "versements à faire", count: counts.versements ?? 0, icon: QUEUE_ICONS.versements },
+          { key: "primes", label: "primes à verser", count: counts.primes ?? 0, icon: QUEUE_ICONS.primes },
+        ]}
+      />
+    );
+  }
 
   if (tab === "verifications") {
     const BUCKET = "verification-documents";
@@ -421,23 +448,56 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
     );
   }
 
+  const title = TABS.find(([k]) => k === tab)?.[1] ?? "Administration";
+  const today = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Paris" }).format(new Date());
+  const navItem = (key: Tab, label: string, compact = false) => {
+    const Icon = TAB_ICONS[key];
+    const active = tab === key;
+    return (
+      <Link
+        key={key}
+        href={key === "apercu" ? "/admin" : `/admin?onglet=${key}`}
+        aria-current={active ? "page" : undefined}
+        className={
+          compact
+            ? `inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${active ? "bg-ink text-white" : "bg-white text-ink-soft ring-1 ring-line"}`
+            : `flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-semibold transition ${active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"}`
+        }
+      >
+        <Icon className={`h-4.5 w-4.5 shrink-0 ${active && !compact ? "text-signal" : ""}`} aria-hidden="true" />
+        <span className="flex-1">{label}</span>
+        {counts[key] ? <span className="tabular rounded-full bg-signal px-2 text-xs font-extrabold text-ink">{counts[key]}</span> : null}
+      </Link>
+    );
+  };
+
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <h1 className="display text-3xl sm:text-4xl">Administration</h1>
-      <nav className="mt-6 flex flex-wrap gap-1" aria-label="Sections">
-        {TABS.map(([key, label]) => (
-          <Link
-            key={key}
-            href={`/admin?onglet=${key}`}
-            aria-current={tab === key ? "page" : undefined}
-            className={`rounded-full px-4 py-2 text-sm font-semibold ${tab === key ? "bg-ink text-white" : "bg-white text-ink-soft ring-1 ring-line hover:bg-paper"}`}
-          >
-            {label}
-            {counts[key] ? <span className="tabular ml-1.5 rounded-full bg-signal px-1.5 text-xs text-ink">{counts[key]}</span> : null}
+    <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[15rem_1fr] lg:py-8">
+      {/* Navigation : barre latérale sur ordinateur, onglets défilants sur mobile */}
+      <aside className="hidden lg:block">
+        <div className="sticky top-20 rounded-3xl bg-ink p-4 text-white">
+          <p className="px-3 pb-3 text-xs font-extrabold tracking-wide text-white/50 uppercase">Send By Me · Admin</p>
+          <nav className="space-y-1" aria-label="Sections">
+            {TABS.map(([key, label]) => navItem(key, label))}
+          </nav>
+          <Link href="/" className="mt-4 block rounded-xl px-3 py-2 text-sm text-white/60 hover:text-white">
+            ← Voir le site
           </Link>
-        ))}
-      </nav>
-      <div className="mt-6">{content}</div>
+        </div>
+      </aside>
+
+      <div className="min-w-0">
+        <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden" aria-label="Sections">
+          {TABS.map(([key, label]) => navItem(key, label, true))}
+        </nav>
+        <header className="mt-4 flex flex-wrap items-end justify-between gap-2 lg:mt-0">
+          <div>
+            <p className="text-sm font-semibold text-muted first-letter:uppercase">{today}</p>
+            <h1 className="display text-3xl sm:text-4xl">{title}</h1>
+          </div>
+        </header>
+        <div className="mt-6">{content}</div>
+      </div>
     </div>
   );
 }
@@ -449,7 +509,7 @@ function Empty({ text }: { text: string }) {
 export default function AdminPage(props: PageProps<"/[lang]/admin">) {
   return (
     <PageShell footer={false}>
-      <Suspense fallback={<div className="mx-auto h-[60vh] max-w-5xl" />}>
+      <Suspense fallback={<div className="mx-auto h-[60vh] max-w-7xl" />}>
         <Admin searchParams={props.searchParams as Promise<{ onglet?: string; q?: string }>} />
       </Suspense>
     </PageShell>

@@ -130,7 +130,7 @@ async function signup(ctx, name, email, next = '/espace') {
   await ad.goto(BASE + '/connexion?suite=%2Fadmin%3Fonglet%3Dsignalements');
   await ad.fill('#email', `a${run}@test.fr`); await ad.fill('#password', 'motdepasse-solide-1');
   await Promise.all([ad.waitForURL('**/admin**'), ad.click('form:has(#password) button[type=submit]')]);
-  await ad.waitForSelector('h1:has-text("Administration")');
+  await ad.waitForSelector('h1:has-text("Signalements")');
   log('admin connecté');
   await ad.waitForSelector('text=ne répond plus depuis deux jours');
   const item = ad.locator('li', { hasText: 'ne répond plus depuis deux jours' }).last();

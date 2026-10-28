@@ -101,6 +101,11 @@ async function PayoutMethodView({ searchParams }: { searchParams: Promise<Record
               {t("Stripe n'a pas pu ouvrir l'inscription. Réessayez dans quelques minutes, ou utilisez le formulaire ci-dessous.")}
             </p>
           )}
+          {sp.stripe === "indisponible" && (
+            <p role="alert" className="mt-4 rounded-xl bg-danger-pale px-4 py-3 text-sm text-danger">
+              {t("Les virements automatiques ne sont pas encore ouverts. Enregistrez votre IBAN ou votre Mobile Money ci-dessous : nous vous versons vos gains à la main en attendant.")}
+            </p>
+          )}
           {sp.stripe === "retour" && !connect?.transfers_active && (
             <p role="status" className="mt-4 rounded-xl bg-brand-pale px-4 py-3 text-sm text-brand-deep">
               {t("Merci ! Stripe vérifie vos informations. Cette page affichera « Activés » dès que c'est validé.")}
