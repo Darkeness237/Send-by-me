@@ -434,7 +434,8 @@ export async function getBookingPhotos(bookingId: string) {
   const rows = data ?? [];
   if (!rows.length) return [];
   const { data: signed } = await supabase.storage.from("parcel-photos").createSignedUrls(rows.map((r) => r.path as string), 3600);
-  return rows.map((r, i) => ({ id: r.id as string, kind: r.kind as string, url: signed?.[i]?.signedUrl ?? null, at: r.created_at as string }));
+  const { data: auth } = await supabase.auth.getUser();
+  return rows.map((r, i) => ({ id: r.id as string, kind: r.kind as string, url: signed?.[i]?.signedUrl ?? null, at: r.created_at as string, mine: r.author_id === auth.user?.id }));
 }
 
 /** Négociation du prix d'une réservation (participants uniquement, RLS). */

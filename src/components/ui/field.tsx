@@ -17,8 +17,8 @@ export function Field({
   htmlFor: string;
 }) {
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="block text-sm font-semibold text-ink">
+    <div className="field space-y-1.5">
+      <label htmlFor={htmlFor} className="field-label block text-sm font-semibold text-ink">
         {label}
       </label>
       {children}

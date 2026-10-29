@@ -116,6 +116,13 @@ async function signup(b, first, last, email, next) {
   await fetch(BASE + '/api/webhooks/stripe', { method: 'POST', headers: { 'stripe-signature': stripe.webhooks.generateTestHeaderString({ payload, secret: 'whsec_local_test' }), 'content-type': 'application/json' }, body: payload });
   log('payé, notification voyageur →', sql(`select title from notifications where user_id='${tid}' and kind='booking_paid' limit 1`));
   await addPhotos(s, `${BASE}/reservations/${bookingId}`, ['contents', 'packed']);
+  // Photo prise par erreur : l'expéditeur la retire puis en reprend une.
+  s.once('dialog', (d) => d.accept());
+  await s.locator('[data-photo-step="contents"] button[aria-label^="Retirer"]').first().click();
+  await s.waitForSelector('[data-photo-step="contents"] img', { state: 'detached', timeout: 15000 });
+  await addPhotos.upload(s, 'contents', await addPhotos.image());
+  await s.waitForSelector('[data-photo-step="contents"] img', { timeout: 15000 });
+  log('photo retirée puis reprise →', sql(`select count(*) from booking_photos where booking_id='${bookingId}' and kind='contents'`));
   await addPhotos(t, `${BASE}/reservations/${bookingId}`, ['pickup']);
   await t.click('button:has-text("J\'ai reçu le colis")');
   await t.waitForSelector('button:has-text("Je suis parti")');

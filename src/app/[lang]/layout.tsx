@@ -7,6 +7,7 @@ import { SITE_URL } from "@/lib/env";
 import { INTRO_SCRIPT, IntroSplash } from "@/components/intro-splash";
 import { PwaInstall } from "@/components/pwa";
 import { NavProgress } from "@/components/nav-progress";
+import { FormValidation } from "@/components/form-validation";
 import { THEME_SCRIPT } from "@/lib/theme";
 import { Suspense } from "react";
 import "../globals.css";
@@ -69,6 +70,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           </Suspense>
           {children}
           <PwaInstall />
+          <FormValidation />
         </I18nProvider>
       </body>
     </html>

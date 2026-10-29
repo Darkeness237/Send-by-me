@@ -1354,4 +1354,8 @@ export const en: Record<string, string> = {
   "Livraison à domicile au Cameroun": "Home delivery in Cameroon",
   "Le destinataire ne peut pas rejoindre le voyageur ? Cochez la livraison à domicile en réservant : nous nous occupons du dernier kilomètre. Disponible pour les envois vers le Cameroun.": "Can't the recipient meet the traveler? Tick home delivery when booking: we handle the last mile. Available for parcels to Cameroon.",
   "Un livreur apporte le colis chez votre destinataire. Disponible pour les envois vers le Cameroun. Vous confirmez au moment de réserver.": "A courier brings the parcel to your recipient. Available for parcels to Cameroon. You confirm when booking.",
+  "Cette étape est terminée : la photo ne peut plus être retirée.": "This step is over: the photo can no longer be removed.",
+  "Photo non retirée. Réessayez.": "Photo not removed. Try again.",
+  "Retirer cette photo pour en prendre une autre ?": "Remove this photo to take another one?",
+  "Retirer la photo « {label} »": "Remove the “{label}” photo",
 };

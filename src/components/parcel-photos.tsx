@@ -1,15 +1,15 @@
 "use client";
 
 import { useRef, useState, useSyncExternalStore } from "react";
-import { Camera, CheckCircle2, Loader2 } from "lucide-react";
-import { addBookingPhoto } from "@/app/actions/photos";
+import { Camera, CheckCircle2, Loader2, X } from "lucide-react";
+import { addBookingPhoto, removeBookingPhoto } from "@/app/actions/photos";
 import { MAX_PHOTOS_PER_STEP, PHOTO_STEPS, type PhotoKind } from "@/lib/parcel-photos";
 import { createClient } from "@/lib/supabase/client";
 import type { BookingStatus } from "@/lib/types";
 import { useLocale, useT } from "@/i18n/client";
 import { intlLocale } from "@/i18n/config";
 
-export type BookingPhoto = { id: string; kind: string; url: string | null; at: string };
+export type BookingPhoto = { id: string; kind: string; url: string | null; at: string; mine?: boolean };
 
 const EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/heic": "heic" };
 
@@ -31,6 +31,39 @@ async function shrink(file: File): Promise<Blob> {
 }
 
 const noop = () => () => {};
+
+/** Retirer sa propre photo (prise par erreur) tant que l'étape est ouverte, pour en reprendre une. */
+function RemovePhoto({ photoId, label }: { photoId: string; label: string }) {
+  const t = useT();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  async function remove() {
+    if (!confirm(t("Retirer cette photo pour en prendre une autre ?"))) return;
+    setBusy(true);
+    setError(null);
+    const res = await removeBookingPhoto(photoId);
+    if (res.error) setError(t(res.error));
+    setBusy(false);
+  }
+  return (
+    <>
+      <button
+        type="button"
+        onClick={remove}
+        disabled={busy}
+        aria-label={t("Retirer la photo « {label} »", { label })}
+        className="absolute -top-2 -right-2 grid h-7 w-7 place-items-center rounded-full bg-danger-fill text-white shadow ring-2 ring-card hover:brightness-110 disabled:opacity-60"
+      >
+        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <X className="h-4 w-4" aria-hidden="true" strokeWidth={2.5} />}
+      </button>
+      {error && (
+        <p role="alert" className="absolute top-full left-0 mt-1 w-48 text-xs text-danger">
+          {error}
+        </p>
+      )}
+    </>
+  );
+}
 
 function StepUpload({ bookingId, kind }: { bookingId: string; kind: PhotoKind }) {
   const t = useT();
@@ -128,7 +161,8 @@ export function ParcelPhotos({
         {PHOTO_STEPS.map((step, i) => {
           const mine = step.by === role;
           const list = photos.filter((p) => p.kind === step.kind);
-          const canAdd = mine && step.when.includes(status) && list.length < MAX_PHOTOS_PER_STEP;
+          const stepOpen = mine && step.when.includes(status);
+          const canAdd = stepOpen && list.length < MAX_PHOTOS_PER_STEP;
           const who = step.by === "sender" ? senderName : travelerName;
           return (
             <li key={step.kind} className="rounded-2xl bg-paper p-4" data-photo-step={step.kind}>
@@ -147,14 +181,15 @@ export function ParcelPhotos({
                 {canAdd && <StepUpload bookingId={bookingId} kind={step.kind} />}
               </div>
               {list.length > 0 && (
-                <ul className="mt-3 flex flex-wrap gap-2">
+                <ul className="mt-3 flex flex-wrap gap-3">
                   {list.map((p) =>
                     p.url ? (
-                      <li key={p.id}>
+                      <li key={p.id} className="relative">
                         <a href={p.url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl ring-1 ring-line hover:ring-brand">
                           {/* eslint-disable-next-line @next/next/no-img-element -- URL signée temporaire du stockage privé */}
                           <img src={p.url} alt={t("{label}, photo du {date}", { label: t(step.label), date: new Date(p.at).toLocaleString(intlLocale(lang)) })} className="h-24 w-24 object-cover" />
                         </a>
+                        {stepOpen && p.mine && <RemovePhoto photoId={p.id} label={t(step.label)} />}
                       </li>
                     ) : null,
                   )}

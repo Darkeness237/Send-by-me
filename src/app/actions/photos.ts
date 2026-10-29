@@ -65,3 +65,23 @@ export async function addBookingPhoto(bookingId: string, kind: PhotoKind, path: 
   revalidatePath(`/reservations/${bookingId}`);
   return { ok: true };
 }
+
+/**
+ * Retire une photo prise par erreur, pour en reprendre une. Seulement par son auteur et tant que l'étape
+ * est ouverte : une fois l'envoi passé à l'étape suivante, les photos restent comme preuve.
+ */
+export async function removeBookingPhoto(photoId: string) {
+  const userId = await getUserId();
+  if (!userId || !uuid.safeParse(photoId).success) return { error: "Action non autorisée." };
+  const db = createAdminClient();
+  const { data: p } = await db.from("booking_photos").select("id, booking_id, author_id, kind, path, booking:bookings(status)").eq("id", photoId).maybeSingle();
+  if (!p || p.author_id !== userId) return { error: "Action non autorisée." };
+  const booking = Array.isArray(p.booking) ? p.booking[0] : p.booking;
+  const step = PHOTO_STEPS.find((s) => s.kind === p.kind);
+  if (!step || !booking || !step.when.includes(booking.status as BookingStatus)) return { error: "Cette étape est terminée : la photo ne peut plus être retirée." };
+  const { error } = await db.from("booking_photos").delete().eq("id", p.id);
+  if (error) return { error: "Photo non retirée. Réessayez." };
+  await db.storage.from("parcel-photos").remove([p.path as string]);
+  revalidatePath(`/reservations/${p.booking_id}`);
+  return { ok: true };
+}
