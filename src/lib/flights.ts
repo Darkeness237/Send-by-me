@@ -67,7 +67,7 @@ export type FlightCheckResult = {
 /**
  * Contrôles automatiques à la publication. Une incohérence de saisie bloque l'annonce ;
  * un vol introuvable dans les horaires ne la bloque pas, mais elle est signalée aux expéditeurs et à l'équipe.
- * Si une clé AeroDataBox est configurée (AERODATABOX_API_KEY ou AEROBOX), le vol est aussi recherché dans les horaires réels.
+ * Si une clé AeroDataBox est configurée (voir aeroDataBoxAccess), le vol est aussi recherché dans les horaires réels.
  */
 export async function checkFlight(input: FlightInput): Promise<FlightCheckResult> {
   const notes: TransportCheckNote[] = [];
@@ -94,25 +94,34 @@ export async function checkFlight(input: FlightInput): Promise<FlightCheckResult
   return { status, notes, inputError: basicOk ? null : notes.find((n) => !n.ok)!.label };
 }
 
-/** Recherche du vol dans les horaires réels (AeroDataBox via RapidAPI). Renvoie null si indisponible. */
+/**
+ * Accès AeroDataBox : API.Market (AERODATABOX_API_KEY ou AEROBOX) ou RapidAPI (AERODATABOX_RAPIDAPI_KEY).
+ * Même API et mêmes réponses, seuls l'adresse et l'en-tête de la clé changent.
+ */
+function aeroDataBoxAccess(): { base: string; headers: Record<string, string> } | null {
+  const market = process.env.AERODATABOX_API_KEY ?? process.env.AEROBOX;
+  if (market) return { base: "https://prod.api.market/api/v1/aedbx/aerodatabox", headers: { "x-api-market-key": market } };
+  const rapid = process.env.AERODATABOX_RAPIDAPI_KEY;
+  if (rapid) return { base: "https://aerodatabox.p.rapidapi.com", headers: { "X-RapidAPI-Key": rapid, "X-RapidAPI-Host": "aerodatabox.p.rapidapi.com" } };
+  return null;
+}
+
+/** Recherche du vol dans les horaires réels (AeroDataBox). Renvoie null si indisponible. */
 async function lookupFlight(input: FlightInput): Promise<TransportCheckNote | null> {
-  const key = process.env.AERODATABOX_API_KEY ?? process.env.AEROBOX;
-  if (!key) return null;
+  const access = aeroDataBoxAccess();
+  if (!access) return null;
   const date = input.departureUtc.toISOString().slice(0, 10);
   try {
-    const res = await fetch(
-      `https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(input.flightNumber)}/${date}?withAircraftImage=false&withLocation=false`,
-      {
-        headers: { "X-RapidAPI-Key": key, "X-RapidAPI-Host": "aerodatabox.p.rapidapi.com" },
-        signal: AbortSignal.timeout(5000),
-        cache: "no-store",
-      },
-    );
+    const res = await fetch(`${access.base}/flights/number/${encodeURIComponent(input.flightNumber)}/${date}?withAircraftImage=false&withLocation=false`, {
+      headers: access.headers,
+      signal: AbortSignal.timeout(5000),
+      cache: "no-store",
+    });
     if (res.status === 204 || res.status === 404) {
       return { ok: false, label: `Vol ${input.flightNumber} introuvable dans les horaires du ${date}` };
     }
     if (!res.ok) {
-      // 401/403 : clé refusée (clé RapidAPI attendue) ; 429 : quota mensuel atteint.
+      // 401/403 : clé refusée ; 429 : quota mensuel atteint.
       console.error("AeroDataBox", res.status);
       return null;
     }
