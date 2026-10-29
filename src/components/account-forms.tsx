@@ -13,7 +13,7 @@ export function ProfileForm({ profile }: { profile: { full_name: string; city: s
   const [state, action, pending] = useActionState(updateProfile, null);
   return (
     <form action={action} className="space-y-5">
-      <Field label={t("Nom affiché")} htmlFor="full_name" hint={t("Prénom et initiale du nom, par exemple « Aïcha N. »")}>
+      <Field label={t("Nom affiché")} htmlFor="full_name">
         <Input id="full_name" name="full_name" required maxLength={80} defaultValue={profile.full_name} />
       </Field>
       <Field label={t("Ville")} htmlFor="city">

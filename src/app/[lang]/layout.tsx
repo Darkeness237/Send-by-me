@@ -18,6 +18,8 @@ const nunito = Nunito({
   display: "swap",
 });
 
+const SHARE_IMAGE = { url: "/opengraph-image", width: 1200, height: 630, alt: "Send By Me, vos colis voyagent dans la valise de quelqu'un" };
+
 export function generateStaticParams() {
   return [{ lang: "fr" }, { lang: "en" }];
 }
@@ -38,8 +40,10 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       locale: locale === "en" ? "en_GB" : "fr_FR",
       siteName: "Send By Me",
+      // Déclarée ici : l'objet openGraph de ce layout remplace celui généré par app/opengraph-image.tsx.
+      images: [SHARE_IMAGE],
     },
-    twitter: { card: "summary_large_image" },
+    twitter: { card: "summary_large_image", images: [SHARE_IMAGE.url] },
     appleWebApp: { capable: true, title: "Send By Me", statusBarStyle: "black-translucent" },
     icons: { apple: "/icons/apple-touch-icon.png" },
     formatDetection: { telephone: false },

@@ -3,7 +3,7 @@ import { SITE_URL } from "@/lib/env";
 import { CORRIDORS, corridorSlug } from "@/lib/places";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const pages = ["", "/recherche", "/comment-ca-marche", "/securite", "/objets-interdits", "/publier", "/inscription", "/cgu", "/confidentialite"];
+  const pages = ["", "/recherche", "/comment-ca-marche", "/securite", "/objets-interdits", "/publier", "/inscription", "/cgu", "/confidentialite", "/mentions-legales"];
   return [
     ...pages.map((p) => ({ url: `${SITE_URL}${p}`, changeFrequency: "weekly" as const, priority: p === "" ? 1 : 0.6 })),
     ...CORRIDORS.map(([a, b]) => ({

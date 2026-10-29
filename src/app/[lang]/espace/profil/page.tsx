@@ -147,6 +147,7 @@ async function AccountTab({ payout, autoPayout }: { payout: PayoutMethod | null;
         <MenuRow href="/comment-ca-marche" icon={LifeBuoy} label={t("Aide")} hint={t("Comment ça marche, sécurité, objets interdits")} />
         <MenuRow href="/cgu" icon={FileText} label={t("Conditions d'utilisation")} />
         <MenuRow href="/confidentialite" icon={ShieldCheck} label={t("Protection des données")} />
+        <MenuRow href="/mentions-legales" icon={FileText} label={t("Mentions légales")} />
       </MenuGroup>
       <div className="overflow-hidden rounded-3xl bg-card ring-1 ring-line">
         <form action={signOut}>

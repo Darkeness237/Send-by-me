@@ -47,6 +47,7 @@ export async function SiteFooter() {
           <ul className="space-y-2 text-sm">
             <li><Link href="/cgu" className="hover:text-white">{t("Conditions d'utilisation")}</Link></li>
             <li><Link href="/confidentialite" className="hover:text-white">{t("Confidentialité")}</Link></li>
+            <li><Link href="/mentions-legales" className="hover:text-white">{t("Mentions légales")}</Link></li>
             <li><a href="mailto:contact@send-by-me.com" className="hover:text-white">contact@send-by-me.com</a></li>
           </ul>
         </div>

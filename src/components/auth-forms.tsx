@@ -121,7 +121,7 @@ export function SignUpForm({ next, referral }: { next?: string; referral?: strin
         <Field label={t("Prénom")} htmlFor="first_name">
           <Input id="first_name" name="first_name" required maxLength={40} autoComplete="given-name" />
         </Field>
-        <Field label={t("Nom")} htmlFor="last_name" hint={t("Seule l'initiale est visible : « Aïcha N. »")}>
+        <Field label={t("Nom")} htmlFor="last_name">
           <Input id="last_name" name="last_name" required maxLength={60} autoComplete="family-name" />
         </Field>
       </div>
