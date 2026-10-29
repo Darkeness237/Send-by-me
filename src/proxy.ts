@@ -39,6 +39,18 @@ export async function proxy(request: NextRequest) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return pass();
 
+  // Visiteur sans session Supabase : rien à rafraîchir, on évite l'appel (plus rapide pour la majorité des visites).
+  const isProtected = (p: string) => PROTECTED.some((x) => p === x || p.startsWith(`${x}/`));
+  if (!request.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"))) {
+    if (isProtected(pathname)) {
+      const login = request.nextUrl.clone();
+      login.pathname = "/connexion";
+      login.search = `?suite=${encodeURIComponent(pathname + request.nextUrl.search)}`;
+      return NextResponse.redirect(login);
+    }
+    return pass();
+  }
+
   let response = pass();
 
   const supabase = createServerClient(url, key, {
@@ -60,7 +72,7 @@ export async function proxy(request: NextRequest) {
   const signedIn = Boolean(data?.claims?.sub);
 
   const path = request.nextUrl.pathname;
-  if (!signedIn && PROTECTED.some((p) => path === p || path.startsWith(`${p}/`))) {
+  if (!signedIn && isProtected(path)) {
     const login = request.nextUrl.clone();
     login.pathname = "/connexion";
     login.search = `?suite=${encodeURIComponent(path + request.nextUrl.search)}`;

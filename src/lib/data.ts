@@ -51,12 +51,16 @@ export async function getUpcomingTrips(limit = 6, from?: string, to?: string): P
     .limit(limit);
   if (from) query = query.ilike("from_city", escapeLike(from));
   if (to) query = query.ilike("to_city", escapeLike(to));
-  const { data, error } = await query;
-  if (error) throw error;
+  // Base injoignable (y compris pendant la compilation) : liste vide plutôt qu'une page en erreur.
+  const { data, error } = await query.then((r) => r, (e: unknown) => ({ data: null, error: e }));
+  if (error) {
+    console.error("Prochains départs", error instanceof Error ? error.message : error);
+    return [];
+  }
   const trips = (data ?? []) as Trip[];
   const ids = [...new Set(trips.map((t) => t.traveler?.id).filter(Boolean))] as string[];
   if (!ids.length) return trips;
-  const { data: ratings } = await db.from("profile_ratings").select("*").in("profile_id", ids);
+  const { data: ratings } = await db.from("profile_ratings").select("*").in("profile_id", ids).then((r) => r, () => ({ data: null }));
   const map = new Map((ratings ?? []).map((r) => [r.profile_id as string, r]));
   return trips.map((t) => (t.traveler ? { ...t, traveler: { ...t.traveler, rating_avg: map.get(t.traveler.id)?.rating_avg ?? null, rating_count: map.get(t.traveler.id)?.rating_count ?? 0 } } : t));
 }
