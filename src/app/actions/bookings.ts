@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/env";
-import { homeDeliveryFor } from "@/lib/delivery";
+import { homeDeliveryAvailable, homeDeliveryFor } from "@/lib/delivery";
 import { CONTACT_BLOCKED_MESSAGE, containsContactDetails } from "@/lib/contact-guard";
 import { notifyBooking, notifyMessage, notifyOffer } from "@/lib/notify-events";
 import { missingPhotos, REQUIRED_BEFORE_DELIVERY, REQUIRED_BEFORE_PICKUP } from "@/lib/parcel-photos";
@@ -88,7 +88,7 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
   if (!(trip.accepted_categories as string[]).includes(d.category))
     return { error: "Ce voyageur n'accepte pas ce type de colis." };
 
-  const wantsDelivery = d.home_delivery === "on";
+  const wantsDelivery = d.home_delivery === "on" && homeDeliveryAvailable(trip.to_country);
   const bulky = wantsDelivery && d.delivery_bulky === "on" && roundKg(d.weight_kg) <= 10;
   if (wantsDelivery && (d.delivery_address ?? "").length < 5) return { error: "Indiquez l'adresse de livraison du destinataire." };
 

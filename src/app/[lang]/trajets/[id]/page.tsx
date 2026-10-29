@@ -24,6 +24,7 @@ import { CATEGORIES } from "@/lib/types";
 import { getLocale, getT } from "@/i18n/server";
 import { translateNote } from "@/i18n/patterns";
 import { TripQuote } from "@/components/trip-quote";
+import { homeDeliveryAvailable } from "@/lib/delivery";
 
 export async function generateMetadata(props: PageProps<"/[lang]/trajets/[id]">): Promise<Metadata> {
   const { id } = await props.params;
@@ -336,14 +337,14 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
             ) : !bookable ? (
               <p className="text-muted">{t("Ce trajet n'accepte plus de réservations.")}</p>
             ) : !userId ? (
-              <TripQuote tripId={trip.id} pricePerKgCents={trip.price_per_kg_cents} maxKg={left} deliveryCountry={trip.to_country} />
+              <TripQuote tripId={trip.id} pricePerKgCents={trip.price_per_kg_cents} maxKg={left} deliveryCountry={homeDeliveryAvailable(trip.to_country) ? trip.to_country : null} />
             ) : (
               <BookingForm
                 tripId={trip.id}
                 pricePerKgCents={trip.price_per_kg_cents}
                 maxKg={left}
                 acceptedCategories={trip.accepted_categories}
-                deliveryCountry={trip.to_country}
+                deliveryCountry={homeDeliveryAvailable(trip.to_country) ? trip.to_country : null}
                 creditCents={credit}
               />
             )}

@@ -120,7 +120,7 @@ export default async function Home() {
             <div className="lg:col-start-1 lg:row-start-1">
               <a href="#livraison" className="reveal mb-5 inline-flex items-center gap-2 rounded-full bg-night py-1.5 pr-4 pl-1.5 text-sm font-bold text-white hover:bg-night-soft">
                 <span className="rounded-full bg-signal px-2.5 py-0.5 text-xs font-extrabold text-navy">{t("Nouveau")}</span>
-                <Truck className="h-4 w-4 text-signal" aria-hidden="true" /> {t("Livraison à domicile à l'arrivée")}
+                <Truck className="h-4 w-4 text-signal" aria-hidden="true" /> {t("Livraison à domicile au Cameroun")}
               </a>
               <h1 className="display reveal text-[40px] sm:text-[56px] lg:text-[64px]">
                 {t("Vos colis")} <span className="text-brand">{t("voyagent")}</span> {t("dans la valise de")}{" "}

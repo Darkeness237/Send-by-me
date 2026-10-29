@@ -30,7 +30,7 @@ async function signup(b, first, last, email, next) {
   // 1. Expéditeur : demande d'envoi avec photo
   const s = await signup(b, 'Nadia', 'Kouam', `req${run}@test.fr`, '/demandes/nouvelle');
   const sid = sql(`select id from auth.users where email='req${run}@test.fr'`);
-  await s.fill('#from_city', 'Lyon'); await s.fill('#to_city', 'Abidjan');
+  await s.fill('#from_city', 'Lyon'); await s.fill('#to_city', 'Douala');
   await s.fill('#latest_date', day(30));
   await s.selectOption('#category', 'clothing');
   await s.fill('#weight_kg', '4');
@@ -47,7 +47,7 @@ async function signup(b, first, last, email, next) {
   const t = await signup(b, 'Serge', 'Ekane', `trv${run}@test.fr`, '/publier');
   const tid = sql(`select id from auth.users where email='trv${run}@test.fr'`);
   await pubForm.openAll(t);
-  await t.fill('#from_city', 'Lyon'); await t.fill('#to_city', 'Abidjan');
+  await t.fill('#from_city', 'Lyon'); await t.fill('#to_city', 'Douala');
   await t.fill('#departure_date', day(10)); await t.fill('#departure_time', '09:00');
   await t.selectOption('#mode', 'car');
   await pubForm.openAll(t);

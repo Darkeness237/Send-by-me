@@ -10,6 +10,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/types";
 import type { FormState } from "./auth";
+import { homeDeliveryAvailable } from "@/lib/delivery";
 
 const categoryIds = CATEGORIES.map((c) => c.id) as [string, ...string[]];
 const optInt = (max: number) =>
@@ -78,7 +79,7 @@ export async function createRequest(_: FormState, formData: FormData): Promise<F
       description: d.description,
       declared_value_cents: d.declared_value != null ? Math.round(d.declared_value * 100) : null,
       max_price_per_kg_cents: d.max_price_per_kg != null ? Math.round(d.max_price_per_kg * 100) : null,
-      wants_home_delivery: d.wants_home_delivery === "on",
+      wants_home_delivery: d.wants_home_delivery === "on" && homeDeliveryAvailable(to.country),
       photos,
     })
     .select("id")

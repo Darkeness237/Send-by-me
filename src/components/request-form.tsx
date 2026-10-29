@@ -293,7 +293,7 @@ export function RequestForm({
                 {t("Livraison à domicile souhaitée")}
               </span>
               <span className="block text-sm text-muted">
-                {t("Un livreur apporte le colis chez votre destinataire. Vous confirmez au moment de réserver.")}
+                {t("Un livreur apporte le colis chez votre destinataire. Disponible pour les envois vers le Cameroun. Vous confirmez au moment de réserver.")}
               </span>
             </span>
           </label>

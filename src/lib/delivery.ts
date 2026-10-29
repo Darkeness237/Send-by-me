@@ -32,14 +32,15 @@ export const MARKUP_UP_TO_10KG = 3;
 export const SUITCASE_KG = 23;
 export const ONE_SUITCASE_CENTS = 999;
 export const DELIVERY_CAP_CENTS = 1299;
-/** Pays sans partenaire tarifé : forfait. */
-export const HOME_DELIVERY_FLAT_CENTS = 1000;
 
 const toNinety = (cents: number) => Math.ceil((cents + 10) / 100) * 100 - 10;
 export const suitcasesFor = (weightKg: number) => Math.max(1, Math.ceil(weightKg / SUITCASE_KG));
 
+/** Livraison à domicile proposée seulement là où un partenaire livre (Cameroun pour l'instant). */
+export const homeDeliveryAvailable = (country: string | null | undefined) => Boolean(country && PARTNER_COUNTRIES.includes(country));
+
 export function homeDeliveryFor(country: string | null | undefined, weightKg: number, bulky = false) {
-  if (!country || !PARTNER_COUNTRIES.includes(country)) return HOME_DELIVERY_FLAT_CENTS;
+  if (!homeDeliveryAvailable(country)) return 0;
   let cents: number;
   if (weightKg > 10) cents = suitcasesFor(weightKg) === 1 ? ONE_SUITCASE_CENTS : DELIVERY_CAP_CENTS;
   else if (bulky) cents = ONE_SUITCASE_CENTS;

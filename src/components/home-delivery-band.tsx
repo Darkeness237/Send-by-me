@@ -28,7 +28,7 @@ export async function HomeDeliveryBand() {
             {t("Vos proches n'ont même pas à se déplacer")}
           </h2>
           <p className="mt-3 max-w-xl text-white/80">
-            {t("Le destinataire ne peut pas rejoindre le voyageur ? Cochez la livraison à domicile en réservant : nous nous occupons du dernier kilomètre.")}
+            {t("Le destinataire ne peut pas rejoindre le voyageur ? Cochez la livraison à domicile en réservant : nous nous occupons du dernier kilomètre. Disponible pour les envois vers le Cameroun.")}
           </p>
           <ol className="mt-7 space-y-4">
             {FLOW.map(([Icon, title, text], i) => (

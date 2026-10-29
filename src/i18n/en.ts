@@ -1351,4 +1351,7 @@ export const en: Record<string, string> = {
   "Léger mais volumineux (plus grand qu'une valise cabine) : notre livreur le facture au volume.": "Light but bulky (bigger than a cabin suitcase): our courier charges it by volume.",
   "Ce lien a expiré ou a déjà servi. Votre adresse est peut-être déjà confirmée : connectez-vous. Sinon, demandez un nouveau lien ci-dessous.": "This link has expired or was already used. Your address may already be confirmed: sign in. Otherwise, request a new link below.",
   "Inscription impossible pour le moment. Réessayez dans quelques minutes.": "Sign-up isn't possible right now. Please try again in a few minutes.",
+  "Livraison à domicile au Cameroun": "Home delivery in Cameroon",
+  "Le destinataire ne peut pas rejoindre le voyageur ? Cochez la livraison à domicile en réservant : nous nous occupons du dernier kilomètre. Disponible pour les envois vers le Cameroun.": "Can't the recipient meet the traveler? Tick home delivery when booking: we handle the last mile. Available for parcels to Cameroon.",
+  "Un livreur apporte le colis chez votre destinataire. Disponible pour les envois vers le Cameroun. Vous confirmez au moment de réserver.": "A courier brings the parcel to your recipient. Available for parcels to Cameroon. You confirm when booking.",
 };
