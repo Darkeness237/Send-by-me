@@ -8,9 +8,8 @@ import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ButtonLink } from "@/components/ui/button";
-import { getHomeProof, getMarketPrices, getUpcomingTrips } from "@/lib/data";
+import { getHomeBoardTrips, getHomeProof, getMarketPrices } from "@/lib/data";
 import { PriceCalculator } from "@/components/price-calculator";
-import { demoTrips } from "@/lib/demo";
 import { CORRIDORS, corridorSlug, findPlace } from "@/lib/places";
 import { euros, quote } from "@/lib/pricing";
 import { FAQ } from "@/components/faq";
@@ -23,8 +22,8 @@ import { TrustBand } from "@/components/trust-band";
 import { HomeDeliveryBand } from "@/components/home-delivery-band";
 
 async function LiveBoard() {
-  const trips = await getUpcomingTrips(6).catch(() => []);
-  return <DepartureBoard trips={trips.length >= 3 ? trips : demoTrips()} rows={4} />;
+  const trips = await getHomeBoardTrips().catch(() => []);
+  return <DepartureBoard trips={trips} rows={4} />;
 }
 
 const example = quote(900, 5);
