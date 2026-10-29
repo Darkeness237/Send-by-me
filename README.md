@@ -74,7 +74,12 @@ npm run db:advisors
 1. **Supabase** : créer un projet, puis `npx supabase link` et `npx supabase db push`. Dans Auth > URL Configuration, déclarer l'URL du site et `/auth/confirm`.
 2. **Stripe** : utiliser un *sandbox* pour les tests et une clé restreinte (`rk_…`). Créer un endpoint webhook vers `https://<domaine>/api/webhooks/stripe` avec les événements `checkout.session.completed`, `checkout.session.async_payment_succeeded` et `checkout.session.async_payment_failed`. **Le webhook est obligatoire** : sans lui, aucune réservation ne passe en « payée ».
 3. **Hébergement** : Netlify (`netlify.toml` fourni, Next.js détecté automatiquement). Renseigner les variables de `.env.example` dans Netlify > Project configuration > Environment variables, puis redéployer.
-4. Faire relire `/cgu` et `/confidentialite` par un juriste.
+4. **Mesure d'audience (Plausible)** : ajouter le site `send-by-me.com` dans Plausible, puis créer les objectifs (Goals > Custom event) `Inscription`, `Trajet publié`, `Demande publiée`, `Paiement lancé` et `Livraison confirmée`, et la propriété personnalisée `corridor` (et `methode` pour les inscriptions). Le script n'est chargé qu'en production et n'utilise pas de cookie ; les adresses de pages sont envoyées sans identifiant ni paramètre (`src/lib/analytics.ts`).
+5. **Suivi des erreurs (Sentry)** : créer un projet Next.js dans Sentry (région UE de préférence), puis renseigner dans Netlify :
+   - `NEXT_PUBLIC_SENTRY_DSN` : DSN du projet (sans lui, Sentry reste désactivé) ;
+   - `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` : envoi des sourcemaps pendant le build, supprimées ensuite du site publié.
+   Les e-mails, téléphones, IBAN et codes de remise sont filtrés avant envoi (`src/lib/sentry-scrub.ts`), `sendDefaultPii` est désactivé et Session Replay n'est pas utilisé.
+6. Faire relire `/cgu` et `/confidentialite` par un juriste.
 
 ## Feuille de route
 

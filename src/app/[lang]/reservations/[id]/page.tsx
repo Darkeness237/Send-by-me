@@ -30,6 +30,8 @@ import { createClient, getUserId } from "@/lib/supabase/server";
 import { bookingStatusLabel, CATEGORIES } from "@/lib/types";
 import { getLocale, getT } from "@/i18n/server";
 import { confirmCheckout } from "@/lib/booking-payment";
+import { TrackOnSubmit } from "@/components/track-event";
+import { corridorOf } from "@/lib/analytics";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -154,9 +156,11 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
             <Action text={t("{v} a accepté. Payez pour confirmer votre envoi.", { v: other?.full_name ?? t("Le voyageur") })}>
               <div className="flex flex-wrap gap-2">
                 <form action={startCheckout.bind(null, booking.id)}>
-                  <Button type="submit" size="lg">
-                    <Lock className="h-4 w-4" aria-hidden="true" />{" "}{t("Payer {euros}", { euros: euros(booking.total_cents) })}
-                  </Button>
+                  <TrackOnSubmit name="Paiement lancé" props={{ corridor: corridorOf(trip.from_city, trip.to_city) }}>
+                    <Button type="submit" size="lg">
+                      <Lock className="h-4 w-4" aria-hidden="true" />{" "}{t("Payer {euros}", { euros: euros(booking.total_cents) })}
+                    </Button>
+                  </TrackOnSubmit>
                 </form>
                 <form action={cancelBooking.bind(null, booking.id)}>
                   <Button variant="ghost" size="lg" type="submit">{t("Annuler")}</Button>
@@ -258,7 +262,7 @@ async function BookingView({ params, searchParams }: { params: Promise<{ id: str
               ) : missingForDelivery.length ? (
                 <Action text={t("À la remise, photographiez le colis toujours fermé, pour montrer qu'il n'a pas été ouvert en route. Photo attendue : {stepLabels}. Vous pourrez ensuite saisir le code de {recipient_name}.", { stepLabels: stepLabels(missingForDelivery), recipient_name: booking.recipient_name })} />
               ) : (
-                <DeliveryCodeForm bookingId={booking.id} />
+                <DeliveryCodeForm bookingId={booking.id} corridor={corridorOf(trip.from_city, trip.to_city)} />
               )}
             </div>
           )}

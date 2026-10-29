@@ -5,10 +5,14 @@ import { confirmDelivery, leaveReview, sendMessage } from "@/app/actions/booking
 import { Button } from "@/components/ui/button";
 import { FormMessage, Input, Textarea } from "@/components/ui/field";
 import { useT } from "@/i18n/client";
+import { track } from "@/lib/analytics";
 
-export function DeliveryCodeForm({ bookingId }: { bookingId: string }) {
+export function DeliveryCodeForm({ bookingId, corridor }: { bookingId: string; corridor?: string }) {
   const t = useT();
   const [state, action, pending] = useActionState(confirmDelivery, null);
+  useEffect(() => {
+    if (state?.ok) track("Livraison confirmée", { corridor });
+  }, [state, corridor]);
   return (
     <form action={action} className="space-y-3">
       <input type="hidden" name="booking_id" value={bookingId} />

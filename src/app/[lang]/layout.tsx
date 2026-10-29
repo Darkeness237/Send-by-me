@@ -7,7 +7,9 @@ import { SITE_URL } from "@/lib/env";
 import { INTRO_SCRIPT, IntroSplash } from "@/components/intro-splash";
 import { PwaInstall } from "@/components/pwa";
 import { NavProgress } from "@/components/nav-progress";
+import { PlausiblePageviews } from "@/components/plausible-pageviews";
 import { THEME_SCRIPT } from "@/lib/theme";
+import Script from "next/script";
 import { Suspense } from "react";
 import "../globals.css";
 
@@ -69,6 +71,18 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           </Suspense>
           {children}
           <PwaInstall />
+          {/* Mesure d'audience Plausible : sans cookie ni donnée personnelle, en production seulement. */}
+          {process.env.NODE_ENV === "production" && (
+            <>
+              <Script id="plausible-queue" strategy="afterInteractive">
+                {`window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}`}
+              </Script>
+              <Script src="https://plausible.io/js/script.manual.js" data-domain="send-by-me.com" strategy="afterInteractive" />
+              <Suspense fallback={null}>
+                <PlausiblePageviews />
+              </Suspense>
+            </>
+          )}
         </I18nProvider>
       </body>
     </html>

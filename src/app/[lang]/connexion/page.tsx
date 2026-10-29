@@ -4,6 +4,7 @@ import { AuthLayout } from "@/components/auth-layout";
 import { OrDivider, SocialButtons } from "@/components/google-button";
 import { SignInForm } from "@/components/auth-forms";
 import { getT } from "@/i18n/server";
+import { TrackEvent } from "@/components/track-event";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -15,6 +16,7 @@ async function Form({ searchParams }: { searchParams: Promise<Record<string, str
   const sp = await searchParams;
   return (
     <>
+      {sp.inscrit === "1" && <TrackEvent name="Inscription" props={{ methode: "email" }} />}
       {sp.inscrit === "1" && (
         <p role="status" className="mb-5 rounded-xl bg-ok-pale px-4 py-3 text-sm text-ok">
           {t("Compte créé ! Ouvrez le lien de confirmation envoyé par e-mail (regardez aussi dans les courriers indésirables), puis connectez-vous ici.")}

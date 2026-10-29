@@ -24,6 +24,8 @@ import { CATEGORIES } from "@/lib/types";
 import { getLocale, getT } from "@/i18n/server";
 import { translateNote } from "@/i18n/patterns";
 import { TripQuote } from "@/components/trip-quote";
+import { TrackEvent } from "@/components/track-event";
+import { corridorOf } from "@/lib/analytics";
 
 export async function generateMetadata(props: PageProps<"/[lang]/trajets/[id]">): Promise<Metadata> {
   const { id } = await props.params;
@@ -56,6 +58,7 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-12">
+      {sp.publie && <TrackEvent name="Trajet publié" props={{ corridor: corridorOf(trip.from_city, trip.to_city) }} />}
       {sp.publie && <TakeoffBanner title={t("C'est en ligne !")} text={t("Votre trajet est publié. Partagez-le pour recevoir vos premières demandes.")} />}
       <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-start">
         <div className="space-y-6">
