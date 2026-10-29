@@ -1358,4 +1358,5 @@ export const en: Record<string, string> = {
   "Photo non retirée. Réessayez.": "Photo not removed. Try again.",
   "Retirer cette photo pour en prendre une autre ?": "Remove this photo to take another one?",
   "Retirer la photo « {label} »": "Remove the “{label}” photo",
+  "La connexion avec {v} n'a pas abouti. Réessayez depuis Safari ou Chrome (pas depuis Instagram, Facebook ou l'appli Gmail), ou utilisez votre e-mail.": "Signing in with {v} didn't work. Try again from Safari or Chrome (not from Instagram, Facebook or the Gmail app), or use your e-mail.",
 };

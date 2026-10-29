@@ -47,6 +47,14 @@ export async function GET(request: NextRequest) {
       await attachReferral(supabase, searchParams.get("parrain"));
       return NextResponse.redirect(`${origin}${await afterLogin(supabase, next)}`);
     }
+    // Retour Google/Facebook ouvert une deuxième fois (double clic, rechargement) : le premier passage
+    // a déjà ouvert la session, on continue simplement au lieu d'afficher une erreur.
+    const { data } = await supabase.auth.getUser();
+    if (data.user) return NextResponse.redirect(`${origin}${await afterLogin(supabase, next)}`);
+    // Sinon, le plus souvent : connexion commencée dans un autre navigateur (appli installée,
+    // navigateur intégré d'Instagram ou de Gmail) que celui qui revient de Google.
+    console.error("Retour de connexion Google", error.name, error.message);
+    return NextResponse.redirect(`${origin}/connexion?erreur=google&suite=${encodeURIComponent(next)}`);
   }
   return NextResponse.redirect(`${origin}/connexion?erreur=lien`);
 }

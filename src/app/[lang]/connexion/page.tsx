@@ -22,7 +22,7 @@ async function Form({ searchParams }: { searchParams: Promise<Record<string, str
       )}
       {(sp.erreur === "google" || sp.erreur === "facebook") && (
         <p className="mb-5 rounded-xl bg-danger-pale px-4 py-3 text-sm text-danger">
-          {t("La connexion avec {v} n'a pas abouti. Réessayez ou utilisez votre e-mail.", { v: sp.erreur === "google" ? "Google" : "Facebook" })}
+          {t("La connexion avec {v} n'a pas abouti. Réessayez depuis Safari ou Chrome (pas depuis Instagram, Facebook ou l'appli Gmail), ou utilisez votre e-mail.", { v: sp.erreur === "google" ? "Google" : "Facebook" })}
         </p>
       )}
       {sp.erreur === "lien" && (
