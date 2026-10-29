@@ -58,12 +58,15 @@ export async function FacebookButton({ next, referral }: { next?: string; referr
   );
 }
 
-/** Les deux boutons de connexion sociale. */
+// Facebook n'apparaît qu'une fois le fournisseur activé dans Supabase (sinon le clic finit en erreur).
+const facebookEnabled = process.env.NEXT_PUBLIC_FACEBOOK_LOGIN === "on";
+
+/** Les boutons de connexion sociale. */
 export function SocialButtons({ next, referral }: { next?: string; referral?: string }) {
   return (
     <div className="space-y-3">
       <GoogleButton next={next} referral={referral} />
-      <FacebookButton next={next} referral={referral} />
+      {facebookEnabled && <FacebookButton next={next} referral={referral} />}
     </div>
   );
 }
