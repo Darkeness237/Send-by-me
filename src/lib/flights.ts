@@ -67,7 +67,7 @@ export type FlightCheckResult = {
 /**
  * Contrôles automatiques à la publication. Une incohérence de saisie bloque l'annonce ;
  * un vol introuvable dans les horaires ne la bloque pas, mais elle est signalée aux expéditeurs et à l'équipe.
- * Si une clé AeroDataBox est configurée, le vol est aussi recherché dans les horaires réels.
+ * Si une clé AeroDataBox est configurée (AERODATABOX_API_KEY ou AEROBOX), le vol est aussi recherché dans les horaires réels.
  */
 export async function checkFlight(input: FlightInput): Promise<FlightCheckResult> {
   const notes: TransportCheckNote[] = [];
@@ -96,7 +96,7 @@ export async function checkFlight(input: FlightInput): Promise<FlightCheckResult
 
 /** Recherche du vol dans les horaires réels (AeroDataBox via RapidAPI). Renvoie null si indisponible. */
 async function lookupFlight(input: FlightInput): Promise<TransportCheckNote | null> {
-  const key = process.env.AERODATABOX_API_KEY;
+  const key = process.env.AERODATABOX_API_KEY ?? process.env.AEROBOX;
   if (!key) return null;
   const date = input.departureUtc.toISOString().slice(0, 10);
   try {
@@ -111,7 +111,11 @@ async function lookupFlight(input: FlightInput): Promise<TransportCheckNote | nu
     if (res.status === 204 || res.status === 404) {
       return { ok: false, label: `Vol ${input.flightNumber} introuvable dans les horaires du ${date}` };
     }
-    if (!res.ok) return null;
+    if (!res.ok) {
+      // 401/403 : clé refusée (clé RapidAPI attendue) ; 429 : quota mensuel atteint.
+      console.error("AeroDataBox", res.status);
+      return null;
+    }
     const flights = (await res.json()) as {
       departure?: { airport?: { iata?: string }; scheduledTime?: { utc?: string } };
       arrival?: { airport?: { iata?: string } };
@@ -122,7 +126,8 @@ async function lookupFlight(input: FlightInput): Promise<TransportCheckNote | nu
     const gapH = scheduled ? Math.abs(scheduled.getTime() - input.departureUtc.getTime()) / 3600_000 : 0;
     if (scheduled && gapH > 3) return { ok: false, label: `L'heure annoncée diffère de l'horaire du vol (${Math.round(gapH)} h d'écart)` };
     return { ok: true, label: `Vol ${input.flightNumber} trouvé dans les horaires réels` };
-  } catch {
+  } catch (e) {
+    console.error("AeroDataBox", e instanceof Error ? e.message : e);
     return null;
   }
 }
