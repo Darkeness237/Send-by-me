@@ -26,7 +26,7 @@ async function Form({ searchParams }: { searchParams: Promise<Record<string, str
         </p>
       )}
       {sp.erreur === "lien" && (
-        <p className="mb-5 rounded-xl bg-danger-pale px-4 py-3 text-sm text-danger">{t("Ce lien a expiré. Connectez-vous ou demandez-en un nouveau.")}</p>
+        <p className="mb-5 rounded-xl bg-danger-pale px-4 py-3 text-sm text-danger">{t("Ce lien a expiré ou a déjà servi. Votre adresse est peut-être déjà confirmée : connectez-vous. Sinon, demandez un nouveau lien ci-dessous.")}</p>
       )}
       <SocialButtons next={sp.suite} />
       <OrDivider />

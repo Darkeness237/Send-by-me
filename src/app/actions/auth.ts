@@ -5,6 +5,7 @@ import { z } from "zod";
 import { isSupabaseConfigured, SITE_URL } from "@/lib/env";
 import { cleanReferralCode } from "@/lib/referral";
 import { createClient } from "@/lib/supabase/server";
+import { canSendAuthMail, resendWithOwnMail, signUpWithOwnMail } from "@/lib/auth-mail";
 
 // unconfirmed : adresse inscrite mais pas encore confirmée (le formulaire propose de renvoyer le lien).
 export type FormState = { error?: string; ok?: string; unconfirmed?: string } | null;
@@ -69,24 +70,32 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
+  // Le pseudonyme public est « Prénom N. » ; le nom complet et le téléphone restent privés (member_contacts).
+  const metadata = {
+    display_name: `${parsed.data.first_name} ${parsed.data.last_name.charAt(0).toUpperCase()}.`,
+    full_name: `${parsed.data.first_name} ${parsed.data.last_name}`,
+    last_name: parsed.data.last_name,
+    phone: parsed.data.phone || null,
+    country: parsed.data.country || null,
+    intent: parsed.data.intent,
+    // Rattachement au parrain par un déclencheur en base (code vérifié côté serveur).
+    referral_code: cleanReferralCode(formData.get("parrain")),
+  };
+  const next = safeNext(formData.get("suite"));
+
+  // E-mail de confirmation envoyé par Send By Me (lien send-by-me.com, valable dans tout navigateur).
+  if (canSendAuthMail()) {
+    const result = await signUpWithOwnMail({ email: parsed.data.email, password: parsed.data.password, firstName: parsed.data.first_name, data: metadata, next });
+    if (result === "exists") return { error: "Un compte existe déjà avec cette adresse. Connectez-vous, ou utilisez « Mot de passe oublié ? »." };
+    if (result === "failed") return { error: "Inscription impossible pour le moment. Réessayez dans quelques minutes." };
+    redirect(`/connexion?inscrit=1&suite=${encodeURIComponent(next)}`);
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
-    options: {
-      // Le pseudonyme public est « Prénom N. » ; le nom complet et le téléphone restent privés (member_contacts).
-      data: {
-        display_name: `${parsed.data.first_name} ${parsed.data.last_name.charAt(0).toUpperCase()}.`,
-        full_name: `${parsed.data.first_name} ${parsed.data.last_name}`,
-        last_name: parsed.data.last_name,
-        phone: parsed.data.phone || null,
-        country: parsed.data.country || null,
-        intent: parsed.data.intent,
-        // Rattachement au parrain par un déclencheur en base (code vérifié côté serveur).
-        referral_code: cleanReferralCode(formData.get("parrain")),
-      },
-      emailRedirectTo: `${SITE_URL}/auth/confirm`,
-    },
+    options: { data: metadata, emailRedirectTo: `${SITE_URL}/auth/confirm` },
   });
   if (error) {
     return { error: error.code === "weak_password" ? "Mot de passe trop faible, choisissez-en un plus long." : "Inscription impossible avec cette adresse." };
@@ -95,11 +104,8 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
   if (data.user && !data.user.identities?.length) {
     return { error: "Un compte existe déjà avec cette adresse. Connectez-vous, ou utilisez « Mot de passe oublié ? »." };
   }
-  if (!data.session) {
-    const next = safeNext(formData.get("suite"));
-    redirect(`/connexion?inscrit=1&suite=${encodeURIComponent(next)}`);
-  }
-  redirect(safeNext(formData.get("suite")));
+  if (!data.session) redirect(`/connexion?inscrit=1&suite=${encodeURIComponent(next)}`);
+  redirect(next);
 }
 
 /** Renvoie le lien de confirmation d'inscription. */
@@ -107,6 +113,11 @@ export async function resendConfirmation(_: FormState, formData: FormData): Prom
   if (!isSupabaseConfigured) return { error: DEMO_ERROR };
   const email = z.email().max(200).safeParse(formData.get("email"));
   if (!email.success) return { error: "Adresse e-mail invalide." };
+  if (canSendAuthMail()) {
+    // Réponse identique que l'adresse existe ou non : on ne révèle pas qui est inscrit.
+    await resendWithOwnMail(email.data, safeNext(formData.get("suite")));
+    return { ok: "Lien de confirmation renvoyé. Ouvrez-le depuis votre boîte mail (ou les courriers indésirables), puis connectez-vous." };
+  }
   const supabase = await createClient();
   const { error } = await supabase.auth.resend({ type: "signup", email: email.data, options: { emailRedirectTo: `${SITE_URL}/auth/confirm` } });
   if (error) return { error: error.status === 429 ? "Trop d'envois rapprochés. Réessayez dans quelques minutes." : "Envoi impossible pour le moment. Réessayez plus tard." };

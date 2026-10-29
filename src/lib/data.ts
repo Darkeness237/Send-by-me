@@ -65,6 +65,14 @@ export async function getUpcomingTrips(limit = 6, from?: string, to?: string): P
   return trips.map((t) => (t.traveler ? { ...t, traveler: { ...t.traveler, rating_avg: map.get(t.traveler.id)?.rating_avg ?? null, rating_count: map.get(t.traveler.id)?.rating_count ?? 0 } } : t));
 }
 
+/** Tableau des départs de l'accueil : vrais trajets, ou exemples tant qu'il y en a moins de 3 (dates calculées dans le cache). */
+export async function getHomeBoardTrips(): Promise<Trip[]> {
+  "use cache";
+  cacheLife("minutes");
+  const trips = await getUpcomingTrips(6);
+  return trips.length >= 3 ? trips : demoTrips();
+}
+
 export async function searchTrips(q: TripSearch, limit = 30): Promise<Trip[]> {
   await connection();
   if (!isSupabaseConfigured) {
