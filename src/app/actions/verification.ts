@@ -147,22 +147,30 @@ export async function startIdentityCheck() {
   if (!userId) redirect("/connexion?suite=/espace/profil");
   if (!isStripeConfigured) redirect("/espace/profil?kyc=indisponible");
 
-  const session = await stripe().identity.verificationSessions.create(
-    {
-      type: "document",
-      options: {
-        document: {
-          allowed_types: ["id_card", "passport", "driving_license"],
-          require_live_capture: true,
-          require_matching_selfie: true,
+  // Stripe peut refuser (Identity pas encore activé sur le compte, clé sans la permission) :
+  // le membre est renvoyé vers l'envoi manuel de ses documents plutôt que vers une page d'erreur.
+  let url: string | null = null;
+  try {
+    const session = await stripe().identity.verificationSessions.create(
+      {
+        type: "document",
+        options: {
+          document: {
+            allowed_types: ["id_card", "passport", "driving_license"],
+            require_live_capture: true,
+            require_matching_selfie: true,
+          },
         },
+        client_reference_id: userId,
+        metadata: { user_id: userId },
+        return_url: `${SITE_URL}/espace/profil?kyc=retour`,
       },
-      client_reference_id: userId,
-      metadata: { user_id: userId },
-      return_url: `${SITE_URL}/espace/profil?kyc=retour`,
-    },
-    { idempotencyKey: `kyc-${userId}-${Math.floor(Date.now() / 600_000)}` },
-  );
-  if (!session.url) redirect("/espace/profil?kyc=erreur");
-  redirect(session.url);
+      { idempotencyKey: `kyc-${userId}-${Math.floor(Date.now() / 600_000)}` },
+    );
+    url = session.url;
+  } catch (e) {
+    const err = e as { type?: string; code?: string; message?: string };
+    console.error("Vérification d'identité Stripe", err.type, err.code, err.message);
+  }
+  redirect(url ?? "/espace/profil?kyc=erreur#verifie");
 }

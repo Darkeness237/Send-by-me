@@ -316,13 +316,18 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
                           {t("Merci ! Le résultat s'affichera ici dans quelques instants.")}
                         </p>
                       )}
+                      {sp.kyc === "erreur" && (
+                        <p role="alert" className="mb-3 text-sm font-medium text-danger">
+                          {t("La vérification automatique n'est pas disponible pour le moment. Envoyez vos documents ci-dessous : notre équipe les examine sous 24 heures.")}
+                        </p>
+                      )}
                       <form action={startIdentityCheck}>
                         <Button type="submit" size="sm">
                           <BadgeCheck className="h-4 w-4" aria-hidden="true" />{" "}{t("Vérifier mon identité")}
                         </Button>
                       </form>
                     </div>
-                    <details className="mt-3 text-sm">
+                    <details className="mt-3 text-sm" open={sp.kyc === "erreur"}>
                       <summary className="cursor-pointer text-muted hover:text-ink">{t("Ça ne marche pas ? Envoyez vos documents")}</summary>
                       <div className="mt-3">
                         <IdentityVerificationForm userId={userId} />
