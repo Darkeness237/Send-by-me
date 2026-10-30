@@ -3,6 +3,7 @@
 import { verificationError, verificationStatus } from "@/lib/verification-gate";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import { isSupabaseConfigured } from "@/lib/env";
 import { getMarketPrices } from "@/lib/data";
@@ -170,7 +171,18 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
       .update({ transport_check: transportCheck.status, transport_check_notes: transportCheck.notes })
       .eq("id", data.id);
   }
-  await notifyMatchingRequesters(data.id, userId, from.city, to.city, departure, d.capacity_kg, d.accepted_categories);
+  // Confirmation et expéditeurs correspondants : envoyés après la réponse, pour ne pas ralentir la publication.
+  const tripId = data.id;
+  after(async () => {
+    await notifySafe(userId, {
+      kind: "trip_published",
+      title: `Trajet publié : ${from.city} → ${to.city}`,
+      body: "Votre annonce est en ligne. Vous serez prévenu à chaque demande de réservation.",
+      href: `/trajets/${tripId}`,
+      email: true,
+    });
+    await notifyMatchingRequesters(tripId, userId, from.city, to.city, departure, d.capacity_kg, d.accepted_categories);
+  });
   revalidatePath("/recherche");
   redirect(`/trajets/${data.id}?publie=1`);
 }

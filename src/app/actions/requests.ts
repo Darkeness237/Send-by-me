@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import { findCity } from "@/lib/airports";
 import { notifySafe } from "@/lib/notify";
@@ -86,13 +87,36 @@ export async function createRequest(_: FormState, formData: FormData): Promise<F
     .single();
   if (error || !data) return { error: "Demande non enregistrée. Réessayez." };
 
-  // Voyageurs dont un trajet publié correspond : notification dans l'application et sur le téléphone.
+  // Confirmation et voyageurs correspondants : envoyés après la réponse, pour ne pas ralentir la publication.
+  const requestId = data.id;
+  after(() => notifyRequestPublished(userId, requestId, from.city, to.city, d));
+
+  revalidatePath("/demandes");
+  redirect(`/demandes/${requestId}?publiee=1`);
+}
+
+/** Demande publiée : confirmation à l'expéditeur, et e-mail aux voyageurs dont un trajet correspond. */
+async function notifyRequestPublished(
+  userId: string,
+  requestId: string,
+  fromCity: string,
+  toCity: string,
+  d: { earliest_date: string; latest_date: string; weight_kg: number; category: string },
+) {
+  const db = createAdminClient();
+  await notifySafe(userId, {
+    kind: "request_published",
+    title: `Demande publiée : ${fromCity} → ${toCity}`,
+    body: "Les voyageurs de cette ligne sont prévenus. Vous recevrez un e-mail dès qu'un trajet correspond.",
+    href: `/demandes/${requestId}`,
+    email: true,
+  });
   const { data: trips } = await db
     .from("trips")
     .select("traveler_id, capacity_kg, reserved_kg, accepted_categories")
     .eq("status", "published")
-    .ilike("from_city", escapeLike(from.city))
-    .ilike("to_city", escapeLike(to.city))
+    .ilike("from_city", escapeLike(fromCity))
+    .ilike("to_city", escapeLike(toCity))
     .gte("departure_at", new Date(Math.max(Date.now(), new Date(d.earliest_date).getTime())).toISOString())
     .lte("departure_at", `${d.latest_date}T23:59:59Z`)
     .neq("traveler_id", userId)
@@ -107,14 +131,12 @@ export async function createRequest(_: FormState, formData: FormData): Promise<F
       notifySafe(id, {
         kind: "request_match",
         title: "Une demande correspond à votre trajet",
-        body: `${d.weight_kg} kg à envoyer de ${from.city} à ${to.city}. Proposez votre trajet à l'expéditeur.`,
-        href: `/demandes/${data.id}`,
+        body: `${d.weight_kg} kg à envoyer de ${fromCity} à ${toCity}. Proposez votre trajet à l'expéditeur.`,
+        href: `/demandes/${requestId}`,
+        email: true,
       }),
     ),
   );
-
-  revalidatePath("/demandes");
-  redirect(`/demandes/${data.id}?publiee=1`);
 }
 
 export async function closeRequest(requestId: string) {
