@@ -9,7 +9,6 @@ import {
   CircleDashed,
   CreditCard,
   Gift,
-  LogOut,
   MapPinned,
   MessageCircle,
   Package,
@@ -26,7 +25,7 @@ import {
 import { deleteAlert } from "@/app/actions/account";
 import { acceptBooking, declineBooking } from "@/app/actions/bookings";
 import { cancelTrip } from "@/app/actions/trips";
-import { signOut } from "@/app/actions/auth";
+import { SignOutButton } from "@/components/sign-out-button";
 import { Avatar } from "@/components/avatar";
 import { RouteArc } from "@/components/journey";
 import { PageShell } from "@/components/page-shell";
@@ -407,11 +406,9 @@ async function Dashboard({ searchParams }: { searchParams: Promise<{ onglet?: st
                 <ChevronRight className="h-4 w-4 text-muted" aria-hidden="true" />
               </Link>
             ))}
-            <form action={signOut} className="border-t border-line">
-              <button type="submit" className="flex w-full items-center gap-3 px-5 py-3.5 text-[15px] font-semibold text-muted hover:bg-paper hover:text-danger">
-                <LogOut className="h-5 w-5" aria-hidden="true" />{" "}{t("Se déconnecter")}
-              </button>
-            </form>
+            <div className="border-t border-line">
+              <SignOutButton className="flex w-full items-center gap-3 px-5 py-3.5 text-[15px] font-semibold text-muted hover:bg-paper hover:text-danger disabled:opacity-60" />
+            </div>
           </nav>
         </aside>
       </div>

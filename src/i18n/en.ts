@@ -475,6 +475,7 @@ export const en: Record<string, string> = {
   "Parrainage ({euros} de crédit)": "Referrals ({euros} credit)",
   "Parrainage : 5 € pour vous, 5 € pour eux": "Referrals: €5 for you, €5 for them",
   "Se déconnecter": "Log out",
+  "Déconnexion…": "Logging out…",
   "Parrainage": "Referrals",
   "Parrainez vos proches": "Refer friends and family",
   "Partagez votre lien. Vos filleuls reçoivent {reward} sur les frais de leur premier envoi, et vous gagnez {reward} de crédit dès leur première livraison réussie.": "Share your link. The people you refer get {reward} off the fees on their first shipment, and you earn {reward} in credit as soon as their first delivery succeeds.",

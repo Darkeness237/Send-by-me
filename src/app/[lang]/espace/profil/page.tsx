@@ -15,7 +15,6 @@ import {
   KeyRound,
   Landmark,
   LifeBuoy,
-  LogOut,
   MapPin,
   Package,
   Plane,
@@ -27,7 +26,7 @@ import {
   type LucideIcon,
   Moon,
 } from "lucide-react";
-import { signOut } from "@/app/actions/auth";
+import { SignOutButton } from "@/components/sign-out-button";
 import { AmbassadorBadge } from "@/components/ambassador-badge";
 import { Avatar } from "@/components/avatar";
 import { startIdentityCheck } from "@/app/actions/verification";
@@ -150,11 +149,7 @@ async function AccountTab({ payout, autoPayout }: { payout: PayoutMethod | null;
         <MenuRow href="/confidentialite" icon={ShieldCheck} label={t("Protection des données")} />
       </MenuGroup>
       <div className="overflow-hidden rounded-3xl bg-card ring-1 ring-line">
-        <form action={signOut}>
-          <button type="submit" className="flex w-full items-center gap-4 px-5 py-4 text-left font-semibold text-brand hover:bg-paper">
-            <LogOut className="h-5 w-5" aria-hidden="true" /> {t("Se déconnecter")}
-          </button>
-        </form>
+        <SignOutButton className="flex w-full items-center gap-4 px-5 py-4 text-left font-semibold text-brand hover:bg-paper disabled:opacity-60" />
         <a
           href={`mailto:support@send-by-me.com?subject=${encodeURIComponent("Fermer mon compte Send By Me")}`}
           className="flex items-center gap-4 border-t border-line px-5 py-4 font-semibold text-danger hover:bg-danger-pale/40"
