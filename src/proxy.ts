@@ -25,6 +25,15 @@ function localized(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
+  // Adresse technique Netlify (…netlify.app) : on renvoie vers le vrai domaine, seul à porter la session.
+  // L'hôte vient de l'en-tête du navigateur : l'URL interne de la requête peut, elle, être l'adresse technique.
+  const site = process.env.NEXT_PUBLIC_SITE_URL;
+  const host = (request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? "").split(",")[0].trim();
+  if (site && host.endsWith(".netlify.app") && !host.startsWith("deploy-preview")) {
+    const target = new URL(request.nextUrl.pathname + request.nextUrl.search, site);
+    if (target.host !== host) return NextResponse.redirect(target, 308);
+  }
+
   const target = localized(request);
   const pass = () => (target ? NextResponse.rewrite(target, { request }) : NextResponse.next({ request }));
   // Retour de connexion (Google, Facebook, e-mail) arrivé sur l'accueil : Supabase y renvoie quand

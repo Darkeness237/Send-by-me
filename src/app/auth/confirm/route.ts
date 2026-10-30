@@ -1,6 +1,7 @@
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { after, NextResponse, type NextRequest } from "next/server";
 import { cleanReferralCode } from "@/lib/referral";
+import { SITE_URL } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { sendWelcome } from "@/lib/welcome";
@@ -50,7 +51,10 @@ async function afterLogin(supabase: Awaited<ReturnType<typeof createClient>>, ne
 
 // Liens envoyés par e-mail : confirmation d'inscription et réinitialisation du mot de passe.
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
+  // Adresse publique du site, jamais celle de la requête : derrière Netlify, elle peut être
+  // l'adresse technique d'un déploiement (…--send-by-me-demo.netlify.app), où la session n'existe pas.
+  const origin = SITE_URL;
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const code = searchParams.get("code");
