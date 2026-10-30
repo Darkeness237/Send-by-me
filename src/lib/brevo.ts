@@ -24,7 +24,8 @@ async function call(path: string, body: unknown) {
       console.error("Brevo", path, res.status, detail?.code, detail?.message);
     }
     return res.ok;
-  } catch {
+  } catch (e) {
+    console.error("Brevo", path, "appel impossible", (e as Error).name, (e as Error).message);
     return false;
   }
 }
