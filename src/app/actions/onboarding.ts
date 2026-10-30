@@ -28,8 +28,8 @@ export async function sendPhoneCode(_: FormState, formData: FormData): Promise<F
   const userId = await getUserId();
   if (!userId) return { error: "Connectez-vous." };
   if (!isSmsConfigured()) return { error: "La vérification par SMS n'est pas encore activée. Réessayez un peu plus tard." };
-  const phone = toE164(String(formData.get("phone") ?? ""), String(formData.get("dial") ?? "+33"));
-  if (!/^\+[0-9]{8,15}$/.test(phone)) return { error: "Numéro invalide. Exemple : 6 12 34 56 78." };
+  const phone = toE164(String(formData.get("phone") ?? ""), String(formData.get("dial") ?? "+33").split("|")[0]);
+  if (!/^\+[0-9]{8,15}$/.test(phone)) return { error: "Numéro invalide. Choisissez l'indicatif du pays, puis tapez le numéro." };
 
   const db = createAdminClient();
   const { data: prev } = await db.from("phone_verifications").select("sent_count, created_at").eq("user_id", userId).maybeSingle();

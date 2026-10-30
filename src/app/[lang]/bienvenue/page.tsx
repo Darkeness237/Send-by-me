@@ -41,7 +41,7 @@ async function Welcome({ searchParams }: { searchParams: Promise<Record<string, 
   const [profile, sp] = await Promise.all([getProfile(userId), searchParams]);
   if (!profile) redirect("/espace");
   const supabase = await createClient();
-  const { data: contact } = await supabase.from("member_contacts").select("phone, phone_verified_at").eq("user_id", userId).maybeSingle();
+  const { data: contact } = await supabase.from("member_contacts").select("phone, phone_verified_at, country").eq("user_id", userId).maybeSingle();
   const firstName = (profile.full_name || "").split(" ")[0];
 
   return (
@@ -57,7 +57,7 @@ async function Welcome({ searchParams }: { searchParams: Promise<Record<string, 
           </Step>
           <Step n={2} title={t("Votre numéro de téléphone")} done={!!contact?.phone_verified_at}>
             <p className="mb-4 text-sm text-muted">{t("Il n'est jamais affiché. Il sert à vous joindre pour une livraison et sécurise votre compte.")}</p>
-            <PhoneVerifier verifiedPhone={contact?.phone_verified_at ? (contact.phone as string) : null} />
+            <PhoneVerifier verifiedPhone={contact?.phone_verified_at ? (contact.phone as string) : null} country={contact?.country as string | null} />
           </Step>
           <Step n={3} title={t("Votre pièce d'identité")} done={profile.id_verified}>
             {profile.id_verified ? (

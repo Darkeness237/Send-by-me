@@ -1376,4 +1376,6 @@ export const en: Record<string, string> = {
   "Faites vérifier votre identité avant de publier un trajet (Mon profil).": "Get your identity verified before publishing a trip (My profile).",
   "Confirmez votre adresse e-mail avant de réserver.": "Confirm your email address before booking.",
   "Faites vérifier votre identité avant de réserver (Mon profil).": "Get your identity verified before booking (My profile).",
+  "Numéro, ou +indicatif et numéro": "Number, or +code and number",
+  "Numéro invalide. Choisissez l'indicatif du pays, puis tapez le numéro.": "Invalid number. Choose the country code, then type the number.",
 };

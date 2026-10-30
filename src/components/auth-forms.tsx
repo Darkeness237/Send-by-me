@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 import { submitKeepingValues } from "@/components/ui/keep-form";
 import { Field, FormMessage, Input, Select } from "@/components/ui/field";
-import { useT } from "@/i18n/client";
+import { CountryOptions } from "@/components/country-options";
+import { useLocale, useT } from "@/i18n/client";
 
 export function SignInForm({ next }: { next?: string }) {
   const t = useT();
@@ -70,7 +71,6 @@ function ResendConfirmation({ email }: { email: string }) {
   );
 }
 
-const COUNTRIES = ["France", "Belgique", "Cameroun", "Sénégal", "Côte d'Ivoire", "Gabon", "RD Congo", "Congo", "Togo", "Bénin", "Mali", "Maroc", "Autre"];
 
 /** Indication simple de robustesse : longueur et variété des caractères. */
 function passwordStrength(pw: string) {
@@ -89,6 +89,7 @@ function passwordStrength(pw: string) {
 
 export function SignUpForm({ next, referral }: { next?: string; referral?: string }) {
   const t = useT();
+  const lang = useLocale();
   const [state, action, pending] = useActionState(signUp, null);
   const [password, setPassword] = useState("");
   const strength = passwordStrength(password);
@@ -134,11 +135,7 @@ export function SignUpForm({ next, referral }: { next?: string; referral?: strin
         </Field>
         <Field label={t("Pays de résidence")} htmlFor="country">
           <Select id="country" name="country" defaultValue="France" autoComplete="country-name">
-            {COUNTRIES.map((c) => (
-              <option key={c} value={c}>
-                {t(c)}
-              </option>
-            ))}
+            <CountryOptions lang={lang} />
           </Select>
         </Field>
       </div>

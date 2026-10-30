@@ -6,7 +6,9 @@ import { saveAvatar, sendPhoneCode, verifyPhoneCode } from "@/app/actions/onboar
 import { Button } from "@/components/ui/button";
 import { Field, FormMessage, Input, Select } from "@/components/ui/field";
 import { createClient } from "@/lib/supabase/client";
-import { useT } from "@/i18n/client";
+import { CountryOptions } from "@/components/country-options";
+import { useLocale, useT } from "@/i18n/client";
+import { countryByName } from "@/lib/countries";
 
 const AVATAR_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 
@@ -59,27 +61,11 @@ export function AvatarUploader({ userId, current, name }: { userId: string; curr
   );
 }
 
-const DIALS = [
-  ["+33", "France"],
-  ["+32", "Belgique"],
-  ["+237", "Cameroun"],
-  ["+221", "Sénégal"],
-  ["+225", "Côte d'Ivoire"],
-  ["+241", "Gabon"],
-  ["+243", "RD Congo"],
-  ["+242", "Congo"],
-  ["+228", "Togo"],
-  ["+229", "Bénin"],
-  ["+223", "Mali"],
-  ["+212", "Maroc"],
-  ["+41", "Suisse"],
-  ["+44", "Royaume-Uni"],
-  ["+1", "Canada / États-Unis"],
-];
-
 /** Vérification du numéro : envoi d'un code par SMS, puis saisie du code. */
-export function PhoneVerifier({ verifiedPhone }: { verifiedPhone: string | null }) {
+export function PhoneVerifier({ verifiedPhone, country }: { verifiedPhone: string | null; country?: string | null }) {
   const t = useT();
+  const lang = useLocale();
+  const home = countryByName(country) ?? countryByName("France")!;
   const [sent, sendAction, sending] = useActionState(sendPhoneCode, null);
   const [checked, verifyAction, verifying] = useActionState(verifyPhoneCode, null);
   if (verifiedPhone || checked?.ok) {
@@ -93,17 +79,13 @@ export function PhoneVerifier({ verifiedPhone }: { verifiedPhone: string | null 
     <div className="space-y-4">
       <form action={sendAction} className="flex flex-wrap items-end gap-2">
         <Field label={t("Indicatif")} htmlFor="dial">
-          <Select id="dial" name="dial" defaultValue="+33" className="w-36">
-            {DIALS.map(([d, c]) => (
-              <option key={d} value={d}>
-                {d} {t(c)}
-              </option>
-            ))}
+          <Select id="dial" name="dial" defaultValue={`${home.dial}|${home.iso}`} className="w-44">
+            <CountryOptions lang={lang} dial />
           </Select>
         </Field>
         <div className="min-w-48 flex-1">
           <Field label={t("Numéro de mobile")} htmlFor="phone">
-            <Input id="phone" name="phone" type="tel" required autoComplete="tel-national" placeholder="6 12 34 56 78" />
+            <Input id="phone" name="phone" type="tel" required autoComplete="tel-national" placeholder={t("Numéro, ou +indicatif et numéro")} />
           </Field>
         </div>
         <Button type="submit" variant="outline" disabled={sending}>

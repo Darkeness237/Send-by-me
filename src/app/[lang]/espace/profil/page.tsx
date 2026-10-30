@@ -276,7 +276,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
         <AvatarUploader userId={userId} current={profile.avatar_url} name={profile.full_name || t("vous")} />
         <div className="border-t border-line pt-5">
           <h2 className="mb-3 font-bold">{t("Téléphone")}</h2>
-          <PhoneVerifier verifiedPhone={contact?.phone_verified_at ? (contact.phone as string) : null} />
+          <PhoneVerifier verifiedPhone={contact?.phone_verified_at ? (contact.phone as string) : null} country={contact?.country as string | null} />
         </div>
       </section>
 
