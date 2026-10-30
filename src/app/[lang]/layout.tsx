@@ -7,6 +7,7 @@ import { SITE_URL } from "@/lib/env";
 import { INTRO_SCRIPT, IntroSplash } from "@/components/intro-splash";
 import { PwaInstall } from "@/components/pwa";
 import { NavProgress } from "@/components/nav-progress";
+import { VisitBeacon } from "@/components/visit-beacon";
 import { FormValidation } from "@/components/form-validation";
 import { PlausiblePageviews } from "@/components/plausible-pageviews";
 import { THEME_SCRIPT } from "@/lib/theme";
@@ -69,6 +70,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <IntroSplash />
           <Suspense fallback={null}>
             <NavProgress />
+          </Suspense>
+          <Suspense fallback={null}>
+            <VisitBeacon />
           </Suspense>
           {children}
           <PwaInstall />

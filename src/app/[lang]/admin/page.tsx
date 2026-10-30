@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { AlertTriangle, BadgeCheck, Banknote, Gift, LayoutDashboard, Package, PiggyBank, Truck, Users, type LucideIcon } from "lucide-react";
+import { AlertTriangle, BadgeCheck, Banknote, BarChart3, Gift, LayoutDashboard, Package, PiggyBank, Truck, Users, type LucideIcon } from "lucide-react";
 import { AdminOverview, QUEUE_ICONS } from "@/components/admin-overview";
+import { AdminAudience, AUDIENCE_PERIODS, type AudiencePeriod } from "@/components/admin-audience";
 import { AdminFinances } from "@/components/admin-finances";
 import { PERIODS, type Period } from "@/lib/finance";
 import { setVerified } from "@/app/actions/admin";
@@ -28,6 +29,7 @@ export const metadata: Metadata = { title: "Administration", robots: { index: fa
 const TABS = [
   ["apercu", "Tableau de bord"],
   ["finances", "Finances"],
+  ["audience", "Audience"],
   ["verifications", "Vérifications"],
   ["signalements", "Signalements"],
   ["livraisons", "Livraisons"],
@@ -40,6 +42,7 @@ type Tab = (typeof TABS)[number][0];
 const TAB_ICONS: Record<Tab, LucideIcon> = {
   apercu: LayoutDashboard,
   finances: PiggyBank,
+  audience: BarChart3,
   verifications: BadgeCheck,
   signalements: AlertTriangle,
   livraisons: Truck,
@@ -68,7 +71,7 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
     db.from("bookings").select("id", { count: "exact", head: true }).gt("delivery_cents", 0).in("status", ["paid", "picked_up"]),
     db.from("ambassador_rewards").select("id", { count: "exact", head: true }).is("paid_at", null),
   ]);
-  const counts: Record<Tab, number | null> = { apercu: null, finances: null, verifications: (pendingIds ?? 0) + (pendingProofs ?? 0), signalements: openReports, livraisons: openDeliveries, versements: duePayouts, primes: dueRewards, membres: unverified, reservations: null };
+  const counts: Record<Tab, number | null> = { apercu: null, finances: null, audience: null, verifications: (pendingIds ?? 0) + (pendingProofs ?? 0), signalements: openReports, livraisons: openDeliveries, versements: duePayouts, primes: dueRewards, membres: unverified, reservations: null };
 
   let content: React.ReactNode = null;
 
@@ -89,6 +92,11 @@ async function Admin({ searchParams }: { searchParams: Promise<{ onglet?: string
   if (tab === "finances") {
     const period = (PERIODS.find(([k]) => k === sp.periode)?.[0] ?? "30j") as Period;
     content = <AdminFinances period={period} />;
+  }
+
+  if (tab === "audience") {
+    const period = (AUDIENCE_PERIODS.includes(sp.periode ?? "") ? sp.periode : "30") as AudiencePeriod;
+    content = <AdminAudience period={period} />;
   }
 
   if (tab === "verifications") {
