@@ -378,3 +378,38 @@ label:has(> input[type="checkbox"]:required) > span:first-of-type::after {
 :is(input, select, textarea)[aria-invalid="true"]:focus {
   --tw-ring-color: color-mix(in oklab, var(--color-danger) 20%, transparent);
 }
+
+/* Accueil : démonstration en 3 étapes (boucle de 9 s, une étape mise en avant toutes les 3 s) */
+@media (prefers-reduced-motion: no-preference) {
+  .demo-step {
+    animation: demo-focus 9s ease-in-out infinite;
+  }
+  .demo-step:nth-child(2) { animation-delay: 3s; }
+  .demo-step:nth-child(3) { animation-delay: 6s; }
+  @keyframes demo-focus {
+    0%, 2% { transform: none; border-color: transparent; }
+    6%, 30% { transform: translateY(-6px); border-color: var(--color-brand); box-shadow: 0 18px 40px rgb(14 48 76 / 0.12); }
+    36%, 100% { transform: none; border-color: transparent; box-shadow: none; }
+  }
+  .demo-track-fill { animation: demo-fill 9s linear infinite; }
+  .demo-plane { animation: demo-fly 9s linear infinite; }
+  @keyframes demo-fill { from { width: 0; } to { width: 100%; } }
+  @keyframes demo-fly { from { left: 0; } to { left: calc(100% - 1.5rem); } }
+  .demo-kilos { animation: demo-kilos 9s ease-out infinite; transform-origin: bottom; }
+  @keyframes demo-kilos { 0% { transform: scaleY(0); } 15%, 100% { transform: scaleY(1); } }
+  .demo-paid { animation: demo-paid 9s ease-out infinite; }
+  @keyframes demo-paid { 0%, 52% { transform: translateY(100%); } 56%, 100% { transform: none; } }
+  .demo-digit { animation: demo-digit 9s infinite; animation-delay: calc(var(--i) * 0.25s); }
+  @keyframes demo-digit {
+    0%, 70% { color: transparent; border-color: var(--color-line); }
+    72%, 86% { color: inherit; border-color: var(--color-brand); }
+    90%, 100% { color: #3aa66f; border-color: #3aa66f; }
+  }
+  /* Bloc confiance : les quatre étapes de l'argent s'allument l'une après l'autre */
+  .trust-flow-icon { animation: trust-pulse 8s ease-in-out infinite; animation-delay: calc(var(--i) * 2s); }
+  @keyframes trust-pulse {
+    0%, 4% { transform: scale(1); box-shadow: 0 0 0 0 rgb(235 147 50 / 0.5); }
+    10% { transform: scale(1.12); box-shadow: 0 0 0 10px rgb(235 147 50 / 0); }
+    18%, 100% { transform: scale(1); box-shadow: none; }
+  }
+}

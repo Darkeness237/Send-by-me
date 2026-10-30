@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ArrowRight, BadgeCheck, KeyRound, Lock, MessageCircle, PackagePlus, PackageX, Plane, Star, Truck } from "lucide-react";
+import { ArrowRight, BadgeCheck, KeyRound, Lock, PackagePlus, Plane, Star, Truck } from "lucide-react";
 import { DepartureBoard } from "@/components/departure-board";
 import { SearchForm } from "@/components/search-form";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
@@ -20,6 +20,8 @@ import famille from "../../../public/images/cadeau-famille.jpg";
 import { getLocale, getT } from "@/i18n/server";
 import { TrustBand } from "@/components/trust-band";
 import { HomeDeliveryBand } from "@/components/home-delivery-band";
+import { HowItWorksDemo } from "@/components/how-it-works-demo";
+import { TrustExplainer } from "@/components/trust-explainer";
 
 async function LiveBoard() {
   const trips = await getHomeBoardTrips().catch(() => []);
@@ -123,14 +125,18 @@ export default async function Home() {
                 <Truck className="h-4 w-4 text-signal" aria-hidden="true" /> {t("Livraison à domicile au Cameroun")}
               </a>
               <h1 className="display reveal text-[40px] sm:text-[56px] lg:text-[64px]">
-                {t("Vos colis")} <span className="text-brand">{t("voyagent")}</span> {t("dans la valise de")}{" "}
-                <span className="relative whitespace-nowrap">
-                  {t("quelqu'un.")}
+                {t("Vous voyagez avec des")}{" "}
+                <span className="relative whitespace-nowrap text-brand">
+                  {t("kilos disponibles")}
                   <span className="absolute inset-x-0 -bottom-1 h-2 rounded-full bg-signal/60" aria-hidden="true" />
                 </span>
+                {"\u00a0?"}
               </h1>
-              <p className="reveal reveal-delay-1 mt-5 max-w-[34rem] text-lg leading-relaxed text-ink-soft">
-                {t("Des voyageurs vérifiés proposent leurs kilos libres entre l'Europe et l'Afrique. Vous choisissez votre voyageur, et vous suivez votre colis jusqu'à ce qu'il arrive chez vos proches.")}
+              <p className="reveal reveal-delay-1 mt-5 max-w-[34rem] text-xl font-bold leading-snug text-ink">
+                {t("Quelqu'un peut en avoir besoin pour envoyer un colis.")}
+              </p>
+              <p className="reveal reveal-delay-1 mt-3 max-w-[34rem] text-lg leading-relaxed text-ink-soft">
+                {t("Send By Me met en relation des voyageurs vérifiés et des expéditeurs, entre l'Europe et l'Afrique.")}
               </p>
               <ul className="reveal reveal-delay-1 mt-6 grid max-w-[34rem] grid-cols-3 gap-2 sm:gap-2.5">
                 {(
@@ -278,33 +284,7 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Étapes */}
-        <section className="border-y border-line bg-card">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
-            <h2 className="display max-w-xl text-3xl sm:text-4xl">{t("Un envoi en quatre étapes")}</h2>
-            <ol className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                ["Trouvez un trajet", "Cherchez votre ville de départ et d'arrivée. Comparez dates, prix au kilo et avis."],
-                ["Demandez des kilos", "Décrivez votre colis. Le voyageur accepte ou refuse, vous pouvez discuter avec lui."],
-                ["Payez en ligne", "Par carte, en toute sécurité. Aucun paiement en espèces."],
-                ["Remise en main propre ou à domicile", "Votre destinataire donne son code de 6 chiffres au voyageur : la réception est validée. Ou faites livrer à domicile : notre livreur partenaire récupère le colis à l'arrivée."],
-              ].map(([title, text], i) => (
-                <li key={title} className="relative">
-                  <span className="wide tabular flex h-10 w-10 items-center justify-center rounded-full bg-night text-sm font-extrabold text-signal">
-                    {i + 1}
-                  </span>
-                  <h3 className="mt-4 text-lg font-bold">{t(title)}</h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-muted">{t(text)}</p>
-                  {i === 3 && (
-                    <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-signal/15 px-3 py-1 text-sm font-bold text-signal-deep">
-                      <Truck className="h-4 w-4" aria-hidden="true" /> {t("Option livraison à domicile")}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
+        <HowItWorksDemo />
 
         {/* Chiffres et avis */}
         <Suspense fallback={<div className="mx-auto h-[420px] max-w-6xl" />}>
@@ -358,34 +338,7 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Confiance */}
-        <section className="bg-night text-white">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
-            <h2 className="display max-w-2xl text-3xl sm:text-4xl">{t("Confier un colis à un inconnu, oui, mais pas à n'importe qui")}</h2>
-            <div className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-              {[
-                [BadgeCheck, "Identité vérifiée", "Pièce d'identité et selfie contrôlés avant d'obtenir le badge bleu."],
-                [Lock, "Paiement sécurisé", "Vous payez en ligne, jamais en espèces. En cas de problème, vous êtes remboursé."],
-                [KeyRound, "Code de remise", "Seul votre destinataire connaît le code. Sans lui, la livraison ne peut pas être validée."],
-                [Star, "Avis après chaque envoi", "Expéditeurs et voyageurs se notent mutuellement. Les avis ne peuvent pas être supprimés."],
-                [MessageCircle, "Messagerie intégrée", "Échangez photos du colis et lieu de rendez-vous sans donner votre numéro."],
-                [PackageX, "Objets interdits", "Le voyageur ouvre le colis devant vous. Liquides, argent liquide et produits illicites sont refusés."],
-              ].map(([Icon, title, text]) => {
-                const I = Icon as typeof Lock;
-                return (
-                  <div key={title as string}>
-                    <I className="h-6 w-6 text-signal" aria-hidden="true" />
-                    <h3 className="mt-3 text-lg font-bold">{t(title as string)}</h3>
-                    <p className="mt-1.5 text-[15px] leading-relaxed text-white/70">{t(text as string)}</p>
-                  </div>
-                );
-              })}
-            </div>
-            <Link href="/securite" className="mt-10 inline-block font-semibold text-signal underline-offset-4 hover:underline">
-              {t("Tout savoir sur la sécurité")}
-            </Link>
-          </div>
-        </section>
+        <TrustExplainer />
 
         {/* Corridors */}
         <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
