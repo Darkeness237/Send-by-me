@@ -17,6 +17,8 @@ import { euros } from "@/lib/pricing";
 import { getUserId } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/types";
 import { getLocale, getT } from "@/i18n/server";
+import { TrackEvent } from "@/components/track-event";
+import { corridorOf } from "@/lib/analytics";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -49,6 +51,7 @@ async function RequestView({ params, searchParams }: { params: Promise<{ id: str
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.2fr_1fr] lg:items-start">
       <div className="space-y-6">
+        {sp.publiee && <TrackEvent name="Demande publiée" props={{ corridor: corridorOf(r.from_city, r.to_city) }} />}
         {sp.publiee && <TakeoffBanner title={t("Demande publiée !")} text={t("Les voyageurs qui partent sur votre ligne sont prévenus.")} />}
         <section className="overflow-hidden rounded-3xl bg-card ring-1 ring-line">
           <div className="bg-night p-6 text-white">

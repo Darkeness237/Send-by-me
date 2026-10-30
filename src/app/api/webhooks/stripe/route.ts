@@ -3,6 +3,7 @@ import { markPaid, paymentFromSession } from "@/lib/booking-payment";
 import { notifySafe } from "@/lib/notify";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import * as Sentry from "@sentry/nextjs";
 
 /**
  * Webhook Stripe : seule source de vérité pour marquer une réservation comme payée.
@@ -12,38 +13,66 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export async function POST(request: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   const signature = request.headers.get("stripe-signature");
-  if (!secret || !signature) return new Response("Configuration manquante", { status: 400 });
+  if (!secret || !signature)
+    return new Response("Configuration manquante", { status: 400 });
 
   let event: Stripe.Event;
   try {
     const body = await request.text();
     event = stripe().webhooks.constructEvent(body, signature, secret);
-  } catch {
+  } catch (e) {
+    // Souvent un secret de webhook qui ne correspond pas (mode test / réel) : à voir dans Sentry.
+    Sentry.captureException(e, {
+      level: "warning",
+      tags: { area: "stripe-webhook", step: "signature" },
+    });
+    await Sentry.flush(2000);
     return new Response("Signature invalide", { status: 400 });
   }
 
-  switch (event.type) {
-    case "checkout.session.completed":
-    case "checkout.session.async_payment_succeeded": {
-      const session = event.data.object as Stripe.Checkout.Session;
-      if (session.payment_status === "paid" || session.payment_status === "no_payment_required") {
-        await markPaid(paymentFromSession(session));
+  try {
+    switch (event.type) {
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (
+          session.payment_status === "paid" ||
+          session.payment_status === "no_payment_required"
+        ) {
+          await markPaid(paymentFromSession(session));
+        }
+        break;
       }
-      break;
-    }
-    case "identity.verification_session.verified": {
-      // KYC Stripe Identity réussi : pièce authentique et selfie correspondant.
-      const vs = event.data.object as Stripe.Identity.VerificationSession;
-      const userId = vs.metadata?.user_id ?? vs.client_reference_id;
-      if (userId && /^[0-9a-f-]{36}$/.test(userId)) {
-        await createAdminClient().from("profiles").update({ id_verified: true }).eq("id", userId);
-        await notifySafe(userId, { kind: "verification_approved", title: "Identité vérifiée !", body: "Votre badge bleu est maintenant visible.", href: "/espace/profil", email: true });
+      case "identity.verification_session.verified": {
+        // KYC Stripe Identity réussi : pièce authentique et selfie correspondant.
+        const vs = event.data.object as Stripe.Identity.VerificationSession;
+        const userId = vs.metadata?.user_id ?? vs.client_reference_id;
+        if (userId && /^[0-9a-f-]{36}$/.test(userId)) {
+          await createAdminClient()
+            .from("profiles")
+            .update({ id_verified: true })
+            .eq("id", userId);
+          await notifySafe(userId, {
+            kind: "verification_approved",
+            title: "Identité vérifiée !",
+            body: "Votre badge bleu est maintenant visible.",
+            href: "/espace/profil",
+            email: true,
+          });
+        }
+        break;
       }
-      break;
+      case "checkout.session.async_payment_failed":
+        // La réservation reste « acceptée » : l'expéditeur peut relancer le paiement.
+        break;
     }
-    case "checkout.session.async_payment_failed":
-      // La réservation reste « acceptée » : l'expéditeur peut relancer le paiement.
-      break;
+  } catch (e) {
+    // Erreur de traitement : Stripe renverra l'événement (réponse 500), et l'équipe est alertée.
+    Sentry.captureException(e, {
+      tags: { area: "stripe-webhook", event_type: event.type },
+    });
+    await Sentry.flush(2000);
+    return new Response("Erreur de traitement", { status: 500 });
   }
 
   return Response.json({ received: true });

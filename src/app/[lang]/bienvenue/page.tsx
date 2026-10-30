@@ -12,6 +12,7 @@ import { getProfile } from "@/lib/data";
 import { isStripeConfigured } from "@/lib/stripe";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { getT } from "@/i18n/server";
+import { TrackEvent } from "@/components/track-event";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -34,6 +35,9 @@ function Step({ n, title, done, children }: { n: number; title: string; done?: b
   );
 }
 
+// Page rendue à chaque visite : l'heure courante fait partie de la requête.
+const nowMs = () => new Date().getTime();
+
 async function Welcome({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const t = await getT();
   const userId = await getUserId();
@@ -41,13 +45,20 @@ async function Welcome({ searchParams }: { searchParams: Promise<Record<string, 
   const [profile, sp] = await Promise.all([getProfile(userId), searchParams]);
   if (!profile) redirect("/espace");
   const supabase = await createClient();
-  const { data: contact } = await supabase.from("member_contacts").select("phone, phone_verified_at, country").eq("user_id", userId).maybeSingle();
+  const [{ data: contact }, { data: auth }] = await Promise.all([
+    supabase.from("member_contacts").select("phone, phone_verified_at, country").eq("user_id", userId).maybeSingle(),
+    supabase.auth.getUser(),
+  ]);
+  // Inscription par Google ou Facebook : comptée à la première arrivée ici (l'inscription par e-mail l'est à l'envoi du formulaire).
+  const provider = auth.user?.app_metadata?.provider as string | undefined;
+  const newSocialSignup = (provider === "google" || provider === "facebook") && nowMs() - new Date(auth.user!.created_at).getTime() < 15 * 60_000;
   const firstName = (profile.full_name || "").split(" ")[0];
 
   return (
     <div className="min-h-dvh bg-paper">
       <div className="mx-auto max-w-xl px-4 py-8 sm:px-6">
         <Logo />
+        {newSocialSignup && <TrackEvent name="Inscription" props={{ methode: provider as "google" | "facebook" }} />}
         <h1 className="display mt-8 text-3xl sm:text-4xl">{firstName ? t("Bienvenue, {firstName} !", { firstName }) : t("Bienvenue !")}</h1>
         <p className="mt-2 text-muted">{t("Quelques étapes rapides pour inspirer confiance aux autres membres. Vous pouvez les faire plus tard.")}</p>
 

@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // Base de travail : à faire relire par un juriste avant le lancement public.
 export default function Terms() {
   return (
-    <ProsePage frenchOnly title="Conditions d'utilisation" intro="Version de travail du 27 octobre 2026. Ce texte doit être validé par un juriste avant le lancement public.">
+    <ProsePage frenchOnly title="Conditions d'utilisation" intro="Version du 30 octobre 2026.">
       <section>
         <h2>1. Le service</h2>
         <p>

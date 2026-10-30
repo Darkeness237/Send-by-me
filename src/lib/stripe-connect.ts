@@ -5,6 +5,7 @@ import { notifySafe } from "@/lib/notify";
 import { euros } from "@/lib/pricing";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import * as Sentry from "@sentry/nextjs";
 
 // Virements automatiques aux voyageurs avec Stripe Connect :
 // – compte « destinataire de virements » (contrat recipient) avec le tableau de bord Express, frais et pertes portés par Send By Me ;
@@ -89,7 +90,10 @@ export async function ensureConnectAccount(userId: string, country: string, emai
     // IBAN prérempli : Stripe ne le redemande pas. En cas de refus, Stripe le demandera simplement pendant l'inscription.
     await stripe()
       .accounts.createExternalAccount(account.id, { external_account: bankAccount(country, bank), default_for_currency: true })
-      .catch((e) => console.error("IBAN prérempli chez Stripe", e instanceof Error ? e.message : e));
+      .catch((e) => {
+        console.error("IBAN prérempli chez Stripe", e instanceof Error ? e.message : e);
+        Sentry.captureException(e, { level: "warning", tags: { area: "payout", step: "prefill-iban" } });
+      });
   }
   await createAdminClient().from("stripe_connect_accounts").insert({ user_id: userId, account_id: account.id, country });
   return account.id;
@@ -125,6 +129,7 @@ export async function syncConnectAccount(userId: string): Promise<ConnectAccount
     return { ...acc, transfers_active: active };
   } catch (e) {
     console.error("Compte Stripe du voyageur", userId, e instanceof Error ? e.message : e);
+    Sentry.captureException(e, { tags: { area: "payout", step: "sync-account" } });
     return acc;
   }
 }
@@ -197,6 +202,7 @@ export async function payTraveler(bookingId: string): Promise<string | null> {
   } catch (e) {
     // Le versement reste « à verser » : l'administration le voit et peut relancer.
     console.error("Virement Stripe au voyageur", bookingId, e instanceof Error ? e.message : e);
+    Sentry.captureException(e, { tags: { area: "payout", step: "transfer" } });
     return null;
   }
 }

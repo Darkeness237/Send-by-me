@@ -11,6 +11,7 @@ import { CONNECT_COUNTRIES, ensureConnectAccount, expressDashboardUrl, getConnec
 import { isStripeConfigured } from "@/lib/stripe";
 import { REPORT_REASONS } from "@/lib/types";
 import type { FormState } from "./auth";
+import * as Sentry from "@sentry/nextjs";
 
 const DEMO_ERROR = "Mode démo : connectez Supabase pour activer cette fonction.";
 
@@ -162,6 +163,7 @@ export async function savePayoutMethod(_: FormState, formData: FormData): Promis
       else return { ok: "IBAN mis à jour. Vos prochains virements automatiques y seront envoyés." };
     } catch (e) {
       console.error("Virements automatiques à l'enregistrement de l'IBAN", e instanceof Error ? e.message : e);
+      Sentry.captureException(e, { tags: { area: "payout", step: "onboarding-from-iban" } });
       return { ok: "IBAN enregistré. Vos gains seront versés sur ce compte." };
     }
     redirect(url);
@@ -194,6 +196,7 @@ export async function startStripeOnboarding(formData: FormData) {
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("Inscription Stripe du voyageur", message);
+    Sentry.captureException(e, { tags: { area: "payout", step: "onboarding" } });
     // Connect pas encore activé sur le compte Stripe de Send By Me : rien que le voyageur puisse faire.
     redirect(`/espace/profil/versement?stripe=${/connect/i.test(message) && /sign(ed)? up|enable|activate|platform/i.test(message) ? "indisponible" : "erreur"}`);
   }

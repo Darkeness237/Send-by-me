@@ -10,6 +10,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getSession } from "@/lib/supabase/server";
 import type { FormState } from "./auth";
 import { payTraveler } from "@/lib/stripe-connect";
+import * as Sentry from "@sentry/nextjs";
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from "@/lib/finance";
 
 /** Chaque action admin revérifie le rôle côté serveur. */
@@ -101,7 +102,8 @@ export async function refundBooking(_: FormState, formData: FormData): Promise<F
         { payment_intent: b.stripe_payment_intent_id, metadata: { booking_id: b.id } },
         { idempotencyKey: `refund-${b.id}` },
       );
-    } catch {
+    } catch (e) {
+      Sentry.captureException(e, { tags: { area: "refund" } });
       return { error: "Stripe a refusé le remboursement. Vérifiez le paiement dans le Dashboard." };
     }
   }
