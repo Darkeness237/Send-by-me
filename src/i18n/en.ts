@@ -1363,4 +1363,7 @@ export const en: Record<string, string> = {
   "Activer les notifications": "Turn on notifications",
   "Ne ratez aucune réponse": "Don't miss a reply",
   "Plus tard": "Later",
+  "M'envoyer une notification de test": "Send me a test notification",
+  "Les notifications fonctionnent": "Notifications are working",
+  "Vous serez prévenu ici à chaque étape de vos envois.": "You'll be notified here at every step of your shipments.",
 };
