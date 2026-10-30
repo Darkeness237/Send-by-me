@@ -37,6 +37,7 @@ import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import { AddressVerificationForm, IdentityVerificationForm } from "@/components/verification-forms";
 import { getProfile } from "@/lib/data";
+import { syncIdentityCheck } from "@/lib/identity-sync";
 import { isStripeConfigured } from "@/lib/stripe";
 import { createClient, getUserId } from "@/lib/supabase/server";
 import { maskIban, maskPhone, operatorLabel, type PayoutMethod } from "@/lib/payout";
@@ -170,8 +171,11 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
   const lang = await getLocale();
   const userId = await getUserId();
   if (!userId) redirect("/connexion?suite=/espace/profil");
-  const [profile, sp] = await Promise.all([getProfile(userId), searchParams]);
-  if (!profile) redirect("/espace");
+  const [found, sp] = await Promise.all([getProfile(userId), searchParams]);
+  if (!found) redirect("/espace");
+  // Webhook Stripe en retard ou manquant : on vérifie directement auprès de Stripe.
+  const kycStatus = found.id_verified ? null : await syncIdentityCheck(userId);
+  const profile = kycStatus === "verified" ? { ...found, id_verified: true } : found;
   const supabase = await createClient();
   const tab = sp.onglet === "compte" ? "compte" : "apropos";
   const [{ data: requests }, { data: contact }, { data: payout }, { count: trips }, { count: sendings }, { data: connect }] = await Promise.all([
@@ -311,7 +315,7 @@ async function Profile({ searchParams }: { searchParams: Promise<Record<string, 
                     <div className="rounded-2xl bg-brand-pale/50 p-4">
                       <p className="font-semibold">{t("Vérification en 2 minutes")}</p>
                       <p className="mt-1 mb-3 text-sm text-ink-soft">{t("Une photo de votre pièce, un selfie, et c'est fait. Le résultat arrive tout seul.")}</p>
-                      {sp.kyc === "retour" && (
+                      {(sp.kyc === "retour" || kycStatus === "processing") && (
                         <p role="status" className="mb-3 text-sm font-medium text-ok">
                           {t("Merci ! Le résultat s'affichera ici dans quelques instants.")}
                         </p>
