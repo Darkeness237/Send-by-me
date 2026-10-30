@@ -1,5 +1,6 @@
 "use server";
 
+import { verificationError, verificationStatus } from "@/lib/verification-gate";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -53,6 +54,8 @@ export async function publishTrip(_: FormState, formData: FormData): Promise<For
   if (!isSupabaseConfigured) return { error: "Mode démo : connectez Supabase pour publier un trajet." };
   const userId = await getUserId();
   if (!userId) return { error: "Connectez-vous pour publier un trajet." };
+  const verified = await verificationStatus(userId);
+  if (!verified.ready) return { error: verificationError(verified, "publier un trajet") };
 
   const parsed = tripSchema.safeParse({
     ...Object.fromEntries(formData),

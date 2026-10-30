@@ -9,6 +9,8 @@ import voyageuse from "../../../../public/images/voyageuse-prepare.jpg";
 import { getT } from "@/i18n/server";
 import { GuestGate } from "@/components/guest-gate";
 import { getUserId } from "@/lib/supabase/server";
+import { VerifyGate } from "@/components/verify-gate";
+import { verificationStatus } from "@/lib/verification-gate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -19,7 +21,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 async function FormWithPrices() {
-  if (!(await getUserId())) {
+  const userId = await getUserId();
+  if (!userId) {
     const t = await getT();
     return (
       <GuestGate
@@ -34,6 +37,8 @@ async function FormWithPrices() {
       />
     );
   }
+  const status = await verificationStatus(userId, { sync: true });
+  if (!status.ready) return <VerifyGate status={status} action="publish" />;
   return <PublishForm market={await getMarketPrices()} />;
 }
 

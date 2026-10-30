@@ -20,6 +20,8 @@ import { airlineName, TRANSPORT_CHECK_LABEL } from "@/lib/flights";
 import { codeFor, tzFor } from "@/lib/places";
 import { euros } from "@/lib/pricing";
 import { getUserId } from "@/lib/supabase/server";
+import { VerifyGate } from "@/components/verify-gate";
+import { verificationStatus } from "@/lib/verification-gate";
 import { CATEGORIES } from "@/lib/types";
 import { getLocale, getT } from "@/i18n/server";
 import { translateNote } from "@/i18n/patterns";
@@ -54,6 +56,8 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
     isOwner && isSupabaseConfigured && trip.status === "published" ? matchingRequests(trip) : Promise.resolve([]),
   ]);
   const bookable = trip.status === "published" && left >= 0.5 && isUpcoming(trip.departure_at);
+  // Minimum pour réserver : e-mail confirmé et identité vérifiée.
+  const gate = bookable && userId && userId !== trip.traveler_id ? await verificationStatus(userId, { sync: true }) : null;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-12">
@@ -338,6 +342,8 @@ async function TripView({ params, searchParams }: { params: Promise<{ id: string
               <p className="text-muted">{t("Ce trajet n'accepte plus de réservations.")}</p>
             ) : !userId ? (
               <TripQuote tripId={trip.id} pricePerKgCents={trip.price_per_kg_cents} maxKg={left} deliveryCountry={homeDeliveryAvailable(trip.to_country) ? trip.to_country : null} />
+            ) : gate && !gate.ready ? (
+              <VerifyGate status={gate} action="book" />
             ) : (
               <BookingForm
                 tripId={trip.id}

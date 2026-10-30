@@ -1,5 +1,6 @@
 "use server";
 
+import { verificationError, verificationStatus } from "@/lib/verification-gate";
 import { timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -68,6 +69,8 @@ export async function requestBooking(_: FormState, formData: FormData): Promise<
   if (!isSupabaseConfigured) return { error: "Mode démo : connectez Supabase pour réserver." };
   const userId = await getUserId();
   if (!userId) return { error: "Connectez-vous pour réserver des kilos." };
+  const verified = await verificationStatus(userId);
+  if (!verified.ready) return { error: verificationError(verified, "réserver") };
 
   const parsed = requestSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
