@@ -19,10 +19,20 @@ export type Notice = {
   email?: boolean;
 };
 
-const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
-const pushReady = Boolean(vapidPublic && vapidPrivate);
-if (pushReady) webpush.setVapidDetails("mailto:support@send-by-me.com", vapidPublic!, vapidPrivate!);
+// Clés collées à la main : on retire espaces, guillemets et « = » finaux avant de les utiliser.
+const cleanKey = (k?: string) => k?.trim().replace(/^["']|["']$/g, "").replace(/=+$/, "").trim();
+const vapidPublic = cleanKey(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
+const vapidPrivate = cleanKey(process.env.VAPID_PRIVATE_KEY);
+let pushReady = Boolean(vapidPublic && vapidPrivate);
+if (pushReady) {
+  try {
+    webpush.setVapidDetails("mailto:support@send-by-me.com", vapidPublic!, vapidPrivate!);
+  } catch (e) {
+    // Clé mal formée : les notifications push sont coupées, le reste du site continue.
+    pushReady = false;
+    console.error("Clés VAPID invalides", (e as Error).message);
+  }
+}
 
 const escape = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 

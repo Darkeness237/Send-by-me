@@ -1,6 +1,6 @@
 import { savePushSubscription } from "@/app/actions/notifications";
 
-export const VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+export const VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim().replace(/^["']|["']$/g, "").replace(/=+$/, "").trim() || undefined;
 
 function keyBytes(base64: string) {
   const pad = "=".repeat((4 - (base64.length % 4)) % 4);
