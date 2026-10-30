@@ -116,7 +116,7 @@ export async function onboardingUrl(accountId: string) {
 }
 
 /** Relit chez Stripe si le compte peut recevoir des virements, et met la base à jour. */
-export async function syncConnectAccount(userId: string): Promise<ConnectAccount | null> {
+export async function syncConnectAccount(userId: string, { payDue = true } = {}): Promise<ConnectAccount | null> {
   const acc = await getConnectAccount(userId);
   if (!acc) return null;
   try {
@@ -124,7 +124,7 @@ export async function syncConnectAccount(userId: string): Promise<ConnectAccount
     const active = account.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers?.status === "active";
     if (active !== acc.transfers_active) {
       await createAdminClient().from("stripe_connect_accounts").update({ transfers_active: active, updated_at: new Date().toISOString() }).eq("user_id", userId);
-      if (active) await payDueBookings(userId);
+      if (active && payDue) await payDueBookings(userId);
     }
     return { ...acc, transfers_active: active };
   } catch (e) {
@@ -155,7 +155,9 @@ export async function payTraveler(bookingId: string): Promise<string | null> {
     .maybeSingle();
   const trip = b && (Array.isArray(b.trip) ? b.trip[0] : b.trip);
   if (!b || !trip || b.payout_status !== "due") return null;
-  const acc = await getConnectAccount(trip.traveler_id as string);
+  let acc = await getConnectAccount(trip.traveler_id as string);
+  // Compte pas encore marqué actif : on redemande à Stripe, le voyageur n'a pas à rouvrir sa page.
+  if (acc && !acc.transfers_active) acc = await syncConnectAccount(trip.traveler_id as string, { payDue: false });
   if (!acc?.transfers_active) return null;
 
   // Mise en avant payante : retenue une seule fois, sur le premier versement du trajet.
@@ -211,4 +213,18 @@ export async function payTraveler(bookingId: string): Promise<string | null> {
 async function payDueBookings(userId: string) {
   const { data } = await createAdminClient().from("bookings").select("id, trip:trips!inner(traveler_id)").eq("trip.traveler_id", userId).eq("payout_status", "due").limit(50);
   for (const row of data ?? []) await payTraveler(row.id as string);
+}
+
+/**
+ * Comptes de versement en attente de validation Stripe : statut mis à jour, et réservations
+ * livrées versées dès que le compte devient actif. Appelé par la tâche planifiée.
+ */
+export async function syncPendingConnectAccounts() {
+  const { data } = await createAdminClient().from("stripe_connect_accounts").select("user_id").eq("transfers_active", false).limit(100);
+  let activated = 0;
+  for (const row of data ?? []) {
+    const acc = await syncConnectAccount(row.user_id as string);
+    if (acc?.transfers_active) activated++;
+  }
+  return { checked: data?.length ?? 0, activated };
 }
