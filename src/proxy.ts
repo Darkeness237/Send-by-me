@@ -3,7 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isLocale, LOCALE_COOKIE } from "@/i18n/config";
 
 // /publier et /demandes/nouvelle restent ouverts : un visiteur voit ce qui est demandé avant de créer son compte.
-const PROTECTED = ["/espace", "/reservations", "/admin", "/messages", "/bienvenue", "/notifications"];
+// /bienvenue vérifie la session elle-même : c'est la première page après une inscription Google.
+const PROTECTED = ["/espace", "/reservations", "/admin", "/messages", "/notifications"];
 
 // Langue : cookie (choix du membre), sinon langue du navigateur. L'adresse ne change pas :
 // la page est servie depuis le segment /fr ou /en, rendu à l'avance pour chaque langue.
@@ -68,8 +69,9 @@ export async function proxy(request: NextRequest) {
   });
 
   // Rafraîchit la session et vérifie la signature du jeton.
-  const { data } = await supabase.auth.getClaims();
+  const { data, error } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims?.sub);
+  if (!signedIn && error && isProtected(request.nextUrl.pathname)) console.warn("Session refusée", error.name, error.message);
 
   const path = request.nextUrl.pathname;
   if (!signedIn && isProtected(path)) {

@@ -15,6 +15,20 @@ async function attachReferral(supabase: Awaited<ReturnType<typeof createClient>>
   await createAdminClient().rpc("attach_referral", { p_referee: user.id, p_code: code });
 }
 
+/**
+ * Fin du retour Google / Facebook : petite page qui enchaîne vers la suite au lieu d'une redirection directe.
+ * Les cookies de session sont posés sur cette réponse, et la page suivante est une navigation interne au site :
+ * certains navigateurs mobiles (Safari) ne les renvoient pas dans une chaîne de redirections partie d'un autre site.
+ */
+function continueTo(url: string) {
+  const safe = JSON.stringify(url).replace(/</g, "\\u003c");
+  const attr = url.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  return new NextResponse(
+    `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=${attr}"><title>Send By Me</title></head><body style="font-family:system-ui,sans-serif;background:#fbf8f1;color:#0e304c;display:grid;place-items:center;min-height:100vh;margin:0"><p>Connexion…</p><script>location.replace(${safe})</script></body></html>`,
+    { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } },
+  );
+}
+
 /** N'accepte que des chemins internes, pour éviter les redirections ouvertes. */
 function safeNext(raw: string | null) {
   return raw && raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith("/\\") ? raw : "/espace";
@@ -45,12 +59,12 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       await attachReferral(supabase, searchParams.get("parrain"));
-      return NextResponse.redirect(`${origin}${await afterLogin(supabase, next)}`);
+      return continueTo(`${origin}${await afterLogin(supabase, next)}`);
     }
     // Retour Google/Facebook ouvert une deuxième fois (double clic, rechargement) : le premier passage
     // a déjà ouvert la session, on continue simplement au lieu d'afficher une erreur.
     const { data } = await supabase.auth.getUser();
-    if (data.user) return NextResponse.redirect(`${origin}${await afterLogin(supabase, next)}`);
+    if (data.user) return continueTo(`${origin}${await afterLogin(supabase, next)}`);
     // Sinon, le plus souvent : connexion commencée dans un autre navigateur (appli installée,
     // navigateur intégré d'Instagram ou de Gmail) que celui qui revient de Google.
     console.error("Retour de connexion Google", error.name, error.message);
