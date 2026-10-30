@@ -2,17 +2,12 @@
 
 import { Bell, BellOff } from "lucide-react";
 import { useEffect, useState } from "react";
-import { removePushSubscription, savePushSubscription } from "@/app/actions/notifications";
+import { removePushSubscription } from "@/app/actions/notifications";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/i18n/client";
+import { pushSupported, subscribePush, VAPID_KEY } from "@/lib/push-client";
 
-const KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-
-function keyBytes(base64: string) {
-  const pad = "=".repeat((4 - (base64.length % 4)) % 4);
-  const raw = atob((base64 + pad).replace(/-/g, "+").replace(/_/g, "/"));
-  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
-}
+const KEY = VAPID_KEY;
 
 type State = "unsupported" | "denied" | "off" | "on" | "busy";
 
@@ -24,7 +19,7 @@ export function PushToggle() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const supported = Boolean(KEY) && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+      const supported = pushSupported();
       if (!supported) return alive && setState("unsupported");
       if (Notification.permission === "denied") return alive && setState("denied");
       const reg = await navigator.serviceWorker.ready;
@@ -66,10 +61,7 @@ export function PushToggle() {
         setState("busy");
         try {
           if ((await Notification.requestPermission()) !== "granted") return setState("denied");
-          const reg = await navigator.serviceWorker.ready;
-          const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(KEY!) });
-          const r = await savePushSubscription(sub.toJSON());
-          setState("error" in r ? "off" : "on");
+          setState((await subscribePush()) ? "on" : "off");
         } catch {
           setState("off");
         }

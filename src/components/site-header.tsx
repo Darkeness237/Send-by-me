@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Bell, MessageCircle, PackagePlus, Plus } from "lucide-react";
+import { AutoPush } from "@/components/auto-push";
 import { Logo } from "@/components/logo";
 import { buttonClass } from "@/components/ui/button";
 import { getUnreadCount, getUnreadNotificationCount } from "@/lib/data";
@@ -15,6 +16,7 @@ async function AccountLinks({ dark }: { dark: boolean }) {
     const [unread, alerts] = await Promise.all([getUnreadCount(userId), getUnreadNotificationCount(userId)]);
     return (
       <>
+        <AutoPush />
         <Link
           href="/notifications"
           aria-label={alerts ? t("Notifications, {n} non lues", { n: alerts }) : t("Notifications")}
