@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { notify } from "@/lib/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getUserId } from "@/lib/supabase/server";
 
@@ -10,14 +9,6 @@ const subscriptionSchema = z.object({
   endpoint: z.url().startsWith("https://").max(1000),
   keys: z.object({ p256dh: z.string().min(10).max(200), auth: z.string().min(4).max(100) }),
 });
-
-/** Notification d'essai envoyée au membre connecté, sur tous ses appareils abonnés. */
-export async function sendTestNotification() {
-  const userId = await getUserId();
-  if (!userId) return;
-  await notify(userId, { kind: "test", title: "Les notifications fonctionnent", body: "Vous serez prévenu ici à chaque étape de vos envois.", href: "/notifications" });
-  revalidatePath("/notifications");
-}
 
 /** Enregistre l'abonnement push de cet appareil. */
 export async function savePushSubscription(raw: unknown) {

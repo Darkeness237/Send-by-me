@@ -18,7 +18,11 @@ async function call(path: string, body: unknown) {
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(8000),
     });
-    if (!res.ok) console.error("Brevo", path, res.status);
+    if (!res.ok) {
+      // Le message de Brevo dit pourquoi (crédits SMS épuisés, expéditeur refusé…) ; il ne contient pas le destinataire.
+      const detail = (await res.json().catch(() => null)) as { code?: string; message?: string } | null;
+      console.error("Brevo", path, res.status, detail?.code, detail?.message);
+    }
     return res.ok;
   } catch {
     return false;

@@ -2,10 +2,7 @@
 
 import { Bell, BellOff } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  removePushSubscription,
-  sendTestNotification,
-} from "@/app/actions/notifications";
+import { removePushSubscription } from "@/app/actions/notifications";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/i18n/client";
 import { pushSupported, subscribePush, VAPID_KEY } from "@/lib/push-client";
@@ -62,10 +59,6 @@ export function PushToggle() {
 
   return state === "on" ? (
     <div className="flex flex-wrap gap-2">
-      <Button size="sm" onClick={() => sendTestNotification()}>
-        <Bell className="h-4 w-4" aria-hidden="true" />{" "}
-        {t("M'envoyer une notification de test")}
-      </Button>
       <Button
         variant="outline"
         size="sm"
