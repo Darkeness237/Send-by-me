@@ -50,6 +50,7 @@ const DB_PATTERNS: [RegExp, string][] = [
   [/^Pour votre colis (.+)\. Répondez-lui dans la messagerie\.$/, "About your parcel $1. Reply in your messages."],
   [/^Nouveau trajet (.+)$/, "New trip $1"],
   [/^Trajet publié : (.+)$/, "Trip published: $1"],
+  [/^Bienvenue sur Send By Me, (.+) !$/, "Welcome to Send By Me, $1!"],
   [/^Demande publiée : (.+)$/, "Request published: $1"],
   [/^Prime de 5 € : (\d+) livraisons réussies$/, "€5 bonus: $1 successful deliveries"],
   [/^Virement de (.+) envoyé$/, "Transfer of $1 sent"],

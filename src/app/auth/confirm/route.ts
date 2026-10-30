@@ -1,8 +1,9 @@
 import { type EmailOtpType } from "@supabase/supabase-js";
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { cleanReferralCode } from "@/lib/referral";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { sendWelcome } from "@/lib/welcome";
 
 /** Connexion Google / Facebook d'un nouveau membre arrivé par un lien de parrainage. */
 async function attachReferral(supabase: Awaited<ReturnType<typeof createClient>>, rawCode: string | null) {
@@ -40,7 +41,11 @@ async function afterLogin(supabase: Awaited<ReturnType<typeof createClient>>, ne
   const { data } = await supabase.auth.getUser();
   if (!data.user) return next;
   const { data: profile } = await supabase.from("profiles").select("onboarded_at").eq("id", data.user.id).maybeSingle();
-  return profile && !profile.onboarded_at ? `/bienvenue?suite=${encodeURIComponent(next)}` : next;
+  if (!profile || profile.onboarded_at) return next;
+  // Nouveau membre : e-mail de bienvenue, envoyé après la réponse.
+  const userId = data.user.id;
+  after(() => sendWelcome(userId));
+  return `/bienvenue?suite=${encodeURIComponent(next)}`;
 }
 
 // Liens envoyés par e-mail : confirmation d'inscription et réinitialisation du mot de passe.
