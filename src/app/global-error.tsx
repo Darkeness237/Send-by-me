@@ -7,6 +7,17 @@ import { useEffect } from "react";
 
 export default function GlobalError({ error, retry }: { error: unknown; retry: () => void }) {
   useEffect(() => {
+    // Fichier d'une ancienne version (mise en ligne pendant la visite) : un rechargement suffit.
+    const e = error as { name?: string; message?: string } | null;
+    if (/ChunkLoadError|Loading chunk|dynamically imported module|Importing a module script failed|Failed to find Server Action/i.test(`${e?.name} ${e?.message}`)) {
+      try {
+        if (!sessionStorage.getItem("sbm-reloaded")) {
+          sessionStorage.setItem("sbm-reloaded", "1");
+          window.location.reload();
+          return;
+        }
+      } catch {}
+    }
     Sentry.captureException(error);
   }, [error]);
 

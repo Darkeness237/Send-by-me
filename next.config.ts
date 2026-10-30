@@ -4,6 +4,9 @@ import { withSentryConfig } from "@sentry/nextjs/config";
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
+  // Protection contre les décalages de version : un onglet resté ouvert pendant une mise en ligne
+  // recharge la page au lieu de chercher des fichiers de l'ancienne version (écran d'erreur).
+  deploymentId: process.env.DEPLOY_ID ?? process.env.COMMIT_REF ?? `build-${Date.now()}`,
   // Photos en qualité 90 (le reste en 75, la valeur par défaut).
   images: { qualities: [75, 90] },
   partialPrefetching: true,
