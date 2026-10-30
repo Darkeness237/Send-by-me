@@ -1,4 +1,5 @@
 import { signInWithFacebook, signInWithGoogle } from "@/app/actions/auth";
+import { GoogleIdentityButton } from "@/components/google-identity-button";
 import { getT } from "@/i18n/server";
 
 function GoogleLogo() {
@@ -15,7 +16,7 @@ function GoogleLogo() {
 /** Bouton « Continuer avec Google » (formulaire serveur, fonctionne sans JavaScript). */
 export async function GoogleButton({ next, referral }: { next?: string; referral?: string }) {
   const t = await getT();
-  return (
+  const form = (
     <form action={signInWithGoogle}>
       <input type="hidden" name="suite" value={next ?? ""} />
       {referral && <input type="hidden" name="parrain" value={referral} />}
@@ -27,6 +28,14 @@ export async function GoogleButton({ next, referral }: { next?: string; referral
         {t("Continuer avec Google")}
       </button>
     </form>
+  );
+  // Identifiant OAuth public : avec lui, Google affiche send-by-me.com au lieu de l'adresse Supabase.
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  if (!clientId) return form;
+  return (
+    <GoogleIdentityButton clientId={clientId} next={next} referral={referral}>
+      {form}
+    </GoogleIdentityButton>
   );
 }
 

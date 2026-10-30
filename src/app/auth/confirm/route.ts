@@ -57,6 +57,14 @@ export async function GET(request: NextRequest) {
   const next = safeNext(searchParams.get("suite") ?? (type === "recovery" ? "/nouveau-mot-de-passe" : null));
   const supabase = await createClient();
 
+  // Connexion Google ouverte depuis le site (Google Identity Services) : la session existe déjà.
+  if (searchParams.get("session") === "1") {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) return NextResponse.redirect(`${origin}/connexion?erreur=google&suite=${encodeURIComponent(next)}`);
+    await attachReferral(supabase, searchParams.get("parrain"));
+    return NextResponse.redirect(`${origin}${await afterLogin(supabase, next)}`);
+  }
+
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
     if (!error) return NextResponse.redirect(`${origin}${await afterLogin(supabase, next, type === "recovery")}`);

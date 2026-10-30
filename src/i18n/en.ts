@@ -1382,4 +1382,5 @@ export const en: Record<string, string> = {
   "Les voyageurs de cette ligne sont prévenus. Vous recevrez un e-mail dès qu'un trajet correspond.": "Travellers on this route have been notified. You'll get an email as soon as a trip matches.",
   "Bienvenue sur Send By Me !": "Welcome to Send By Me!",
   "Envoyez un colis avec un voyageur vérifié, ou rentabilisez les kilos libres de votre valise. Commencez par compléter votre profil : photo, téléphone et identité.": "Send a parcel with a verified traveller, or earn money from the spare kilos in your suitcase. Start by completing your profile: photo, phone and ID.",
+  "La connexion avec Google a échoué. Réessayez, ou utilisez votre e-mail.": "Signing in with Google failed. Try again, or use your email.",
 };
