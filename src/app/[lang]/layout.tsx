@@ -45,7 +45,15 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: { card: "summary_large_image" },
     appleWebApp: { capable: true, title: "Send By Me", statusBarStyle: "black-translucent" },
-    icons: { apple: "/icons/apple-touch-icon.png" },
+    // Icône déclarée explicitement : sans « icon », le champ « apple » seul masquait l'icône du site
+    // (globe gris dans les résultats Google). Google veut un carré multiple de 48 px : 48 et 192.
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "48x48" },
+        { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      ],
+      apple: "/icons/apple-touch-icon.png",
+    },
     formatDetection: { telephone: false },
     alternates: { canonical: "/" },
   };
