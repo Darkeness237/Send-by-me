@@ -1407,4 +1407,6 @@ export const en: Record<string, string> = {
   "Le voyageur est payé": "The traveller gets paid",
   "Seulement après la remise validée.": "Only once the handover is confirmed.",
   "Colis non livré : vous êtes remboursé après examen du dossier. Après 5 codes incorrects, la validation est bloquée et notre équipe intervient.": "Parcel not delivered: you are refunded after review. After 5 wrong codes, confirmation is locked and our team steps in.",
+  "Cookies": "Cookies",
+  "Nous aimerions utiliser des cookies Google Ads pour mesurer l'efficacité de nos publicités. Le site fonctionne de la même façon si vous refusez.": "We'd like to use Google Ads cookies to measure how well our ads work. The site works exactly the same if you decline.",
 };

@@ -10,6 +10,7 @@ import { NavProgress } from "@/components/nav-progress";
 import { VisitBeacon } from "@/components/visit-beacon";
 import { FormValidation } from "@/components/form-validation";
 import { PlausiblePageviews } from "@/components/plausible-pageviews";
+import { AdsConsent } from "@/components/ads-consent";
 import { THEME_SCRIPT } from "@/lib/theme";
 import Script from "next/script";
 import { Suspense } from "react";
@@ -85,6 +86,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           {children}
           <PwaInstall />
           <FormValidation />
+          {/* Cookies Google Ads : chargés seulement après accord du visiteur (bannière), en production. */}
+          {process.env.NODE_ENV === "production" && <AdsConsent />}
           {/* Mesure d'audience Plausible : sans cookie ni donnée personnelle, en production seulement, une fois le site créé sur plausible.io (NEXT_PUBLIC_PLAUSIBLE=on). */}
           {process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_PLAUSIBLE === "on" && (
             <>

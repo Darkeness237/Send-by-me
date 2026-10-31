@@ -4,6 +4,7 @@ import { CORRIDORS, corridorSlug, findPlace } from "@/lib/places";
 import { getT } from "@/i18n/server";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ConsentLink } from "@/components/ads-consent";
 
 export async function SiteFooter() {
   const t = await getT();
@@ -47,6 +48,7 @@ export async function SiteFooter() {
           <ul className="space-y-2 text-sm">
             <li><Link href="/cgu" className="hover:text-white">{t("Conditions d'utilisation")}</Link></li>
             <li><Link href="/confidentialite" className="hover:text-white">{t("Confidentialité")}</Link></li>
+            <li><ConsentLink className="hover:text-white" /></li>
             <li><a href="mailto:contact@send-by-me.com" className="hover:text-white">contact@send-by-me.com</a></li>
           </ul>
         </div>
