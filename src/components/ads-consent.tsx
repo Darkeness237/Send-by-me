@@ -107,3 +107,26 @@ export function ConsentLink({ className }: { className?: string }) {
     </button>
   );
 }
+
+/** Conversion Google Ads « Inscription » : une fois par membre et par navigateur, seulement si les cookies sont acceptés. */
+export function SignupConversion({ userId }: { userId: string }) {
+  useEffect(() => {
+    try {
+      const sentKey = `sbm-signup-conv:${userId}`;
+      if (localStorage.getItem(KEY) !== "granted" || localStorage.getItem(sentKey)) return;
+      const w = window as unknown as { dataLayer?: unknown[] };
+      w.dataLayer = w.dataLayer || [];
+      // Même file d'attente que gtag : l'événement part dès que le script Google est chargé.
+      const gtag = function () {
+        // gtag attend l'objet « arguments » tel quel, pas un tableau.
+        // eslint-disable-next-line prefer-rest-params
+        w.dataLayer!.push(arguments);
+      } as (...args: unknown[]) => void;
+      gtag("event", "conversion", { send_to: `${ADS_ID}/gbQACOnsva8dEKCRpoxF` });
+      localStorage.setItem(sentKey, "1");
+    } catch {
+      // Stockage bloqué : pas de mesure, l'inscription n'est pas affectée.
+    }
+  }, [userId]);
+  return null;
+}

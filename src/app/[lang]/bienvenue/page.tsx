@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SignupConversion } from "@/components/ads-consent";
 import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { BadgeCheck, CheckCircle2 } from "lucide-react";
@@ -59,6 +60,8 @@ async function Welcome({ searchParams }: { searchParams: Promise<Record<string, 
       <div className="mx-auto max-w-xl px-4 py-8 sm:px-6">
         <Logo />
         {newSocialSignup && <TrackEvent name="Inscription" props={{ methode: provider as "google" | "facebook" }} />}
+        {/* Google Ads : tout nouveau membre arrive ici (e-mail confirmé ou Google / Facebook). */}
+        <SignupConversion userId={userId} />
         <h1 className="display mt-8 text-3xl sm:text-4xl">{firstName ? t("Bienvenue, {firstName} !", { firstName }) : t("Bienvenue !")}</h1>
         <p className="mt-2 text-muted">{t("Quelques étapes rapides pour inspirer confiance aux autres membres. Vous pouvez les faire plus tard.")}</p>
 
